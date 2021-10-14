@@ -28,7 +28,7 @@ from bpy_extras.wm_utils.progress_report import (
     ProgressReport,
     ProgressReportSubstep,
 )
-
+import numpy
 
 def name_compat(name):
     if name is None:
@@ -253,6 +253,10 @@ def write_file(filepath, objects, depsgraph, scene,
                EXPORT_GLOBAL_MATRIX=None,
                EXPORT_PATH_MODE='AUTO',
                progress=ProgressReport(),
+               #global_matrix=None,
+               EXPORT_X_SHIFT=0.0,
+               EXPORT_Y_SHIFT=0.0,
+               EXPORT_Z_SHIFT=0.0,
                ):
     """
     Basic write function. The context and options must be already set
@@ -451,8 +455,16 @@ def write_file(filepath, objects, depsgraph, scene,
                         subprogress2.step()
 
                         # Vert
-                        for v in me_verts:
-                            fw('v %.6f %.6f %.6f\n' % v.co[:])
+                        if EXPORT_X_SHIFT != 0.0 or EXPORT_Y_SHIFT != 0.0 or EXPORT_Z_SHIFT != 0.0:
+                            shift = [EXPORT_X_SHIFT,EXPORT_Y_SHIFT,EXPORT_Z_SHIFT]
+                            for v in me_verts:
+                                v.co = numpy.add(v.co,shift)
+                                print(str(v.co))
+                                fw('v %.6f %.6f %.6f\n' % v.co[:])                            
+                        else:
+                            
+                            for v in me_verts:
+                                fw('v %.6f %.6f %.6f\n' % v.co[:])
 
                         subprogress2.step()
 
@@ -672,6 +684,9 @@ def _write(context, filepath,
            EXPORT_ANIMATION,
            EXPORT_GLOBAL_MATRIX,
            EXPORT_PATH_MODE,  # Not used
+           EXPORT_X_SHIFT,
+           EXPORT_Y_SHIFT,
+           EXPORT_Z_SHIFT,
            ):
 
     with ProgressReport(context.window_manager) as progress:
@@ -729,6 +744,9 @@ def _write(context, filepath,
                        EXPORT_GLOBAL_MATRIX,
                        EXPORT_PATH_MODE,
                        progress,
+                       EXPORT_X_SHIFT,
+                       EXPORT_Y_SHIFT,
+                       EXPORT_Z_SHIFT,
                        )
             progress.leave_substeps()
 
@@ -790,6 +808,9 @@ def save(context,
            EXPORT_ANIMATION=use_animation,
            EXPORT_GLOBAL_MATRIX=global_matrix,
            EXPORT_PATH_MODE=path_mode,
+           EXPORT_X_SHIFT=global_shift_x,
+           EXPORT_Y_SHIFT=global_shift_y,
+           EXPORT_Z_SHIFT=global_shift_z,
            )
 
     return {'FINISHED'}
