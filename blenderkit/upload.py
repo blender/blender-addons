@@ -18,7 +18,7 @@
 
 
 from blenderkit import asset_inspector, paths, utils, bg_blender, autothumb, version_checker, search, ui_panels, ui, \
-    overrides, colors, rerequests, categories, upload_bg, tasks_queue, image_utils
+    overrides, colors, rerequests, categories, upload_bg, tasks_queue, image_utils, asset_bar_op
 
 import tempfile, os, subprocess, json, re
 
@@ -1362,6 +1362,8 @@ class AssetVerificationStatusChange(Operator):
         thread = threading.Thread(target=verification_status_change_thread,
                                   args=(self.asset_id, self.state, preferences.api_key))
         thread.start()
+        if asset_bar_op.asset_bar_operator is not None:
+            asset_bar_op.asset_bar_operator.update_layout(context, None)
         return {'FINISHED'}
 
     def invoke(self, context, event):

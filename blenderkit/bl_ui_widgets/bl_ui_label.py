@@ -56,7 +56,6 @@ class BL_UI_Label(BL_UI_Widget):
         r, g, b, a = self._text_color
         x = self.x_screen
         y = textpos_y
-        print(self._halign)
         if self._halign != 'LEFT':
             width, height = blf.dimensions(font_id, self._text)
             if self._halign == 'RIGHT':

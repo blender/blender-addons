@@ -170,6 +170,7 @@ def mouse_down_right(self, x, y):
 BL_UI_Button.mouse_down_right = mouse_down_right
 BL_UI_Button.set_mouse_down_right = set_mouse_down_right
 
+asset_bar_operator = None
 
 # BL_UI_Button.handle_event = handle_event
 
@@ -245,9 +246,13 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
 
     def init_tooltip(self):
         self.tooltip_widgets = []
-        tooltip_size = 500
-        total_size = tooltip_size# + 2 * self.assetbar_margin
-        self.tooltip_panel = BL_UI_Drag_Panel(0, 0, total_size, total_size)
+        tooltip_height = 500
+        tooltip_width = tooltip_height
+        ui_props = bpy.context.window_manager.blenderkitUI
+        if ui_props.asset_type == 'HDR':
+            tooltip_width = tooltip_width*2
+        # total_size = tooltip# + 2 * self.assetbar_margin
+        self.tooltip_panel = BL_UI_Drag_Panel(0, 0, tooltip_width, tooltip_height)
         self.tooltip_panel.bg_color = (0.0, 0.0, 0.0, 0.5)
         self.tooltip_panel.visible = False
         self.author_text_size = 15
@@ -255,15 +260,15 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         tooltip_image.text = ""
         img_path = paths.get_addon_thumbnail_path('thumbnail_notready.jpg')
         tooltip_image.set_image(img_path)
-        tooltip_image.set_image_size((tooltip_size, tooltip_size))
+        tooltip_image.set_image_size((tooltip_width, tooltip_height))
         tooltip_image.set_image_position((0, 0))
         self.tooltip_image = tooltip_image
         self.tooltip_widgets.append(tooltip_image)
 
         bottom_panel_fraction = 0.15
-        labels_start = total_size * (1 - bottom_panel_fraction)
+        labels_start = tooltip_height * (1 - bottom_panel_fraction)
 
-        dark_panel = BL_UI_Widget(0, labels_start, total_size, total_size * bottom_panel_fraction)
+        dark_panel = BL_UI_Widget(0, labels_start, tooltip_width, tooltip_height * bottom_panel_fraction)
         dark_panel.bg_color = (0.0, 0.0, 0.0, 0.7)
         self.tooltip_widgets.append(dark_panel)
 
@@ -271,13 +276,13 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         self.asset_name = name_label
         self.tooltip_widgets.append(name_label)
 
-        gravatar_size = int(tooltip_size * bottom_panel_fraction - self.assetbar_margin)
+        gravatar_size = int(tooltip_height * bottom_panel_fraction - self.assetbar_margin)
 
-        authors_name = self.new_text('author',total_size - gravatar_size-self.assetbar_margin, total_size - self.author_text_size- self.assetbar_margin, labels_start, text_size=16, halign='RIGHT')
+        authors_name = self.new_text('author',tooltip_width - gravatar_size-self.assetbar_margin, tooltip_height - self.author_text_size- self.assetbar_margin, labels_start, text_size=16, halign='RIGHT')
         self.authors_name = authors_name
         self.tooltip_widgets.append(authors_name)
 
-        gravatar_image = BL_UI_Button(total_size - gravatar_size, total_size - gravatar_size, 1, 1)
+        gravatar_image = BL_UI_Button(tooltip_width - gravatar_size, tooltip_height - gravatar_size, 1, 1)
         gravatar_image.text = ""
         img_path = paths.get_addon_thumbnail_path('thumbnail_notready.jpg')
         gravatar_image.set_image(img_path)
@@ -364,7 +369,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
 
         self.margin = ui_props.bl_rna.properties['margin'].default * ui_scale
         self.margin = 7
-        self.button_margin = 1
+        self.button_margin = 0
         self.assetbar_margin = self.margin
 
         self.thumb_size = user_preferences.thumb_size * ui_scale
@@ -585,6 +590,9 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
             return False
 
         ui_props.assetbar_on = True
+        global asset_bar_operator
+
+        asset_bar_operator = self
 
         self.active_index = -1
 
@@ -598,6 +606,9 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
     def on_finish(self, context):
         # redraw all areas, since otherwise it stays to hang for some more time.
         # bpy.types.SpaceView3D.draw_handler_remove(self._handle_2d_tooltip, 'WINDOW')
+        #to pass the operator to validation icons
+        global asset_bar_operator
+        asset_bar_operator = None
 
         scene = bpy.context.scene
         ui_props = bpy.context.window_manager.blenderkitUI
@@ -621,7 +632,6 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
             self.show_tooltip()
         print(self.active_index, search_index)
         if self.active_index != search_index:
-            print('what is happening?')
             self.active_index = search_index
 
             scene = bpy.context.scene
@@ -654,9 +664,9 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
             for r in bpy.context.area.regions:
                 if r.type == 'UI':
                     properties_width = r.width
-            tooltip_x = min(widget.x_screen + widget.width,
-                            bpy.context.region.width - self.tooltip_panel.width - properties_width)
-            tooltip_y = widget.y_screen + widget.height
+            tooltip_x = min(int(widget.x_screen + widget.width),
+                            int(bpy.context.region.width - self.tooltip_panel.width - properties_width))
+            tooltip_y = int(widget.y_screen + widget.height)
             self.tooltip_panel.update(tooltip_x, tooltip_y)
             self.tooltip_panel.layout_widgets()
             print(tooltip_x, tooltip_y)
@@ -695,6 +705,15 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
 
         blenderkit.search.search(get_next=True)
 
+    def update_validation_icon(self,asset_button, asset_data):
+        v_icon = ui.verification_icons[asset_data.get('verificationStatus', 'validated')]
+        if v_icon is not None:
+            img_fp = paths.get_addon_thumbnail_path(v_icon)
+            asset_button.validation_icon.set_image(img_fp)
+            asset_button.validation_icon.visible = True
+        else:
+            asset_button.validation_icon.visible = False
+
     def update_images(self):
         sr = bpy.context.window_manager.get('search results')
         if not sr:
@@ -714,14 +733,9 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
                     img_filepath = paths.get_addon_thumbnail_path('thumbnail_notready.jpg')
                 else:
                     img_filepath = img.filepath
+
                 asset_button.set_image(img_filepath)
-                v_icon = ui.verification_icons[asset_data.get('verificationStatus', 'validated')]
-                if v_icon is not None:
-                    img_fp = paths.get_addon_thumbnail_path(v_icon)
-                    asset_button.validation_icon.set_image(img_fp)
-                    asset_button.validation_icon.visible = True
-                else:
-                    asset_button.validation_icon.visible = False
+                self.update_validation_icon(asset_button,asset_data)
             else:
                 asset_button.visible = False
                 asset_button.validation_icon.visible = False

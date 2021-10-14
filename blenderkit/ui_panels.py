@@ -2332,6 +2332,9 @@ def header_search_draw(self, context):
         elif ui_props.asset_type == 'HDR':
             layout.popover(panel="VIEW3D_PT_blenderkit_advanced_HDR_search", text="", icon_value=icon_id)
 
+        if utils.profile_is_validator():
+            search_props = utils.get_search_props()
+            layout.prop(search_props, 'search_verification_status', text ='')
 
 def ui_message(title, message):
     def draw_message(self, context):
