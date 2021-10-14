@@ -146,10 +146,10 @@ class BL_UI_Widget:
             (self.x_screen <= x <= (self.x_screen + self.width)) and
             (widget_y >= y >= (widget_y - self.height))
             ):
-            print('is in rect!?')
-            print('area height', area_height)
-            print ('x sceen ',self.x_screen,'x ', x, 'width', self.width)
-            print ('widghet y', widget_y,'y', y, 'height',self.height)
+            # print('is in rect!?')
+            # print('area height', area_height)
+            # print ('x sceen ',self.x_screen,'x ', x, 'width', self.width)
+            # print ('widghet y', widget_y,'y', y, 'height',self.height)
             return True
 
         return False

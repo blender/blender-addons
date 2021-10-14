@@ -173,6 +173,44 @@ BL_UI_Button.set_mouse_down_right = set_mouse_down_right
 
 # BL_UI_Button.handle_event = handle_event
 
+def get_tooltip_data(asset_data):
+    gimg = None
+    tooltip_data = asset_data.get('tooltip_data')
+    if tooltip_data is None:
+        author_text = ''
+
+        if bpy.context.window_manager.get('bkit authors') is not None:
+            a = bpy.context.window_manager['bkit authors'].get(asset_data['author']['id'])
+            if a is not None and a != '':
+                if a.get('gravatarImg') is not None:
+                    gimg = utils.get_hidden_image(a['gravatarImg'], a['gravatarHash']).name
+
+                if len(a['firstName']) > 0 or len(a['lastName']) > 0:
+                    author_text = f"by {a['firstName']} {a['lastName']}"
+
+        aname = asset_data['displayName']
+        aname = aname[0].upper() + aname[1:]
+        if len(aname) > 36:
+            aname = f"{aname[:33]}..."
+
+        rc = asset_data.get('ratingsCount')
+        show_rating_threshold = 0
+        rcount = 0
+        quality = '-'
+        if rc:
+            rcount = min(rc.get('quality', 0), rc.get('workingHours', 0))
+        if rcount > show_rating_threshold:
+            quality = round(asset_data['ratingsAverage'].get('quality'))
+        tooltip_data = {
+            'aname': aname,
+            'author_text': author_text,
+            'quality': quality,
+            'gimg': gimg
+        }
+        asset_data['tooltip_data'] = tooltip_data
+    gimg = tooltip_data['gimg']
+    if gimg is not None:
+        gimg = bpy.data.images[gimg]
 
 class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
     bl_idname = "view3d.blenderkit_asset_bar_widget"
@@ -195,24 +233,25 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
     def description(cls, context, properties):
         return properties.tooltip
 
-    def new_text(self, text, x, y, width=100, height=15, text_size=None):
+    def new_text(self, text, x, y, width=100, height=15, text_size=None, halign = 'LEFT'):
         label = BL_UI_Label(x, y, width, height)
         label.text = text
         if text_size is None:
             text_size = 14
         label.text_size = text_size
         label.text_color = self.text_color
+        label._halign = halign
         return label
 
     def init_tooltip(self):
         self.tooltip_widgets = []
         tooltip_size = 500
-        total_size = tooltip_size + 2 * self.assetbar_margin
+        total_size = tooltip_size# + 2 * self.assetbar_margin
         self.tooltip_panel = BL_UI_Drag_Panel(0, 0, total_size, total_size)
         self.tooltip_panel.bg_color = (0.0, 0.0, 0.0, 0.5)
         self.tooltip_panel.visible = False
-
-        tooltip_image = BL_UI_Button(self.assetbar_margin, self.assetbar_margin, 1, 1)
+        self.author_text_size = 15
+        tooltip_image = BL_UI_Button(0, 0, 1, 1)
         tooltip_image.text = ""
         img_path = paths.get_addon_thumbnail_path('thumbnail_notready.jpg')
         tooltip_image.set_image(img_path)
@@ -222,18 +261,19 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         self.tooltip_widgets.append(tooltip_image)
 
         bottom_panel_fraction = 0.15
-        labels_start = total_size * (1 - bottom_panel_fraction) - self.margin
+        labels_start = total_size * (1 - bottom_panel_fraction)
 
         dark_panel = BL_UI_Widget(0, labels_start, total_size, total_size * bottom_panel_fraction)
         dark_panel.bg_color = (0.0, 0.0, 0.0, 0.7)
         self.tooltip_widgets.append(dark_panel)
 
-        name_label = self.new_text('', self.assetbar_margin * 2, labels_start, text_size=16)
+        name_label = self.new_text('', self.assetbar_margin, labels_start+self.assetbar_margin, text_size=20)
         self.asset_name = name_label
         self.tooltip_widgets.append(name_label)
 
-        gravatar_size = int(tooltip_size * bottom_panel_fraction - 2*self.margin)
-        authors_name = self.new_text('author',total_size - gravatar_size-100, self.assetbar_margin * 2, labels_start, text_size=16)
+        gravatar_size = int(tooltip_size * bottom_panel_fraction - self.assetbar_margin)
+
+        authors_name = self.new_text('author',total_size - gravatar_size-self.assetbar_margin, total_size - self.author_text_size- self.assetbar_margin, labels_start, text_size=16, halign='RIGHT')
         self.authors_name = authors_name
         self.tooltip_widgets.append(authors_name)
 
@@ -241,7 +281,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         gravatar_image.text = ""
         img_path = paths.get_addon_thumbnail_path('thumbnail_notready.jpg')
         gravatar_image.set_image(img_path)
-        gravatar_image.set_image_size((gravatar_size - 2*self.margin, gravatar_size-2*self.margin))
+        gravatar_image.set_image_size((gravatar_size - 1*self.margin, gravatar_size-1*self.margin))
         gravatar_image.set_image_position((0, 0))
         self.gravatar_image = gravatar_image
         self.tooltip_widgets.append(gravatar_image)
@@ -268,7 +308,6 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
                 return True
 
             self.search_results_count = len(sr)
-        print(sr, len(sr), self.search_results_count)
 
         if sr is not None and len(sr)!= self.search_results_count:
             self.search_results_count = len(sr)
@@ -324,11 +363,12 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         ui_scale = bpy.context.preferences.view.ui_scale
 
         self.margin = ui_props.bl_rna.properties['margin'].default * ui_scale
-        self.margin = 1
+        self.margin = 7
+        self.button_margin = 1
         self.assetbar_margin = self.margin
 
         self.thumb_size = user_preferences.thumb_size * ui_scale
-        self.button_size = 2 * self.margin + self.thumb_size
+        self.button_size = 2 * self.button_margin + self.thumb_size
 
         reg_multiplier = 1
         if not bpy.context.preferences.system.use_region_overlap:
@@ -367,6 +407,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
     def update_layout(self, context, event):
         self.init_ui()
         self.setup_widgets(context, event)
+        self.scroll_update()
 
     def asset_button_init(self, asset_x, asset_y, button_idx):
         button_bg_color = (0.2, 0.2, 0.2, .1)
@@ -385,7 +426,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         #     new_button.set_image(img.filepath)
 
         new_button.set_image_size((self.thumb_size, self.thumb_size))
-        new_button.set_image_position((self.margin, self.margin))
+        new_button.set_image_position((self.button_margin, self.button_margin))
         new_button.button_index = button_idx
         new_button.search_index = button_idx
         new_button.set_mouse_down(self.drag_drop_asset)
@@ -395,8 +436,9 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         new_button.text_input = self.handle_key_input
         # add validation icon to button
         icon_size = 24
-        validation_icon = BL_UI_Button(asset_x + self.button_size - icon_size - self.margin,
-                                       asset_y + self.button_size - icon_size - self.margin, 0, 0)
+        validation_icon_margin = 3
+        validation_icon = BL_UI_Button(asset_x + self.button_size - icon_size - self.button_margin - validation_icon_margin,
+                                       asset_y + self.button_size - icon_size - self.button_margin - validation_icon_margin, 0, 0)
 
         # v_icon = ui.verification_icons[asset_data.get('verificationStatus', 'validated')]
         # if v_icon is not None:
@@ -487,6 +529,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         self.init_ui()
         self.init_tooltip()
         self.hide_tooltip()
+        #to hide arrows accordingly:
 
     def setup_widgets(self, context, event):
         widgets_panel = self.widgets_panel
@@ -511,7 +554,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
 
         self.context = context
 
-        if self.do_search:
+        if self.do_search or context.window_manager.get('search results') is None:
             # TODO: move the search behaviour to separate operator, since asset bar can be already woken up from a timer.
 
             # we erase search keywords for cateogry search now, since these combinations usually return nothing now.
@@ -547,6 +590,8 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
 
         self.setup_widgets(context, event)
         self.tooltip_panel.add_widgets(self.tooltip_widgets)
+        # to hide arrows accordingly
+        self.scroll_update()
 
         return True
 
@@ -574,8 +619,9 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         search_index = widget.button_index + self.scroll_offset
         if search_index < self.search_results_count:
             self.show_tooltip()
-
+        print(self.active_index, search_index)
         if self.active_index != search_index:
+            print('what is happening?')
             self.active_index = search_index
 
             scene = bpy.context.scene
@@ -592,7 +638,17 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
             img = ui.get_large_thumbnail_image(asset_data)
             if img:
                 self.tooltip_image.set_image(img.filepath)
+
+            get_tooltip_data(asset_data)
             self.asset_name.text = asset_data['name']
+            self.authors_name.text = asset_data['tooltip_data']['author_text']
+
+            gimg = asset_data['tooltip_data']['gimg']
+            if gimg is not None:
+                gimg = bpy.data.images[gimg]
+            if gimg:
+                self.gravatar_image.set_image(gimg.filepath
+                                              )
             print('moving tooltip')
             properties_width = 0
             for r in bpy.context.area.regions:
@@ -671,14 +727,30 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
                 asset_button.validation_icon.visible = False
 
     def scroll_update(self):
-        sr = bpy.context.window_manager['search results']
-        sro = bpy.context.window_manager['search results orig']
+        sr = bpy.context.window_manager.get('search results')
+        sro = bpy.context.window_manager.get('search results orig')
+        #empty results
+        if sr is None:
+            self.button_scroll_down.visible = False
+            self.button_scroll_up.visible = False
+            return
+
         self.scroll_offset = min(self.scroll_offset, len(sr) - (self.wcount * self.hcount))
         self.scroll_offset = max(self.scroll_offset, 0)
         self.update_images()
 
         if sro['count'] > len(sr) and len(sr) - self.scroll_offset < (self.wcount * self.hcount) + 15:
             self.search_more()
+
+        if self.scroll_offset == 0:
+            self.button_scroll_down.visible = False
+        else:
+            self.button_scroll_down.visible = True
+
+        if self.scroll_offset >= sro['count'] - (self.wcount * self.hcount):
+            self.button_scroll_up.visible = False
+        else:
+            self.button_scroll_up.visible = True
 
     def search_by_author(self, asset_index):
         sr = bpy.context.window_manager['search results']
