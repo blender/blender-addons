@@ -61,7 +61,7 @@ if "bpy" in locals():
     upload_bg = reload(upload_bg)
     utils = reload(utils)
 
-    bl_ui_label = reload(bl_ui_widget)
+    bl_ui_widget = reload(bl_ui_widget)
     bl_ui_label = reload(bl_ui_label)
     bl_ui_button = reload(bl_ui_button)
     # bl_ui_checkbox = reload(bl_ui_checkbox)

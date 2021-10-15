@@ -69,7 +69,6 @@ class BL_UI_Widget:
     def update(self, x, y):
 
         area_height = self.get_area_height()
-
         self.x_screen = x
         self.y_screen = y
 
