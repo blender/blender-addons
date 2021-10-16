@@ -504,6 +504,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                         "(use this when you intend to edit the armature from exported data)",
             default=True # False for commit!
             )
+    preserve_original_bone_orientation: BoolProperty(
+            name="Preserve Original Bone Orientation",
+            description="Revert the Automatic Bone Orientation applied to the bones that are imported from a FBX file.",
+            default=True
+            )
     primary_bone_axis: EnumProperty(
             name="Primary Bone Axis",
             items=(('X', "X Axis", ""),
@@ -802,6 +807,7 @@ class FBX_PT_export_armature(bpy.types.Panel):
         layout.prop(operator, "armature_nodetype")
         layout.prop(operator, "use_armature_deform_only")
         layout.prop(operator, "add_leaf_bones")
+        layout.prop(operator, "preserve_original_bone_orientation")
 
 
 class FBX_PT_export_bake_animation(bpy.types.Panel):

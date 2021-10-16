@@ -2049,7 +2049,17 @@ class FbxImportHelperNode:
                 child_connect(bone, child_bone, None, connect_ctx)
 
         child_connect_finalize(bone, connect_ctx)
+
+        # Save the correction matrix into a custom property,
+        # so it can be used to revert the bone's orientation when exporting to a FBX file
+        if self.post_matrix:
+            bone['fbx_import_correction_matrix'] = self.flattened_post_matrix()
+
         return bone
+
+    def flattened_post_matrix(self):
+        dim = len(self.post_matrix)
+        return [self.post_matrix[i][j] for i in range(dim) for j in range(dim)]
 
     def build_node_obj(self, fbx_tmpl, settings):
         if self.bl_obj:

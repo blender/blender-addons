@@ -1054,6 +1054,19 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             return self.matrix_global.copy()
     matrix_rest_global = property(get_matrix_rest_global)
 
+    # Get the correction matrix that is applied during FBX import with Automatic Bone Orientation on
+    def get_import_correction_matrix(self):
+        fbx_import_correction_matrix = self.bdata.get('fbx_import_correction_matrix')
+
+        if fbx_import_correction_matrix:
+            if len(fbx_import_correction_matrix) == 16:
+                return Matrix([[fbx_import_correction_matrix[4 * i + j] for j in range(4)] for i in range(4)])
+            else:
+                print(f'Bone {self.name} fbx_import_correction_matrix must be an array with 16 elements.')
+
+        return None
+    import_correction_matrix = property(get_import_correction_matrix)
+
     # #### Transform and helpers
     def has_valid_parent(self, objects):
         par = self.parent
@@ -1106,6 +1119,17 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             # Apply the bone correction.
             if scene_data.settings.bone_correction_matrix:
                 matrix = matrix @ scene_data.settings.bone_correction_matrix
+
+            # Revert the Automatic Bone Orientation applied to the bones that are imported from a FBX file.
+            if scene_data.settings.preserve_original_bone_orientation:
+                import_correction_matrix = self.import_correction_matrix
+                if import_correction_matrix:
+                    matrix = matrix @ import_correction_matrix.inverted_safe()
+                # If we have a bone parent we need to undo the parent correction.
+                if not is_global and parent and parent.is_bone:
+                    parent_import_correction_matrix = parent.import_correction_matrix
+                    if parent_import_correction_matrix:
+                        matrix = parent_import_correction_matrix @ matrix
         elif self.bdata.type == 'LIGHT':
             matrix = matrix @ MAT_CONVERT_LIGHT
         elif self.bdata.type == 'CAMERA':
@@ -1226,7 +1250,7 @@ FBXExportSettings = namedtuple("FBXExportSettings", (
     "bake_space_transform", "global_matrix_inv", "global_matrix_inv_transposed",
     "context_objects", "object_types", "use_mesh_modifiers", "use_mesh_modifiers_render",
     "mesh_smooth_type", "use_subsurf", "use_mesh_edges", "use_tspace",
-    "armature_nodetype", "use_armature_deform_only", "add_leaf_bones",
+    "armature_nodetype", "use_armature_deform_only", "add_leaf_bones", "preserve_original_bone_orientation",
     "bone_correction_matrix", "bone_correction_matrix_inv",
     "bake_anim", "bake_anim_use_all_bones", "bake_anim_use_nla_strips", "bake_anim_use_all_actions",
     "bake_anim_step", "bake_anim_simplify_factor", "bake_anim_force_startend_keying",
