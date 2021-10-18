@@ -32,7 +32,7 @@ from bpy.props import (
 )
 
 CLIENT_ID = "IdFRwa3SGA8eMpzhRVFMg5Ts8sPK93xBjif93x0F"
-PORTS = [62485, 65425, 55428, 49452]
+PORTS = [62485, 65425, 55428, 49452, 35452, 25152, 5152, 1234]
 
 active_authenticator = None
 
