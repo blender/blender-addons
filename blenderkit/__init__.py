@@ -64,6 +64,7 @@ if "bpy" in locals():
     bl_ui_widget = reload(bl_ui_widget)
     bl_ui_label = reload(bl_ui_label)
     bl_ui_button = reload(bl_ui_button)
+    bl_ui_image = reload(bl_ui_image)
     # bl_ui_checkbox = reload(bl_ui_checkbox)
     # bl_ui_slider = reload(bl_ui_slider)
     # bl_ui_up_down = reload(bl_ui_up_down)
@@ -102,6 +103,7 @@ else:
     from blenderkit.bl_ui_widgets import bl_ui_widget
     from blenderkit.bl_ui_widgets import bl_ui_label
     from blenderkit.bl_ui_widgets import bl_ui_button
+    from blenderkit.bl_ui_widgets import bl_ui_image
     # from blenderkit.bl_ui_widgets import bl_ui_checkbox
     # from blenderkit.bl_ui_widgets import bl_ui_slider
     # from blenderkit.bl_ui_widgets import bl_ui_up_down

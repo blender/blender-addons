@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-from blenderkit import tasks_queue, utils, paths, search, categories, oauth, ui, ui_panels
+from blenderkit import tasks_queue, utils, paths, search, categories, oauth, ui, ui_panels, colors
 
 import bpy
 
@@ -49,7 +49,11 @@ def login_thread(signup=False):
 
 
 def login(signup, url, r_url, authenticator):
-    auth_token, refresh_token, oauth_response = authenticator.get_new_token(register=signup, redirect_url=r_url)
+    try:
+        auth_token, refresh_token, oauth_response = authenticator.get_new_token(register=signup, redirect_url=r_url)
+    except Exception as e:
+        tasks_queue.add_task((ui.add_report, (e, 20, colors.RED)))
+
     bk_logger.debug('tokens retrieved')
     tasks_queue.add_task((write_tokens, (auth_token, refresh_token, oauth_response)))
 

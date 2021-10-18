@@ -54,7 +54,6 @@ class BL_UI_OT_draw_operator(Operator):
         result = False
         for widget in self.widgets:
             if widget.handle_event(event):
-                print(type(widget))
                 result = True
         return result
 
