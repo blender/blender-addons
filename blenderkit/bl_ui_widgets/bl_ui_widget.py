@@ -52,7 +52,7 @@ class BL_UI_Widget:
         self._tag = value
 
     def draw(self):
-        if not self.visible:
+        if not self._is_visible:
             return
 
         self.shader.bind()

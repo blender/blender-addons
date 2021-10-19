@@ -78,9 +78,8 @@ class BL_UI_Button(BL_UI_Widget):
         self._textpos = [x, y]
 
     def draw(self):
-        if not self.visible:
+        if not self._is_visible:
             return
-
         area_height = self.get_area_height()
 
         self.shader.bind()

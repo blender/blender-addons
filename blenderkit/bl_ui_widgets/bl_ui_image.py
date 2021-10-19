@@ -30,7 +30,7 @@ class BL_UI_Image(BL_UI_Widget):
         super().update(x, y)
 
     def draw(self):
-        if not self.visible:
+        if not self._is_visible:
             return
 
         area_height = self.get_area_height()
