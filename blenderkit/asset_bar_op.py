@@ -15,7 +15,7 @@ import random
 import math
 
 import blenderkit
-from blenderkit import ui, paths, utils, search
+from blenderkit import ui, paths, utils, search, comments_utils
 
 from bpy.props import (
     IntProperty,
@@ -55,8 +55,7 @@ def get_area_height(self):
 
 BL_UI_Widget.get_area_height = get_area_height
 
-
-def asset_bar_modal(self, context, event):
+def modal_inside(self,context,event):
     ui_props = bpy.context.window_manager.blenderkitUI
     if ui_props.turn_off:
         ui_props.turn_off = False
@@ -109,6 +108,9 @@ def asset_bar_modal(self, context, event):
         self.update_layout(context, event)
 
     return {"PASS_THROUGH"}
+
+def asset_bar_modal(self, context, event):
+    return modal_inside(self,context,event)
 
 
 def asset_bar_invoke(self, context, event):
@@ -285,6 +287,11 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         for w in self.tooltip_widgets:
             w.visible = True
 
+    def show_notifications(self, widget):
+        bpy.ops.wm.show_notifications()
+        if comments_utils.check_notifications_read():
+            widget.visible = False
+
     def check_new_search_results(self, context):
         sr = bpy.context.window_manager.get('search results')
         if not hasattr(self, 'search_results_count'):
@@ -404,15 +411,13 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
 
         self.button_close.set_location(self.bar_width - self.other_button_size, 0)
         self.button_scroll_up.set_location(self.bar_width, 0)
-        self.panel.set_location(self.panel.x, self.panel.y)
         self.panel.width = self.bar_width
         self.panel.height = self.bar_height
 
+        self.panel.set_location(self.panel.x, self.panel.y)
+
         # to hide arrows accordingly
         self.scroll_update()
-        # self.init_tooltip()
-        # self.hide_tooltip()
-        # self.scroll_update()
 
     def asset_button_init(self, asset_x, asset_y, button_idx):
         ui_scale = bpy.context.preferences.view.ui_scale
@@ -460,6 +465,9 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         progress_bar.bg_color = (0.0, 1.0, 0.0, 0.3)
         new_button.progress_bar = progress_bar
         self.progress_bars.append(progress_bar)
+
+
+
         # if result['downloaded'] > 0:
         #     ui_bgl.draw_rect(x, y, int(ui_props.thumb_size * result['downloaded'] / 100.0), 2, green)
 
@@ -496,14 +504,17 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
                 self.asset_buttons.append(new_button)
                 button_idx += 1
 
-        self.button_close = BL_UI_Button(self.bar_width - self.other_button_size, -0, self.other_button_size,
+        self.button_close = BL_UI_Button(self.bar_width - self.other_button_size, -self.other_button_size, self.other_button_size,
                                          self.other_button_size)
         self.button_close.bg_color = button_bg_color
         self.button_close.hover_bg_color = button_hover_color
-        self.button_close.text = "X"
+        self.button_close.text = ""
+        img_fp = paths.get_addon_thumbnail_path('vs_rejected.png')
+        self.button_close.set_image(img_fp)
         self.button_close.set_mouse_down(self.cancel_press)
 
         self.widgets_panel.append(self.button_close)
+
         scroll_width = 30
         self.button_scroll_down = BL_UI_Button(-scroll_width, 0, scroll_width, self.bar_height)
         self.button_scroll_down.bg_color = button_bg_color
@@ -528,6 +539,19 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         self.button_scroll_up.set_mouse_down(self.scroll_up)
 
         self.widgets_panel.append(self.button_scroll_up)
+
+        #notifications
+        if not comments_utils.check_notifications_read():
+
+            self.button_notifications = BL_UI_Button(self.bar_width - self.other_button_size, self.bar_height, self.other_button_size,
+                                             self.other_button_size)
+            self.button_notifications.bg_color = button_bg_color
+            self.button_notifications.hover_bg_color = button_hover_color
+            self.button_notifications.text = ""
+            img_fp = paths.get_addon_thumbnail_path('bell.png')
+            self.button_notifications.set_image(img_fp)
+            self.button_notifications.set_mouse_down(self.show_notifications)
+            self.widgets_panel.append(self.button_notifications)
 
         self.update_images()
 

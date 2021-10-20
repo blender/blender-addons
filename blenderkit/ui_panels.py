@@ -592,6 +592,94 @@ class VIEW3D_PT_blenderkit_profile(Panel):
                             icon='URL').url = paths.get_bkit_url() + paths.BLENDERKIT_USER_ASSETS
 
 
+class MarkNotificationRead(bpy.types.Operator):
+    """Visit subcategory"""
+    bl_idname = "wm.blenderkit_mark_notification_read"
+    bl_label = "Mark notification as read"
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
+
+    notification_id: bpy.props.IntProperty(
+        name="Id",
+        description="notification id",
+        default=-1)
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        notifications = bpy.context.window_manager['bkit notifications']
+        for n in notifications:
+            if n['id'] == self.notification_id:
+                n['unread'] = 0
+        comments_utils.check_notifications_read()
+        user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+        api_key = user_preferences.api_key
+        comments_utils.mark_notification_read(api_key,self.notification_id)
+        
+        return {'FINISHED'}
+
+
+def draw_notification(self, notification, width = 600):
+    layout = self.layout
+    box = layout.box()
+
+    firstline = f"user {notification['actor']['id']} {notification['verb']}"
+    box1 = box.box()
+    row = box1.row()
+    utils.label_multiline(row, text=firstline, width = width)
+    op = row.operator("wm.blenderkit_mark_notification_read", text="", icon='CHECKMARK')
+    op.notification_id = notification['id']
+    utils.label_multiline(box, text=notification['description'], width = width)
+
+def draw_notifications(self, context, width = 600):
+    layout = self.layout
+    notifications = bpy.context.window_manager.get('bkit notifications')
+    if notifications is not None:
+        for notification in notifications:
+            if notification['unread'] == 1:
+                draw_notification(self,notification, width = width)
+
+class ShowNotifications(bpy.types.Operator):
+    """Show notifications"""
+    bl_idname = "wm.show_notifications"
+    bl_label = "Show BlenderKit notifications"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    notification_id: bpy.props.IntProperty(
+        name="Id",
+        description="notification id",
+        default=-1)
+
+    @classmethod
+    def poll(cls, context):
+        return True
+    def draw(self, context):
+        draw_notifications(self,context, width = 600)
+
+    def execute(self, context):
+        wm = bpy.context.window_manager
+        return wm.invoke_popup(self, width=600)
+
+class VIEW3D_PT_blenderkit_notifications(Panel):
+    bl_category = "BlenderKit"
+    bl_idname = "VIEW3D_PT_blenderkit_notifications"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "BlenderKit Notifications"
+
+    @classmethod
+    def poll(cls, context):
+        notifications = bpy.context.window_manager.get('bkit notifications')
+        if notifications is not None and len(notifications) > 0:
+            return True
+        return False
+    def draw(self,context):
+        draw_notifications(self,context)
+
+
+
+
 class VIEW3D_PT_blenderkit_login(Panel):
     bl_category = "BlenderKit"
     bl_idname = "VIEW3D_PT_blenderkit_login"
@@ -1944,27 +2032,25 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         else:
             role_text = ""
         box.label(text=f"{comment['submitDate']} - {comment['userName']}{role_text}")
-        utils.label_multiline(box, text=comment['comment'], width = width)
+        utils.label_multiline(box, text=comment['comment'], width=width)
         removal = False
         likes = 0
         dislikes = 0
         for l in comment['flags']:
             if l['flag'] == 'like':
-                likes +=1
+                likes += 1
             if l['flag'] == 'dislike':
-                dislikes +=1
+                dislikes += 1
             if l['flag'] == 'removal':
                 removal = True
         row = box.row()
 
-        row.label(text = str(likes), icon = 'TRIA_UP')
-        row.label(text = str(dislikes), icon = 'TRIA_DOWN')
+        row.label(text=str(likes), icon='TRIA_UP')
+        row.label(text=str(dislikes), icon='TRIA_DOWN')
         if removal:
-            row.label(text = '', icon = 'ERROR')
+            row.label(text='', icon='ERROR')
 
-
-        #box.label(text=str(comment['flags']))
-
+        # box.label(text=str(comment['flags']))
 
     def draw(self, context):
         layout = self.layout
@@ -1996,7 +2082,6 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             if self.comments is not None:
                 for comment in self.comments:
                     self.draw_comment(context, layout, comment)
-
 
     def execute(self, context):
         wm = context.window_manager
@@ -2031,10 +2116,9 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         if utils.profile_is_validator() and bpy.app.debug_value == 2:
             user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
             api_key = user_preferences.api_key
-            headers = utils.get_headers(api_key)
             comments = comments_utils.get_comments_local(asset_data['assetBaseId'])
             if comments is None:
-                comments_utils.get_comments(asset_data['assetBaseId'], headers)
+                comments_utils.get_comments(asset_data['assetBaseId'], api_key)
             comments = bpy.context.window_manager.get('asset comments', {})
             self.comments = comments.get(asset_data['assetBaseId'], [])
 
@@ -2332,9 +2416,15 @@ def header_search_draw(self, context):
         elif ui_props.asset_type == 'HDR':
             layout.popover(panel="VIEW3D_PT_blenderkit_advanced_HDR_search", text="", icon_value=icon_id)
 
+        notifications = bpy.context.window_manager.get('bkit notifications')
+        if notifications is not None and len(notifications) > 0:
+            layout.operator('wm.show_notifications', text="", icon_value=pcoll['bell'].icon_id)
+            # layout.popover(panel="VIEW3D_PT_blenderkit_notifications", text="", icon_value=pcoll['bell'].icon_id)
+
         if utils.profile_is_validator():
             search_props = utils.get_search_props()
-            layout.prop(search_props, 'search_verification_status', text ='')
+            layout.prop(search_props, 'search_verification_status', text='')
+
 
 def ui_message(title, message):
     def draw_message(self, context):
@@ -2352,6 +2442,7 @@ classes = (
     SetCategoryOperator,
     VIEW3D_PT_blenderkit_profile,
     VIEW3D_PT_blenderkit_login,
+    VIEW3D_PT_blenderkit_notifications,
     VIEW3D_PT_blenderkit_unified,
     VIEW3D_PT_blenderkit_advanced_model_search,
     VIEW3D_PT_blenderkit_advanced_material_search,
@@ -2369,6 +2460,8 @@ classes = (
     UrlPopupDialog,
     ClosePopupButton,
     BlenderKitWelcomeOperator,
+    MarkNotificationRead,
+    ShowNotifications,
 )
 
 

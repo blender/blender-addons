@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 from blenderkit import paths, utils, categories, ui, colors, bkit_oauth, version_checker, tasks_queue, rerequests, \
-    resolutions, image_utils, ratings_utils
+    resolutions, image_utils, ratings_utils, comments_utils
 
 import blenderkit
 from bpy.app.handlers import persistent
@@ -198,7 +198,6 @@ def fetch_server_data():
             get_profile()
         if bpy.context.window_manager.get('bkit_categories') is None:
             categories.fetch_categories_thread(api_key, force=False)
-
 
 first_time = True
 last_clipboard = ''
@@ -838,6 +837,9 @@ def get_profile():
     a = bpy.context.window_manager.get('bkit profile')
     thread = threading.Thread(target=fetch_profile, args=(preferences.api_key,), daemon=True)
     thread.start()
+    if utils.experimental_enabled():
+        comments_utils.get_notifications(preferences.api_key)
+
     return a
 
 
