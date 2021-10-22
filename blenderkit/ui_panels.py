@@ -334,7 +334,7 @@ def draw_assetbar_show_hide(layout, props):
         ttip = 'Click to Show Asset Bar'
 
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
-    if preferences.experimental_features:
+    if 1:#preferences.experimental_features:
         op = layout.operator('view3d.blenderkit_asset_bar_widget', text='', icon=icon)
     else:
         op = layout.operator('view3d.blenderkit_asset_bar', text='', icon=icon)
@@ -1438,6 +1438,13 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
             op.asset_id = asset_data['id']
             op.asset_type = asset_data['assetType']
 
+            if author_id == str(profile['user']['id']):
+                row.operator_context = 'EXEC_DEFAULT'
+                op = layout.operator('wm.blenderkit_url', text='Edit Metadata (browser)')
+                op.url = paths.get_bkit_url() + paths.BLENDERKIT_USER_ASSETS + f"/{asset_data['assetBaseId']}/?edit#"
+
+            row.operator_context = 'INVOKE_DEFAULT'
+
             if asset_data['assetType'] == 'model':
                 op = layout.operator('object.blenderkit_regenerate_thumbnail', text='Regenerate thumbnail')
                 op.asset_index = ui_props.active_index
@@ -1957,7 +1964,11 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
         row.scale_y = 3
         ui_props = bpy.context.window_manager.blenderkitUI
-        row.prop(ui_props, 'drag_init_button', icon='MOUSE_LMB_DRAG', text='Click / Drag from here', emboss=True)
+        if self.asset_data.get('canDownload', True):
+            row.prop(ui_props, 'drag_init_button', icon='MOUSE_LMB_DRAG', text='Click / Drag from here', emboss=True)
+        else:
+            op = layout.operator('wm.blenderkit_url', text='Unlock this asset', icon = 'UNLOCKED')
+            op.url = paths.get_bkit_url() + '/get-blenderkit/' + self.asset_data['id'] + '/?from_addon=True'
 
     def draw_menu_desc_author(self, context, layout, width=330):
         box = layout.column()
@@ -2026,13 +2037,14 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
     def draw_comment(self, context, layout, comment, width=330):
         box = layout.box()
         box.emboss = 'NORMAL'
+        row = box.row()
+        split = row.split(factor = 0.8)
         is_moderator = comment['userModerator']
         if is_moderator:
             role_text = f" - moderator"
         else:
             role_text = ""
-        box.label(text=f"{comment['submitDate']} - {comment['userName']}{role_text}")
-        utils.label_multiline(box, text=comment['comment'], width=width)
+        split.label(text=f"{comment['submitDate']} - {comment['userName']}{role_text}")
         removal = False
         likes = 0
         dislikes = 0
@@ -2043,12 +2055,14 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
                 dislikes += 1
             if l['flag'] == 'removal':
                 removal = True
-        row = box.row()
-
-        row.label(text=str(likes), icon='TRIA_UP')
-        row.label(text=str(dislikes), icon='TRIA_DOWN')
+        # row = box.row()
+        split1 = split.split()
+        split1.label(text=str(likes), icon='TRIA_UP')
+        split1.label(text=str(dislikes), icon='TRIA_DOWN')
         if removal:
             row.label(text='', icon='ERROR')
+
+        utils.label_multiline(box, text=comment['comment'], width=width)
 
         # box.label(text=str(comment['flags']))
 
@@ -2316,7 +2330,7 @@ def draw_panel_categories(self, context):
             ctext = '%s (%i)' % (c['name'], c['assetCount'])
 
             preferences = bpy.context.preferences.addons['blenderkit'].preferences
-            if preferences.experimental_features:
+            if 1:#preferences.experimental_features:
                 op = row.operator('view3d.blenderkit_asset_bar_widget', text=ctext)
             else:
                 op = row.operator('view3d.blenderkit_asset_bar', text=ctext)

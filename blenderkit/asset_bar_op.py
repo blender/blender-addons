@@ -24,14 +24,6 @@ from bpy.props import (
 )
 
 
-def draw_callback_tooltip(self, context):
-    if self.draw_tooltip:
-        wm = bpy.context.window_manager
-        sr = wm.get('search results')
-        r = sr[self.active_index]
-        ui.draw_tooltip_with_author(r, 0, 500)
-
-
 def get_area_height(self):
     if type(self.context) != dict:
         if self.context is None:
@@ -90,14 +82,14 @@ def modal_inside(self,context,event):
     if event.type in {"ESC"}:
         self.finish()
 
-    x = event.mouse_region_x
-    y = event.mouse_region_y
-    if event.type == 'WHEELUPMOUSE' and self.panel.is_in_rect(x, y):
+    self.mouse_x = event.mouse_region_x
+    self.mouse_y = event.mouse_region_y
+    if event.type == 'WHEELUPMOUSE' and self.panel.is_in_rect(self.mouse_x, self.mouse_y):
         self.scroll_offset -= 5
         self.scroll_update()
         return {'RUNNING_MODAL'}
 
-    elif event.type == 'WHEELDOWNMOUSE' and self.panel.is_in_rect(x, y):
+    elif event.type == 'WHEELDOWNMOUSE' and self.panel.is_in_rect(self.mouse_x, self.mouse_y):
         self.scroll_offset += 5
         self.scroll_update()
         return {'RUNNING_MODAL'}
@@ -409,7 +401,9 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
 
         self.position_and_hide_buttons()
 
-        self.button_close.set_location(self.bar_width - self.other_button_size, 0)
+        self.button_close.set_location(self.bar_width - self.other_button_size, -self.other_button_size)
+        if hasattr(self,'button_notifications'):
+            self.button_notifications.set_location(self.bar_width - self.other_button_size*2, -self.other_button_size)
         self.button_scroll_up.set_location(self.bar_width, 0)
         self.panel.width = self.bar_width
         self.panel.height = self.bar_height
@@ -543,7 +537,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         #notifications
         if not comments_utils.check_notifications_read():
 
-            self.button_notifications = BL_UI_Button(self.bar_width - self.other_button_size, self.bar_height, self.other_button_size,
+            self.button_notifications = BL_UI_Button(self.bar_width - self.other_button_size*2, -self.other_button_size, self.other_button_size,
                                              self.other_button_size)
             self.button_notifications.bg_color = button_bg_color
             self.button_notifications.hover_bg_color = button_hover_color
@@ -568,6 +562,8 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
                 asset_y = self.assetbar_margin + y * (self.button_size)
                 button_idx = x + y * self.wcount
                 asset_idx = button_idx + self.scroll_offset
+                if len(self.asset_buttons)<=button_idx:
+                    break
                 button = self.asset_buttons[button_idx]
                 button.set_location(asset_x, asset_y)
                 button.validation_icon.set_location(
@@ -738,11 +734,11 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
             for r in bpy.context.area.regions:
                 if r.type == 'UI':
                     properties_width = r.width
-            tooltip_x = min(int(widget.x_screen + widget.width),
+            tooltip_x = min(int(widget.x_screen),
                             int(bpy.context.region.width - self.tooltip_panel.width - properties_width))
             tooltip_y = int(widget.y_screen + widget.height)
             # self.init_tooltip()
-            self.tooltip_panel.update(tooltip_x, tooltip_y)
+            self.tooltip_panel.set_location(tooltip_x, tooltip_y)
             self.tooltip_panel.layout_widgets()
             # print(tooltip_x, tooltip_y)
             # bpy.ops.wm.blenderkit_asset_popup('INVOKE_DEFAULT')
@@ -756,6 +752,13 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
             ui_props.draw_tooltip = False
             self.draw_tooltip = False
             self.hide_tooltip()
+        #popup asset card on mouse down
+        # if utils.experimental_enabled():
+        #     h = widget.get_area_height()
+        #     print(h,h-self.mouse_y,self.panel.y_screen, self.panel.y,widget.y_screen, widget.y)
+        # if utils.experimental_enabled() and self.mouse_y<widget.y_screen:
+        #     self.active_index = widget.button_index + self.scroll_offset
+        # bpy.ops.wm.blenderkit_asset_popup('INVOKE_DEFAULT')
 
     def drag_drop_asset(self, widget):
         bpy.ops.view3d.asset_drag_drop('INVOKE_DEFAULT', asset_search_index=widget.search_index + self.scroll_offset)
@@ -781,13 +784,20 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         blenderkit.search.search(get_next=True)
 
     def update_validation_icon(self, asset_button, asset_data):
-        v_icon = ui.verification_icons[asset_data.get('verificationStatus', 'validated')]
-        if v_icon is not None:
-            img_fp = paths.get_addon_thumbnail_path(v_icon)
-            asset_button.validation_icon.set_image(img_fp)
-            asset_button.validation_icon.visible = True
+        if utils.profile_is_validator():
+            v_icon = ui.verification_icons[asset_data.get('verificationStatus', 'validated')]
+            if v_icon is not None:
+                img_fp = paths.get_addon_thumbnail_path(v_icon)
+                asset_button.validation_icon.set_image(img_fp)
+                asset_button.validation_icon.visible = True
+            else:
+                asset_button.validation_icon.visible = False
         else:
-            asset_button.validation_icon.visible = False
+            if asset_data.get('canDownload', True) == 0:
+                img_fp = paths.get_addon_thumbnail_path('locked.png')
+                asset_button.validation_icon.set_image(img_fp)
+            else:
+                asset_button.validation_icon.visible = False
 
     def update_images(self):
         sr = bpy.context.window_manager.get('search results')
@@ -804,7 +814,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
                     # show indices for debug purposes
                     # asset_button.text = str(asset_button.asset_index)
                     img = bpy.data.images.get(iname)
-                    if not img:
+                    if img is None or len(img.pixels) == 0:
                         img_filepath = paths.get_addon_thumbnail_path('thumbnail_notready.jpg')
                     else:
                         img_filepath = img.filepath

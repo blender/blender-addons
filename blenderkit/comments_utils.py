@@ -135,41 +135,59 @@ def get_comments(asset_id, api_key):
 def store_notifications_local(notifications):
     bpy.context.window_manager['bkit notifications'] = notifications
 
+def count_unread_notifications():
+    notifications = bpy.context.window_manager.get('bkit notifications')
+    if notifications is None:
+        return 0
+    unread = 0
+    for n in notifications:
+        
+        if n['unread'] == 1:
+            unread +=1
+    print('counted', unread)
+    return unread
+
 def check_notifications_read():
     '''checks if all notifications were already read, and removes them if so'''
-    all_read = True
     notifications = bpy.context.window_manager.get('bkit notifications')
     if notifications is None:
         return True
     for n in notifications:
         if n['unread'] == 1:
-            all_read = False
             return False
     bpy.context.window_manager['bkit notifications'] = None
     return True
 
-def get_notifications(api_key):
+def get_notifications(api_key, unread_count = 1000):
     '''
-    Retrieve ratings from BlenderKit server. Can be run from a thread
+    Retrieve notifications from BlenderKit server. Can be run from a thread.
+
     Parameters
     ----------
-    asset_id
-    headers
+    api_key
+    unread_count
 
     Returns
     -------
-    ratings - dict of type:value ratings
     '''
     headers = utils.get_headers(api_key)
 
-    url = paths.get_api_url() + 'notifications/unread/'
     params = {}
+
+    url = paths.get_api_url() + 'notifications/api/unread_count/'
+    r = rerequests.get(url, params=params, verify=True, headers=headers)
+    if r.status_code ==200:
+        rj = r.json()
+        # no new notifications?
+        if unread_count >= rj['unreadCount']:
+            return
+    print('notifications', unread_count, rj['unreadCount'])
+    url = paths.get_api_url() + 'notifications/unread/'
     r = rerequests.get(url, params=params, verify=True, headers=headers)
     if r is None:
         return
     if r.status_code == 200:
         rj = r.json()
-        print(rj)
         # store notifications - send them to task queue
         tasks_queue.add_task((store_notifications_local, ([rj])))
 
