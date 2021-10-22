@@ -391,13 +391,11 @@ def search_timer():
         ui_props = bpy.context.window_manager.blenderkitUI
         search_name = f'bkit {ui_props.asset_type.lower()} search'
         wm = bpy.context.window_manager
-        print('finishing reading thumbs')
         if wm.get(search_name) is not None:
             all_loaded = True
             for ri, r in enumerate(wm[search_name]):
                 if not r.get('thumb_small_loaded'):
                     preview_loaded = load_preview(r, ri)
-                    print(ri, preview_loaded, all_thumbs_loaded)
                     all_loaded = all_loaded and preview_loaded
 
             all_thumbs_loaded = all_loaded
@@ -452,7 +450,6 @@ def search_timer():
             if ok:
                 ui_props = bpy.context.window_manager.blenderkitUI
                 orig_len = len(result_field)
-                print('reading from thread')
 
                 for ri, r in enumerate(rdata['results']):
                     asset_data = parse_result(r)
@@ -526,9 +523,13 @@ def load_preview(asset, index):
         # wrap into try statement since sometimes
         try:
             img = bpy.data.images.load(tpath)
+
             img.name = iname
+            if len(img.pixels)>0:
+                return True
         except:
-            return False
+            pass
+        return False
     elif img.filepath != tpath:
         if not os.path.exists(tpath):
             # unload loaded previews from previous results

@@ -67,12 +67,24 @@ class BL_UI_Button(BL_UI_Widget):
         self.__image_position = image_position
 
     def set_image(self, rel_filepath):
+        #first try to access the image, for cases where it can get removed
+        try:
+            self.__image
+            self.__image.filepath
+            self.__image.pixels
+        except:
+            self.__image = None
         try:
             if self.__image is None or self.__image.filepath != rel_filepath:
                 self.__image = bpy.data.images.load(rel_filepath, check_existing=True)
                 self.__image.gl_load()
-        except:
-            pass
+
+            if self.__image and len(self.__image.pixels) == 0:
+                self.__image.reload()
+                self.__image.gl_load()
+
+        except Exception as e:
+            self.__image = None
 
     def update(self, x, y):
         super().update(x, y)

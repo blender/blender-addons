@@ -1310,7 +1310,7 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
     layout.operator_context = 'INVOKE_DEFAULT'
 
     if from_panel:
-        op = layout.operator('wm.blenderkit_menu_rating_upload', text='Rate')
+        op = layout.operator('wm.blenderkit_menu_rating_upload', text='Add Rating')
         op.asset_name = asset_data['name']
         op.asset_id = asset_data['id']
         op.asset_type = asset_data['assetType']
@@ -1343,6 +1343,7 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
             if aob is None:
                 aob = bpy.context.selected_objects[0]
             op = layout.operator('scene.blenderkit_download', text='Replace Active Models')
+            op.tooltip = "Replace all selected models with this one."
 
             # this checks if the menu got called from right-click in assetbar(then index is 0 - x) or
             # from a panel(then replacement happens from the active model)
@@ -2391,53 +2392,55 @@ def header_search_draw(self, context):
         return;
 
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
-    if preferences.search_in_header:
-        layout = self.layout
-        s = bpy.context.scene
-        wm = bpy.context.window_manager
-        ui_props = bpy.context.window_manager.blenderkitUI
-        if ui_props.asset_type == 'MODEL':
-            props = wm.blenderkit_models
-        if ui_props.asset_type == 'MATERIAL':
-            props = wm.blenderkit_mat
-        if ui_props.asset_type == 'BRUSH':
-            props = wm.blenderkit_brush
-        if ui_props.asset_type == 'HDR':
-            props = wm.blenderkit_HDR
-        if ui_props.asset_type == 'SCENE':
-            props = wm.blenderkit_scene
+    if not preferences.search_in_header:
+        return
 
-        # the center snap menu is in edit and object mode if tool settings are off.
-        if context.space_data.show_region_tool_header == True or context.mode[:4] not in ('EDIT', 'OBJE'):
-            layout.separator_spacer()
-        layout.prop(ui_props, "asset_type", expand=True, icon_only=True, text='', icon='URL')
-        layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
-        draw_assetbar_show_hide(layout, props)
-        layout.popover(panel="VIEW3D_PT_blenderkit_categories", text="", icon='OUTLINER')
+    layout = self.layout
+    s = bpy.context.scene
+    wm = bpy.context.window_manager
+    ui_props = bpy.context.window_manager.blenderkitUI
+    if ui_props.asset_type == 'MODEL':
+        props = wm.blenderkit_models
+    if ui_props.asset_type == 'MATERIAL':
+        props = wm.blenderkit_mat
+    if ui_props.asset_type == 'BRUSH':
+        props = wm.blenderkit_brush
+    if ui_props.asset_type == 'HDR':
+        props = wm.blenderkit_HDR
+    if ui_props.asset_type == 'SCENE':
+        props = wm.blenderkit_scene
 
-        pcoll = icons.icon_collections["main"]
+    # the center snap menu is in edit and object mode if tool settings are off.
+    if context.space_data.show_region_tool_header == True or context.mode[:4] not in ('EDIT', 'OBJE'):
+        layout.separator_spacer()
+    layout.prop(ui_props, "asset_type", expand=True, icon_only=True, text='', icon='URL')
+    layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
+    draw_assetbar_show_hide(layout, props)
+    layout.popover(panel="VIEW3D_PT_blenderkit_categories", text="", icon='OUTLINER')
 
-        if props.use_filters:
-            icon_id = pcoll['filter_active'].icon_id
-        else:
-            icon_id = pcoll['filter'].icon_id
+    pcoll = icons.icon_collections["main"]
 
-        if ui_props.asset_type == 'MODEL':
-            layout.popover(panel="VIEW3D_PT_blenderkit_advanced_model_search", text="", icon_value=icon_id)
+    if props.use_filters:
+        icon_id = pcoll['filter_active'].icon_id
+    else:
+        icon_id = pcoll['filter'].icon_id
 
-        elif ui_props.asset_type == 'MATERIAL':
-            layout.popover(panel="VIEW3D_PT_blenderkit_advanced_material_search", text="", icon_value=icon_id)
-        elif ui_props.asset_type == 'HDR':
-            layout.popover(panel="VIEW3D_PT_blenderkit_advanced_HDR_search", text="", icon_value=icon_id)
+    if ui_props.asset_type == 'MODEL':
+        layout.popover(panel="VIEW3D_PT_blenderkit_advanced_model_search", text="", icon_value=icon_id)
 
-        notifications = bpy.context.window_manager.get('bkit notifications')
-        if notifications is not None and len(notifications) > 0:
-            layout.operator('wm.show_notifications', text="", icon_value=pcoll['bell'].icon_id)
-            # layout.popover(panel="VIEW3D_PT_blenderkit_notifications", text="", icon_value=pcoll['bell'].icon_id)
+    elif ui_props.asset_type == 'MATERIAL':
+        layout.popover(panel="VIEW3D_PT_blenderkit_advanced_material_search", text="", icon_value=icon_id)
+    elif ui_props.asset_type == 'HDR':
+        layout.popover(panel="VIEW3D_PT_blenderkit_advanced_HDR_search", text="", icon_value=icon_id)
 
-        if utils.profile_is_validator():
-            search_props = utils.get_search_props()
-            layout.prop(search_props, 'search_verification_status', text='')
+    notifications = bpy.context.window_manager.get('bkit notifications')
+    if notifications is not None and len(notifications) > 0:
+        layout.operator('wm.show_notifications', text="", icon_value=pcoll['bell'].icon_id)
+        # layout.popover(panel="VIEW3D_PT_blenderkit_notifications", text="", icon_value=pcoll['bell'].icon_id)
+
+    if utils.profile_is_validator():
+        search_props = utils.get_search_props()
+        layout.prop(search_props, 'search_verification_status', text='')
 
 
 def ui_message(title, message):
