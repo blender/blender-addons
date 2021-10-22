@@ -182,7 +182,6 @@ class BaseLimbRig(BaseRig):
     def make_master_control(self):
         org = self.bones.org.main[0]
         self.bones.mch.master = name = self.copy_bone(org, make_derived_name(org, 'mch', '_parent_socket'), scale=1/12)
-        self.get_bone(name).roll = 0
         self.bones.ctrl.master = name = self.copy_bone(org, make_derived_name(org, 'ctrl', '_parent'), scale=1/4)
         self.get_bone(name).roll = 0
         self.prop_bone = self.bones.ctrl.master
@@ -759,22 +758,46 @@ class BaseLimbRig(BaseRig):
         else:
             self.set_bone_parent(mch, entry.org)
 
+    @stage.apply_bones
+    def apply_tweak_mch_chain(self):
+        for args in zip(count(0), self.bones.mch.tweak, self.segment_table_tweak):
+            self.apply_tweak_mch_bone(*args)
+
+    def apply_tweak_mch_bone(self, i, tweak, entry):
+        if entry.seg_idx:
+            prev_tweak, next_tweak, fac = self.get_tweak_blend(i, entry)
+
+            # Apply the final roll resulting from mixing tweaks to rest pose
+            prev_rot = self.get_bone(prev_tweak).matrix.to_quaternion()
+            next_rot = self.get_bone(next_tweak).matrix.to_quaternion()
+            rot = (prev_rot * (1-fac) + next_rot * fac).normalized()
+
+            bone = self.get_bone(tweak)
+            bone_rot = bone.matrix.to_quaternion()
+
+            bone.roll += (bone_rot.inverted() @ rot).to_swing_twist('Y')[1]
+
     @stage.rig_bones
     def rig_tweak_mch_chain(self):
         for args in zip(count(0), self.bones.mch.tweak, self.segment_table_tweak):
             self.rig_tweak_mch_bone(*args)
 
+    def get_tweak_blend(self, i, entry):
+        assert entry.seg_idx
+
+        tweaks = self.bones.ctrl.tweak
+        prev_tweak = tweaks[i - entry.seg_idx]
+        next_tweak = tweaks[i + self.segments - entry.seg_idx]
+        fac = entry.seg_idx / self.segments
+
+        return prev_tweak, next_tweak, fac
+
     def rig_tweak_mch_bone(self, i, tweak, entry):
         if entry.seg_idx:
-            tweaks = self.bones.ctrl.tweak
-            prev_tweak = tweaks[i - entry.seg_idx]
-            next_tweak = tweaks[i + self.segments - entry.seg_idx]
+            prev_tweak, next_tweak, fac = self.get_tweak_blend(i, entry)
 
             self.make_constraint(tweak, 'COPY_TRANSFORMS', prev_tweak)
-            self.make_constraint(
-                tweak, 'COPY_TRANSFORMS', next_tweak,
-                influence = entry.seg_idx / self.segments
-            )
+            self.make_constraint(tweak, 'COPY_TRANSFORMS', next_tweak, influence=fac)
             self.make_constraint(tweak, 'DAMPED_TRACK', next_tweak)
 
         elif entry.seg_idx is not None:
