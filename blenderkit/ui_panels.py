@@ -593,7 +593,7 @@ class VIEW3D_PT_blenderkit_profile(Panel):
 
 
 class MarkNotificationRead(bpy.types.Operator):
-    """Visit subcategory"""
+    """Mark notification as read here and also on BlenderKit server"""
     bl_idname = "wm.blenderkit_mark_notification_read"
     bl_label = "Mark notification as read"
     bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
@@ -620,17 +620,70 @@ class MarkNotificationRead(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class LikeComment(bpy.types.Operator):
+    """Mark notification as read here and also on BlenderKit server"""
+    bl_idname = "wm.blenderkit_like_comment"
+    bl_label = "BlenderKit like/dislike comment"
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
+
+    asset_id: StringProperty(
+        name="Asset Base Id",
+        description="Unique id of the asset (hidden)",
+        default="",
+        options={'SKIP_SAVE'})
+
+    comment_id: bpy.props.IntProperty(
+        name="Id",
+        description="comment id",
+        default=-1)
+
+    flag: bpy.props.StringProperty(
+        name="flag",
+        description="Like/dislike comment",
+        default="like")
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+
+        user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+        api_key = user_preferences.api_key
+        comments_utils.send_comment_flag_to_thread(asset_id = self.asset_id, comment_id=self.comment_id, flag=self.flag, api_key = api_key)
+        return {'FINISHED'}
+
+
 def draw_notification(self, notification, width = 600):
     layout = self.layout
     box = layout.box()
-
-    firstline = f"user {notification['actor']['id']} {notification['verb']}"
+    print(notification.to_dict())
+    firstline = f"{notification['actor']['string']} {notification['verb']} {notification['target']['string']}"
     box1 = box.box()
     row = box1.row()
     utils.label_multiline(row, text=firstline, width = width)
-    op = row.operator("wm.blenderkit_mark_notification_read", text="", icon='CHECKMARK')
+
+
+
+    op = row.operator("wm.blenderkit_mark_notification_read", text="", icon='CANCEL')
     op.notification_id = notification['id']
-    utils.label_multiline(box, text=notification['description'], width = width)
+    if notification['description']:
+        rows = utils.label_multiline(box, text=notification['description'], width = width)
+        split = rows[-1].split(factor = 0.8)
+
+    else:
+        row = layout.row()
+        split = row.split(factor = 0.8)
+        split.label(text = '')
+        split = split.split()
+    if notification['target']:
+        # row = layout.row()
+        # split = row.split(factor=.8)
+        # split.label(text='')
+        # split = split.split()
+        op = split.operator('wm.blenderkit_url', text='Open page', icon='GREASEPENCIL')
+        op.tooltip = 'Open the browser on the asset page to comment'
+        op.url = paths.get_bkit_url() + notification['target']['url']
 
 def draw_notifications(self, context, width = 600):
     layout = self.layout
@@ -1435,13 +1488,13 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
 
             row = layout.row()
             row.operator_context = 'INVOKE_DEFAULT'
-            op = layout.operator('wm.blenderkit_fast_metadata', text='Edit Metadata')
+            op = layout.operator('wm.blenderkit_fast_metadata', text='Edit Metadata',icon='GREASEPENCIL')
             op.asset_id = asset_data['id']
             op.asset_type = asset_data['assetType']
 
             if author_id == str(profile['user']['id']):
                 row.operator_context = 'EXEC_DEFAULT'
-                op = layout.operator('wm.blenderkit_url', text='Edit Metadata (browser)')
+                op = layout.operator('wm.blenderkit_url', text='Edit Metadata (browser)', icon='GREASEPENCIL')
                 op.url = paths.get_bkit_url() + paths.BLENDERKIT_USER_ASSETS + f"/{asset_data['assetBaseId']}/?edit#"
 
             row.operator_context = 'INVOKE_DEFAULT'
@@ -2036,7 +2089,13 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             op = name_row.operator('view3d.close_popup_button', text='', icon='CANCEL')
 
     def draw_comment(self, context, layout, comment, width=330):
-        box = layout.box()
+        row = layout.row()
+        # print(comment)
+        if comment['level']>0:
+            split = row.split(factor = 0.05 * comment['level'])
+            split.label(text='')
+            row = split.split()
+        box = row.box()
         box.emboss = 'NORMAL'
         row = box.row()
         split = row.split(factor = 0.8)
@@ -2045,7 +2104,9 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             role_text = f" - moderator"
         else:
             role_text = ""
-        split.label(text=f"{comment['submitDate']} - {comment['userName']}{role_text}")
+        row = split.row()
+        row.enabled = False
+        row.label(text=f"{comment['submitDate']} - {comment['userName']}{role_text}")
         removal = False
         likes = 0
         dislikes = 0
@@ -2058,13 +2119,33 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
                 removal = True
         # row = box.row()
         split1 = split.split()
-        split1.label(text=str(likes), icon='TRIA_UP')
-        split1.label(text=str(dislikes), icon='TRIA_DOWN')
+        # split1.emboss = 'NONE'
+        op = split1.operator('wm.blenderkit_like_comment', text=str(likes), icon='TRIA_UP')
+        op.asset_id = self.asset_data['assetBaseId']
+        op.comment_id = comment['id']
+        op.flag = 'like'
+        op = split1.operator('wm.blenderkit_like_comment', text=str(dislikes), icon='TRIA_DOWN')
+        op.asset_id = self.asset_data['assetBaseId']
+        op.comment_id = comment['id']
+        op.flag = 'dislike'
+        # op = split1.operator('wm.blenderkit_like_comment', text='report', icon='ERROR')
+        # op.asset_id = self.asset_data['assetBaseId']
+        # op.comment_id = comment['id']
+        # op.flag = 'removal'
         if removal:
+            row.alert = True
             row.label(text='', icon='ERROR')
 
-        utils.label_multiline(box, text=comment['comment'], width=width)
+        rows = utils.label_multiline(box, text=comment['comment'], width=width * (1 - 0.05 * comment['level']))
 
+
+        row = rows[-1]
+        split = row.split(factor=.8)
+        split.label(text='')
+        split = split.split()
+        op = split.operator('wm.blenderkit_url', text='Reply', icon='GREASEPENCIL')
+        op.tooltip = 'Open the browser on the asset page to comment'
+        op.url = paths.get_bkit_url() + f"/asset-gallery-detail/{self.asset_data['id']}/"
         # box.label(text=str(comment['flags']))
 
     def draw(self, context):
@@ -2094,9 +2175,11 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         tip_box.label(text=self.tip)
         # comments
         if utils.profile_is_validator() and bpy.app.debug_value == 2:
+            comments = bpy.context.window_manager.get('asset comments', {})
+            self.comments = comments.get(self.asset_data['assetBaseId'], [])
             if self.comments is not None:
                 for comment in self.comments:
-                    self.draw_comment(context, layout, comment)
+                    self.draw_comment(context, layout, comment, width = self.width)
 
     def execute(self, context):
         wm = context.window_manager
@@ -2132,8 +2215,8 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
             api_key = user_preferences.api_key
             comments = comments_utils.get_comments_local(asset_data['assetBaseId'])
-            if comments is None:
-                comments_utils.get_comments(asset_data['assetBaseId'], api_key)
+            # if comments is None:
+            comments_utils.get_comments_thread(asset_data['assetBaseId'], api_key)
             comments = bpy.context.window_manager.get('asset comments', {})
             self.comments = comments.get(asset_data['assetBaseId'], [])
 
@@ -2478,6 +2561,7 @@ classes = (
     ClosePopupButton,
     BlenderKitWelcomeOperator,
     MarkNotificationRead,
+    LikeComment,
     ShowNotifications,
 )
 

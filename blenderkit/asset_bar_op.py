@@ -788,7 +788,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
     def search_more(self):
         sro = bpy.context.window_manager.get('search results orig')
         if sro is None:
-            return;
+            return
         if sro.get('next') is None:
             return
         search_props = utils.get_search_props()
