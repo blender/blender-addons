@@ -334,7 +334,7 @@ def draw_assetbar_show_hide(layout, props):
         ttip = 'Click to Show Asset Bar'
 
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
-    if 1:#preferences.experimental_features:
+    if 1:  # preferences.experimental_features:
         op = layout.operator('view3d.blenderkit_asset_bar_widget', text='', icon=icon)
     else:
         op = layout.operator('view3d.blenderkit_asset_bar', text='', icon=icon)
@@ -615,8 +615,54 @@ class MarkNotificationRead(bpy.types.Operator):
         comments_utils.check_notifications_read()
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
         api_key = user_preferences.api_key
-        comments_utils.mark_notification_read(api_key,self.notification_id)
-        
+        comments_utils.mark_notification_read_thread(api_key, self.notification_id)
+
+        return {'FINISHED'}
+
+class MarkAllNotificationsRead(bpy.types.Operator):
+    """Mark notification as read here and also on BlenderKit server"""
+    bl_idname = "wm.blenderkit_mark_notifications_read_all"
+    bl_label = "Mark all notifications as read"
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
+
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
+        api_key = user_preferences.api_key
+        notifications = bpy.context.window_manager['bkit notifications']
+        for n in notifications:
+            if n['unread'] == 1:
+                n['unread'] = 0
+                comments_utils.mark_notification_read_thread(api_key, n['id'])
+
+        comments_utils.check_notifications_read()
+        return {'FINISHED'}
+
+class NotificationOpenTarget(bpy.types.Operator):
+    """"""
+    bl_idname = "wm.blenderkit_open_notification_target"
+    bl_label = ""
+    bl_description = "Open notification target and mark notification as read"
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
+
+    tooltip: bpy.props.StringProperty(default='Open a web page')
+    url: bpy.props.StringProperty(default='Runs search and displays the asset bar at the same time')
+    notification_id: bpy.props.IntProperty(
+        name="Id",
+        description="notification id",
+        default=-1)
+
+    @classmethod
+    def description(cls, context, properties):
+        return properties.tooltip
+
+    def execute(self, context):
+        bpy.ops.wm.blenderkit_mark_notification_read(notification_id=self.notification_id)
+        bpy.ops.wm.url_open(url=self.url)
         return {'FINISHED'}
 
 
@@ -647,51 +693,58 @@ class LikeComment(bpy.types.Operator):
         return True
 
     def execute(self, context):
-
         user_preferences = bpy.context.preferences.addons['blenderkit'].preferences
         api_key = user_preferences.api_key
-        comments_utils.send_comment_flag_to_thread(asset_id = self.asset_id, comment_id=self.comment_id, flag=self.flag, api_key = api_key)
+        comments_utils.send_comment_flag_to_thread(asset_id=self.asset_id, comment_id=self.comment_id, flag=self.flag,
+                                                   api_key=api_key)
         return {'FINISHED'}
 
 
-def draw_notification(self, notification, width = 600):
+def draw_notification(self, notification, width=600):
     layout = self.layout
     box = layout.box()
     print(notification.to_dict())
     firstline = f"{notification['actor']['string']} {notification['verb']} {notification['target']['string']}"
     box1 = box.box()
     row = box1.row()
-    utils.label_multiline(row, text=firstline, width = width)
-
-
+    utils.label_multiline(row, text=firstline, width=width)
 
     op = row.operator("wm.blenderkit_mark_notification_read", text="", icon='CANCEL')
     op.notification_id = notification['id']
     if notification['description']:
-        rows = utils.label_multiline(box, text=notification['description'], width = width)
-        split = rows[-1].split(factor = 0.8)
+        rows = utils.label_multiline(box, text=notification['description'], width=width)
+        split = rows[-1].split(factor=0.8)
 
     else:
         row = layout.row()
-        split = row.split(factor = 0.8)
-        split.label(text = '')
+        split = row.split(factor=0.8)
+        split.label(text='')
         split = split.split()
     if notification['target']:
         # row = layout.row()
         # split = row.split(factor=.8)
         # split.label(text='')
         # split = split.split()
-        op = split.operator('wm.blenderkit_url', text='Open page', icon='GREASEPENCIL')
+        op = split.operator('wm.blenderkit_open_notification_target', text='Open page', icon='GREASEPENCIL')
         op.tooltip = 'Open the browser on the asset page to comment'
         op.url = paths.get_bkit_url() + notification['target']['url']
+        op.notification_id = notification['id']
 
-def draw_notifications(self, context, width = 600):
+
+def draw_notifications(self, context, width=600):
     layout = self.layout
     notifications = bpy.context.window_manager.get('bkit notifications')
     if notifications is not None:
+        row = layout.row()
+        # row.alert = True
+        split = row.split(factor = 0.7)
+        split.label(text='')
+        split = split.split()
+        split.operator('wm.blenderkit_mark_notifications_read_all', text = 'Mark All Read', icon = 'CANCEL')
         for notification in notifications:
             if notification['unread'] == 1:
-                draw_notification(self,notification, width = width)
+                draw_notification(self, notification, width=width)
+
 
 class ShowNotifications(bpy.types.Operator):
     """Show notifications"""
@@ -707,12 +760,14 @@ class ShowNotifications(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         return True
+
     def draw(self, context):
-        draw_notifications(self,context, width = 600)
+        draw_notifications(self, context, width=600)
 
     def execute(self, context):
         wm = bpy.context.window_manager
         return wm.invoke_popup(self, width=600)
+
 
 class VIEW3D_PT_blenderkit_notifications(Panel):
     bl_category = "BlenderKit"
@@ -727,10 +782,9 @@ class VIEW3D_PT_blenderkit_notifications(Panel):
         if notifications is not None and len(notifications) > 0:
             return True
         return False
-    def draw(self,context):
-        draw_notifications(self,context)
 
-
+    def draw(self, context):
+        draw_notifications(self, context)
 
 
 class VIEW3D_PT_blenderkit_login(Panel):
@@ -1488,7 +1542,7 @@ def draw_asset_context_menu(layout, context, asset_data, from_panel=False):
 
             row = layout.row()
             row.operator_context = 'INVOKE_DEFAULT'
-            op = layout.operator('wm.blenderkit_fast_metadata', text='Edit Metadata',icon='GREASEPENCIL')
+            op = layout.operator('wm.blenderkit_fast_metadata', text='Edit Metadata', icon='GREASEPENCIL')
             op.asset_id = asset_data['id']
             op.asset_type = asset_data['assetType']
 
@@ -2021,7 +2075,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
         if self.asset_data.get('canDownload', True):
             row.prop(ui_props, 'drag_init_button', icon='MOUSE_LMB_DRAG', text='Click / Drag from here', emboss=True)
         else:
-            op = layout.operator('wm.blenderkit_url', text='Unlock this asset', icon = 'UNLOCKED')
+            op = layout.operator('wm.blenderkit_url', text='Unlock this asset', icon='UNLOCKED')
             op.url = paths.get_bkit_url() + '/get-blenderkit/' + self.asset_data['id'] + '/?from_addon=True'
 
     def draw_menu_desc_author(self, context, layout, width=330):
@@ -2091,14 +2145,14 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
     def draw_comment(self, context, layout, comment, width=330):
         row = layout.row()
         # print(comment)
-        if comment['level']>0:
-            split = row.split(factor = 0.05 * comment['level'])
+        if comment['level'] > 0:
+            split = row.split(factor=0.05 * comment['level'])
             split.label(text='')
             row = split.split()
         box = row.box()
         box.emboss = 'NORMAL'
         row = box.row()
-        split = row.split(factor = 0.8)
+        split = row.split(factor=0.8)
         is_moderator = comment['userModerator']
         if is_moderator:
             role_text = f" - moderator"
@@ -2137,7 +2191,6 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             row.label(text='', icon='ERROR')
 
         rows = utils.label_multiline(box, text=comment['comment'], width=width * (1 - 0.05 * comment['level']))
-
 
         row = rows[-1]
         split = row.split(factor=.8)
@@ -2179,7 +2232,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             self.comments = comments.get(self.asset_data['assetBaseId'], [])
             if self.comments is not None:
                 for comment in self.comments:
-                    self.draw_comment(context, layout, comment, width = self.width)
+                    self.draw_comment(context, layout, comment, width=self.width)
 
     def execute(self, context):
         wm = context.window_manager
@@ -2414,7 +2467,7 @@ def draw_panel_categories(self, context):
             ctext = '%s (%i)' % (c['name'], c['assetCount'])
 
             preferences = bpy.context.preferences.addons['blenderkit'].preferences
-            if 1:#preferences.experimental_features:
+            if 1:  # preferences.experimental_features:
                 op = row.operator('view3d.blenderkit_asset_bar_widget', text=ctext)
             else:
                 op = row.operator('view3d.blenderkit_asset_bar', text=ctext)
@@ -2563,6 +2616,8 @@ classes = (
     MarkNotificationRead,
     LikeComment,
     ShowNotifications,
+    NotificationOpenTarget,
+    MarkAllNotificationsRead,
 )
 
 

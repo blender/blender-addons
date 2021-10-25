@@ -174,6 +174,10 @@ def check_notifications_read():
     bpy.context.window_manager['bkit notifications'] = None
     return True
 
+def get_notifications_thread(api_key, all_count = 1000):
+    thread = threading.Thread(target=get_notifications, args=([api_key, all_count]), daemon=True)
+    thread.start()
+
 def get_notifications(api_key, all_count = 1000):
     '''
     Retrieve notifications from BlenderKit server. Can be run from a thread.
@@ -209,6 +213,9 @@ def get_notifications(api_key, all_count = 1000):
         # store notifications - send them to task queue
         tasks_queue.add_task((store_notifications_local, ([rj])))
 
+def mark_notification_read_thread(api_key, notification_id):
+    thread = threading.Thread(target=mark_notification_read, args=([api_key, notification_id]), daemon=True)
+    thread.start()
 
 def mark_notification_read(api_key, notification_id):
     '''
@@ -221,6 +228,7 @@ def mark_notification_read(api_key, notification_id):
     r = rerequests.get(url, params=params, verify=True, headers=headers)
     if r is None:
         return
+    # print(r.text)
     # if r.status_code == 200:
     #     rj = r.json()
     #     # store notifications - send them to task queue

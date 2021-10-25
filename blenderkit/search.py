@@ -109,7 +109,7 @@ def refresh_notifications_timer():
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     fetch_server_data()
     all_notifications_count = comments_utils.count_all_notifications()
-    comments_utils.get_notifications(preferences.api_key, all_count = all_notifications_count)
+    comments_utils.get_notifications_thread(preferences.api_key, all_count = all_notifications_count)
     return 300
 
 
