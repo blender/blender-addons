@@ -703,7 +703,6 @@ class LikeComment(bpy.types.Operator):
 def draw_notification(self, notification, width=600):
     layout = self.layout
     box = layout.box()
-    print(notification.to_dict())
     firstline = f"{notification['actor']['string']} {notification['verb']} {notification['target']['string']}"
     box1 = box.box()
     row = box1.row()
@@ -1365,7 +1364,6 @@ class BlenderKitWelcomeOperator(bpy.types.Operator):
             # bpy.context.window_manager.windows[0].cursor_warp(1000, 1000)
             # show n-key sidebar (spaces[index] has to be found for view3d too:
             # bpy.context.window_manager.windows[0].screen.areas[5].spaces[0].show_region_ui = False
-            print('running search no')
             ui_props = bpy.context.window_manager.blenderkitUI
             # random_searches = [
             #     ('MATERIAL', 'ice'),
@@ -2530,6 +2528,8 @@ def header_search_draw(self, context):
     preferences = bpy.context.preferences.addons['blenderkit'].preferences
     if not preferences.search_in_header:
         return
+    if context.mode not in ('PAINT_TEXTURE', 'OBJECT', 'SCULPT'):
+        return
 
     layout = self.layout
     s = bpy.context.scene
@@ -2547,8 +2547,8 @@ def header_search_draw(self, context):
         props = wm.blenderkit_scene
 
     # the center snap menu is in edit and object mode if tool settings are off.
-    if context.space_data.show_region_tool_header == True or context.mode[:4] not in ('EDIT', 'OBJE'):
-        layout.separator_spacer()
+    # if context.space_data.show_region_tool_header == True or context.mode[:4] not in ('EDIT', 'OBJE'):
+    #     layout.separator_spacer()
     layout.prop(ui_props, "asset_type", expand=True, icon_only=True, text='', icon='URL')
     layout.prop(props, "search_keywords", text="", icon='VIEWZOOM')
     draw_assetbar_show_hide(layout, props)
@@ -2621,14 +2621,30 @@ classes = (
 )
 
 
+def header_draw(self, context):
+    layout = self.layout
+
+    self.draw_tool_settings(context)
+
+    layout.separator_spacer()
+    header_search_draw(self,context)
+    layout.separator_spacer()
+
+    self.draw_mode_settings(context)
+
+
 def register_ui_panels():
     for c in classes:
         bpy.utils.register_class(c)
-    bpy.types.VIEW3D_MT_editor_menus.append(header_search_draw)
+
+    bpy.types.VIEW3D_HT_tool_header.draw = header_draw
+    # bpy.types.VIEW3D_HT_tool_header.append(header_search_draw)
+    # bpy.types.VIEW3D_MT_editor_menus.append(header_search_draw)
 
 
 def unregister_ui_panels():
-    bpy.types.VIEW3D_MT_editor_menus.remove(header_search_draw)
+    bpy.types.VIEW3D_HT_tool_header.remove(header_search_draw)
+    # bpy.types.VIEW3D_MT_editor_menus.remove(header_search_draw)
     for c in classes:
         # print('unregister', c)
         bpy.utils.unregister_class(c)
