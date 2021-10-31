@@ -81,6 +81,7 @@ class PIE_MT_AreaTypePieOther(Menu):
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Text Editor", icon="TEXT").types = "TEXT_EDITOR"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Python Console", icon="CONSOLE").types = "CONSOLE"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Info", icon="INFO").types = "INFO"
+        self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Spreadsheet", icon="SPREADSHEET").types = "SPREADSHEET"
 
 # Sub Menu Node editors
 class PIE_MT_AreaTypePieNode(Menu):
@@ -92,6 +93,7 @@ class PIE_MT_AreaTypePieNode(Menu):
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Shader", icon="NODE_MATERIAL").types = "ShaderNodeTree"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Compositor", icon="NODE_COMPOSITING").types = "CompositorNodeTree"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Texture", icon="NODE_TEXTURE").types = "TextureNodeTree"
+        self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Geometry", icon="NODETREE").types = "GeometryNodeTree"
 
 # Sub Menu animation Editors
 class PIE_MT_AreaTypePieAnim(Menu):
@@ -105,6 +107,8 @@ class PIE_MT_AreaTypePieAnim(Menu):
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Graph Editor", icon="GRAPH").types = "FCURVES"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="Drivers", icon="DRIVER").types = "DRIVERS"
         self.layout.operator(PIE_OT_SetAreaType.bl_idname, text="NLA Editor", icon="NLA").types = "NLA_EDITOR"
+        
+        
 
 # Operators
 class PIE_OT_SetAreaType(Operator):
