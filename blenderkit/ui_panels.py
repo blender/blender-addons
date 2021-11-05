@@ -2004,11 +2004,15 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             if a.get('aboutMeUrl') is not None:
                 url = a['aboutMeUrl']
                 text = url
-                if len(url) > 25:
-                    text = url[:25] + '...'
-            else:
-                url = paths.get_author_gallery_url(a['id'])
-                text = "Open Author's Profile"
+                if len(url) > 45:
+                    text = url[:45] + '...'
+                op = button_row.operator('wm.url_open', text=text)
+                op.url = url
+                button_row = author_box.row()
+                button_row.scale_y = 2.0
+
+            url = paths.get_author_gallery_url(a['id'])
+            text = "Author's Profile"
 
             op = button_row.operator('wm.url_open', text=text)
             op.url = url
