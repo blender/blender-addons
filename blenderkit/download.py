@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-from blenderkit import paths, append_link, utils, ui, colors, tasks_queue, rerequests, resolutions, ui_panels, search
+from blenderkit import paths, append_link, utils, ui, colors, tasks_queue, rerequests, resolutions, ui_panels, search, reports
 
 import threading
 import time
