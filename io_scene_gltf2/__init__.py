@@ -17,7 +17,6 @@ bl_info = {
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
     "version": (1, 8, 1),
     'blender': (3, 0, 0),
->>>>>>> blender-v3.0-release
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
     'warning': '',
