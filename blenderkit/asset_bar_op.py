@@ -891,39 +891,41 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         if not sr:
             return
         for asset_button in self.asset_buttons:
-            if asset_button.visible:
-                asset_button.asset_index = asset_button.button_index + self.scroll_offset
-                if asset_button.asset_index < len(sr):
+            asset_button.asset_index = asset_button.button_index + self.scroll_offset
+            # print(asset_button.asset_index, len(sr))
+            if asset_button.asset_index < len(sr):
+                asset_button.visible = True
 
-                    asset_data = sr[asset_button.asset_index]
+                asset_data = sr[asset_button.asset_index]
 
-                    iname = blenderkit.utils.previmg_name(asset_button.asset_index)
-                    # show indices for debug purposes
-                    # asset_button.text = str(asset_button.asset_index)
-                    img = bpy.data.images.get(iname)
-                    if img is None or len(img.pixels) == 0:
-                        img_filepath = paths.get_addon_thumbnail_path('thumbnail_notready.jpg')
-                    else:
-                        img_filepath = img.filepath
-                    # print(asset_button.button_index, img_filepath)
-
-                    asset_button.set_image(img_filepath)
-                    self.update_validation_icon(asset_button, asset_data)
-
-                    if utils.profile_is_validator() and asset_data['verificationStatus'] == 'uploaded':
-                        over_limit = utils.is_upload_old(asset_data)
-                        if over_limit:
-                            redness = min(over_limit * .05, 0.7)
-                            asset_button.red_alert.bg_color = (1, 0, 0, redness)
-                            asset_button.red_alert.visible = True
-                        else:
-                            asset_button.red_alert.visible = False
-                    elif utils.profile_is_validator():
-                        asset_button.red_alert.visible = False
+                iname = blenderkit.utils.previmg_name(asset_button.asset_index)
+                # show indices for debug purposes
+                # asset_button.text = str(asset_button.asset_index)
+                img = bpy.data.images.get(iname)
+                if img is None or len(img.pixels) == 0:
+                    img_filepath = paths.get_addon_thumbnail_path('thumbnail_notready.jpg')
                 else:
-                    asset_button.validation_icon.visible = False
-                    if utils.profile_is_validator():
+                    img_filepath = img.filepath
+                # print(asset_button.button_index, img_filepath)
+
+                asset_button.set_image(img_filepath)
+                self.update_validation_icon(asset_button, asset_data)
+
+                if utils.profile_is_validator() and asset_data['verificationStatus'] == 'uploaded':
+                    over_limit = utils.is_upload_old(asset_data)
+                    if over_limit:
+                        redness = min(over_limit * .05, 0.7)
+                        asset_button.red_alert.bg_color = (1, 0, 0, redness)
+                        asset_button.red_alert.visible = True
+                    else:
                         asset_button.red_alert.visible = False
+                elif utils.profile_is_validator():
+                    asset_button.red_alert.visible = False
+            else:
+                asset_button.visible = False
+                asset_button.validation_icon.visible = False
+                if utils.profile_is_validator():
+                    asset_button.red_alert.visible = False
 
     def scroll_update(self):
         sr = bpy.context.window_manager.get('search results')
