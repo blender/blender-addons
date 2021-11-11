@@ -497,9 +497,11 @@ def search_timer():
                     # jump back
                     ui_props.scroll_offset = 0
                 props.search_error = False
-                props.report = 'Found %i results. ' % (wm['search results orig']['count'])
+                props.report = f"Found {wm['search results orig']['count']} results."
                 if len(wm['search results']) == 0:
                     tasks_queue.add_task((reports.add_report, ('No matching results found.',)))
+                else:
+                    tasks_queue.add_task((reports.add_report, (f"Found {wm['search results orig']['count']} results.",)))
                 # undo push
                 # bpy.ops.wm.undo_push_context(message='Get BlenderKit search')
                 # show asset bar automatically, but only on first page - others are loaded also when asset bar is hidden.

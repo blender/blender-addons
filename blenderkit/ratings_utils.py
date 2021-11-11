@@ -101,7 +101,7 @@ def get_rating(asset_id, headers):
     if r.status_code == 200:
         rj = r.json()
         ratings = {}
-        print(rj)
+        # print(rj)
         # store ratings - send them to task queue
         for r in rj['results']:
             ratings[r['ratingType']] = r['score']
@@ -354,8 +354,6 @@ class RatingsProperties():
     def prefill_ratings(self):
         # pre-fill ratings
         ratings = get_rating_local(self.asset_id)
-        print('prefill ratings')
-        print(ratings)
         if ratings and ratings.get('quality'):
             self.rating_quality = ratings['quality']
         if ratings and ratings.get('working_hours'):
