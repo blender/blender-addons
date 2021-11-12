@@ -197,15 +197,9 @@ def scene_load(context):
     categories.load_categories()
     if not bpy.app.timers.is_registered(refresh_token_timer) and not bpy.app.background:
         bpy.app.timers.register(refresh_token_timer, persistent=True, first_interval=36000)
-<<<<<<< HEAD
-    if utils.experimental_enabled() and not bpy.app.timers.is_registered(
-            refresh_notifications_timer) and not bpy.app.background:
-        bpy.app.timers.register(refresh_notifications_timer, persistent=True, first_interval=5)
-=======
     # if utils.experimental_enabled() and not bpy.app.timers.is_registered(
     #         refresh_notifications_timer) and not bpy.app.background:
     #     bpy.app.timers.register(refresh_notifications_timer, persistent=True, first_interval=5)
->>>>>>> blender-v3.0-release
 
     update_assets_data()
 
@@ -224,13 +218,8 @@ def fetch_server_data():
             get_profile()
         if bpy.context.window_manager.get('bkit_categories') is None:
             categories.fetch_categories_thread(api_key, force=False)
-<<<<<<< HEAD
-        all_notifications_count = comments_utils.count_all_notifications()
-        comments_utils.get_notifications_thread(api_key, all_count = all_notifications_count)
-=======
         # all_notifications_count = comments_utils.count_all_notifications()
         # comments_utils.get_notifications_thread(api_key, all_count = all_notifications_count)
->>>>>>> blender-v3.0-release
 
 first_time = True
 first_search_parsing = True
@@ -511,11 +500,8 @@ def search_timer():
                 props.report = f"Found {wm['search results orig']['count']} results."
                 if len(wm['search results']) == 0:
                     tasks_queue.add_task((reports.add_report, ('No matching results found.',)))
-<<<<<<< HEAD
-=======
                 else:
                     tasks_queue.add_task((reports.add_report, (f"Found {wm['search results orig']['count']} results.",)))
->>>>>>> blender-v3.0-release
                 # undo push
                 # bpy.ops.wm.undo_push_context(message='Get BlenderKit search')
                 # show asset bar automatically, but only on first page - others are loaded also when asset bar is hidden.

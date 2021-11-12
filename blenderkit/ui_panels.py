@@ -2250,11 +2250,6 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
     def prefill_ratings(self):
         # pre-fill ratings
         ratings = ratings_utils.get_rating_local(self.asset_id)
-<<<<<<< HEAD
-        print('prefill ratings')
-        print(ratings)
-=======
->>>>>>> blender-v3.0-release
         if ratings and ratings.get('quality'):
             self.rating_quality = ratings['quality']
         if ratings and ratings.get('working_hours'):

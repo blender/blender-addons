@@ -927,18 +927,11 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
                             asset_button.red_alert.visible = False
                     elif utils.profile_is_validator():
                         asset_button.red_alert.visible = False
-<<<<<<< HEAD
-                else:
-                    asset_button.validation_icon.visible = False
-                    if utils.profile_is_validator():
-                        asset_button.red_alert.visible = False
-=======
             else:
                 asset_button.visible = False
                 asset_button.validation_icon.visible = False
                 if utils.profile_is_validator():
                     asset_button.red_alert.visible = False
->>>>>>> blender-v3.0-release
 
     def scroll_update(self):
         sr = bpy.context.window_manager.get('search results')
@@ -952,10 +945,7 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         self.scroll_offset = min(self.scroll_offset, len(sr) - (self.wcount * self.hcount))
         self.scroll_offset = max(self.scroll_offset, 0)
         self.update_images()
-<<<<<<< HEAD
-=======
 
->>>>>>> blender-v3.0-release
         # print(sro)
         if sro['count'] > len(sr) and len(sr) - self.scroll_offset < (self.wcount * self.hcount) + 15:
             self.search_more()

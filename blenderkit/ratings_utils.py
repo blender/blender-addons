@@ -101,11 +101,7 @@ def get_rating(asset_id, headers):
     if r.status_code == 200:
         rj = r.json()
         ratings = {}
-<<<<<<< HEAD
-        print(rj)
-=======
         # print(rj)
->>>>>>> blender-v3.0-release
         # store ratings - send them to task queue
         for r in rj['results']:
             ratings[r['ratingType']] = r['score']
