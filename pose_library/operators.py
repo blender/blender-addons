@@ -405,7 +405,7 @@ class POSELIB_OT_pose_asset_select_bones(PoseAssetUser, Operator):
 # "Flip Pose" checkbox.
 class POSELIB_OT_blend_pose_asset_for_keymap(Operator):
     bl_idname = "poselib.blend_pose_asset_for_keymap"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 
     _rna = bpy.ops.poselib.blend_pose_asset.get_rna_type()
     bl_label = _rna.name
@@ -431,7 +431,7 @@ class POSELIB_OT_blend_pose_asset_for_keymap(Operator):
 # "Flip Pose" checkbox.
 class POSELIB_OT_apply_pose_asset_for_keymap(Operator):
     bl_idname = "poselib.apply_pose_asset_for_keymap"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 
     _rna = bpy.ops.poselib.apply_pose_asset.get_rna_type()
     bl_label = _rna.name
