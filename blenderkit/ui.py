@@ -1737,6 +1737,9 @@ class AssetDragOperator(bpy.types.Operator):
             self.handlers_remove()
             bpy.context.window.cursor_set("DEFAULT")
             ui_props.dragging = False
+            bpy.ops.view3d.blenderkit_asset_bar_widget('INVOKE_REGION_WIN',
+                                                       do_search=False)
+
             return {'CANCELLED'}
 
         sprops = bpy.context.window_manager.blenderkit_models

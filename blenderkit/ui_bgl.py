@@ -137,6 +137,8 @@ def draw_image(x, y, width, height, image, transparency, crop=(0, 0, 1, 1), batc
 def draw_text(text, x, y, size, color=(1, 1, 1, 0.5), halign = 'LEFT', valign = 'TOP'):
     font_id = 1
     # bgl.glColor4f(*color)
+    if type(text) != str:
+        text = str(text)
     blf.color(font_id, color[0], color[1], color[2], color[3])
     blf.size(font_id, size, 72)
     if halign != 'LEFT':

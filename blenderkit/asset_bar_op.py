@@ -26,6 +26,7 @@ from bpy.props import (
 
 active_area_pointer = 0
 
+
 def get_area_height(self):
     if type(self.context) != dict:
         if self.context is None:
@@ -297,15 +298,15 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         self.tooltip_widgets.append(gravatar_image)
 
         quality_star = BL_UI_Image(self.margin, self.tooltip_height - self.margin - self.asset_name_text_size,
-                                     1, 1)
+                                   1, 1)
         img_path = paths.get_addon_thumbnail_path('star_grey.png')
         quality_star.set_image(img_path)
         quality_star.set_image_size((self.asset_name_text_size, self.asset_name_text_size))
         quality_star.set_image_position((0, 0))
         # self.quality_star = quality_star
         self.tooltip_widgets.append(quality_star)
-        label = self.new_text('', 2*self.margin+self.asset_name_text_size,
-                              self.tooltip_height - int(self.asset_name_text_size+ self.margin * .5),
+        label = self.new_text('', 2 * self.margin + self.asset_name_text_size,
+                              self.tooltip_height - int(self.asset_name_text_size + self.margin * .5),
                               text_size=self.asset_name_text_size)
         self.tooltip_widgets.append(label)
         self.quality_label = label
@@ -443,19 +444,19 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
             ui_props.reports_y = region.height - self.bar_y - 600
             self.reports_x = self.bar_x
             ui_props.reports_x = self.bar_x
-        else:#ui.bar_y - ui.bar_height - 100
+        else:  # ui.bar_y - ui.bar_height - 100
 
             self.reports_y = region.height - self.bar_y - self.bar_height - 50
-            ui_props.reports_y =region.height -  self.bar_y - self.bar_height- 50
+            ui_props.reports_y = region.height - self.bar_y - self.bar_height - 50
             self.reports_x = self.bar_x
             ui_props.reports_x = self.bar_x
             # print(self.bar_y, self.bar_height, region.height)
 
     def update_layout(self, context, event):
         # restarting asset_bar completely since the widgets are too hard to get working with updates.
-        self.scroll_update()
 
         self.position_and_hide_buttons()
+        self.scroll_update()
 
         self.button_close.set_location(self.bar_width - self.other_button_size, -self.other_button_size)
         if hasattr(self, 'button_notifications'):
@@ -478,7 +479,6 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
                                            self.tooltip_height - self.author_text_size - self.margin)
 
         # to hide arrows accordingly
-
 
     def asset_button_init(self, asset_x, asset_y, button_idx):
         ui_scale = bpy.context.preferences.view.ui_scale
@@ -582,25 +582,25 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
 
         self.widgets_panel.append(self.button_close)
 
-        scroll_width = 30
-        self.button_scroll_down = BL_UI_Button(-scroll_width, 0, scroll_width, self.bar_height)
+        self.scroll_width = 30
+        self.button_scroll_down = BL_UI_Button(-self.scroll_width, 0, self.scroll_width, self.bar_height)
         self.button_scroll_down.bg_color = button_bg_color
         self.button_scroll_down.hover_bg_color = button_hover_color
         self.button_scroll_down.text = ""
         self.button_scroll_down.set_image(paths.get_addon_thumbnail_path('arrow_left.png'))
-        self.button_scroll_down.set_image_size((scroll_width, self.button_size))
+        self.button_scroll_down.set_image_size((self.scroll_width, self.button_size))
         self.button_scroll_down.set_image_position((0, int((self.bar_height - self.button_size) / 2)))
 
         self.button_scroll_down.set_mouse_down(self.scroll_down)
 
         self.widgets_panel.append(self.button_scroll_down)
 
-        self.button_scroll_up = BL_UI_Button(self.bar_width, 0, scroll_width, self.bar_height)
+        self.button_scroll_up = BL_UI_Button(self.bar_width, 0, self.scroll_width, self.bar_height)
         self.button_scroll_up.bg_color = button_bg_color
         self.button_scroll_up.hover_bg_color = button_hover_color
         self.button_scroll_up.text = ""
         self.button_scroll_up.set_image(paths.get_addon_thumbnail_path('arrow_right.png'))
-        self.button_scroll_up.set_image_size((scroll_width, self.button_size))
+        self.button_scroll_up.set_image_size((self.scroll_width, self.button_size))
         self.button_scroll_up.set_image_position((0, int((self.bar_height - self.button_size) / 2)))
 
         self.button_scroll_up.set_mouse_down(self.scroll_up)
@@ -660,6 +660,11 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
             button.visible = False
             button.validation_icon.visible = False
             button.progress_bar.visible = False
+
+        self.button_scroll_down.height = self.bar_height
+        self.button_scroll_down.set_image_position((0, int((self.bar_height - self.button_size) / 2)))
+        self.button_scroll_down.height = self.bar_height
+        self.button_scroll_down.set_image_position((0, int((self.bar_height - self.button_size) / 2)))
 
     def __init__(self):
         super().__init__()
@@ -808,8 +813,8 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
             get_tooltip_data(asset_data)
             an = asset_data['name']
             max_name_length = 30
-            if len(an)>max_name_length+3:
-                an = an[:30]+'...'
+            if len(an) > max_name_length + 3:
+                an = an[:30] + '...'
             self.asset_name.text = an
             self.authors_name.text = asset_data['tooltip_data']['author_text']
             self.quality_label.text = asset_data['tooltip_data']['quality']
@@ -912,7 +917,8 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
                     asset_button.visible = True
 
                     asset_data = sr[asset_button.asset_index]
-
+                    if asset_data is None:
+                        continue
                     iname = blenderkit.utils.previmg_name(asset_button.asset_index)
                     # show indices for debug purposes
                     # asset_button.text = str(asset_button.asset_index)

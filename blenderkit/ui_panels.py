@@ -1744,12 +1744,15 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             op.url = url
             op.tooltip = tooltip
 
-    def draw_asset_parameter(self, layout, key='', pretext='', do_search=False):
+    def draw_asset_parameter(self, layout, key='', pretext='', do_search=False, decimal = True):
         parameter = utils.get_param(self.asset_data, key)
         if parameter == None:
             return
         if type(parameter) == int:
-            parameter = f"{parameter:,d}"
+            if decimal:
+                parameter = f"{parameter:,d}"
+            else:
+                parameter = f"{parameter}"
         elif type(parameter) == float:
             parameter = f"{parameter:,.1f}"
         if do_search:
@@ -1866,7 +1869,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
                                   do_search=True)
         self.draw_asset_parameter(box, key='designCollection', pretext='Collection', do_search=True)
         self.draw_asset_parameter(box, key='designVariant', pretext='Variant')
-        self.draw_asset_parameter(box, key='designYear', pretext='Design year')
+        self.draw_asset_parameter(box, key='designYear', pretext='Design year', decimal = False)
 
         self.draw_asset_parameter(box, key='faceCount', pretext='Face count')
         # self.draw_asset_parameter(box, key='thumbnailScale', pretext='Preview scale')
@@ -1878,9 +1881,7 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
             self.draw_asset_parameter(box, key='modelStyle', pretext='Style')
 
         if utils.get_param(self.asset_data, 'dimensionX'):
-            t = '%s×%s×%s m' % (utils.fmt_length(mparams['dimensionX']),
-                                utils.fmt_length(mparams['dimensionY']),
-                                utils.fmt_length(mparams['dimensionZ']))
+            t = utils.fmt_dimensions(mparams)
             self.draw_property(box, 'Size', t)
         if self.asset_data.get('filesSize'):
             fs = self.asset_data['filesSize']
@@ -2065,12 +2066,12 @@ class AssetPopupCard(bpy.types.Operator, ratings_utils.RatingsProperties):
 
             tooltip_extension = f'.\n\nRatings results are shown for assets with more than {show_rating_threshold} ratings'
             op = row.operator('wm.blenderkit_tooltip', text=str(q), icon='SOLO_ON')
-            op.tooltip = f"Quality, average from {rc['quality']} ratings" \
+            op.tooltip = f"Quality, average from {rc['quality']} rating{'' if rc['quality'] == 1 else 's'}" \
                          f"{tooltip_extension if rcount <= show_rating_threshold else ''}"
             row.label(text='   ')
 
             op = row.operator('wm.blenderkit_tooltip', text=str(c), icon_value=pcoll['dumbbell'].icon_id)
-            op.tooltip = f"Complexity, median from {rc['workingHours']} ratings" \
+            op.tooltip = f"Complexity, median from {rc['workingHours']} rating{'' if rc['workingHours'] == 1 else 's'}" \
                          f"{tooltip_extension if rcount <= show_rating_threshold else ''}"
 
             if rcount <= show_rating_prompt_threshold:
