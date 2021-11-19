@@ -991,6 +991,30 @@ class BlenderKitAssetBarOperator(BL_UI_OT_draw_operator):
         if event.type == 'A':
             self.search_by_author(self.active_index)
             return True
+        if event.type == 'X' and self.active_index > -1:
+            # delete downloaded files for this asset
+            sr = bpy.context.window_manager['search results']
+            asset_data = sr[self.active_index]
+            print('delete asset from local drive:' + asset_data['name'])
+            paths.delete_asset_debug(asset_data)
+            asset_data['downloaded'] = 0
+            return True
+        if event.type == 'W' and self.active_index > -1:
+            sr = bpy.context.window_manager['search results']
+            asset_data = sr[self.active_index]
+            a = bpy.context.window_manager['bkit authors'].get(asset_data['author']['id'])
+            if a is not None:
+                utils.p('author:', a)
+                if a.get('aboutMeUrl') is not None:
+                    bpy.ops.wm.url_open(url=a['aboutMeUrl'])
+            return True
+        # FastRateMenu
+        if event.type == 'R' and self.active_index > -1:
+            sr = bpy.context.window_manager['search results']
+            asset_data = sr[self.active_index]
+            if not utils.user_is_owner(asset_data=asset_data):
+                bpy.ops.wm.blenderkit_menu_rating_upload(asset_name = asset_data['name'], asset_id =asset_data['id'], asset_type = asset_data['assetType'])
+            return True
         return False
 
     def scroll_up(self, widget):
