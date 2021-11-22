@@ -1165,7 +1165,8 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
     hotkey_list_filter: StringProperty(
         name="        Filter by Name",
         default="",
-        description="Show only hotkeys that have this text in their name"
+        description="Show only hotkeys that have this text in their name",
+        options={'TEXTEDIT_UPDATE'}
     )
     show_principled_lists: BoolProperty(
         name="Show Principled naming tags",
