@@ -117,6 +117,14 @@ class add_mesh_bolt(Operator, AddObjectHelper):
             description='Depth of the Phillips Bit',
             unit='LENGTH',
             )
+    bf_Cross_Bit_Depth: FloatProperty(
+            attr='bf_Cross_Bit_Depth',
+            name='Bit Depth', default=1.1431535482406616,
+            min=0, soft_min=0,
+            max=MAX_INPUT_NUMBER,
+            description='Depth of the Cross Bit',
+            unit='LENGTH',
+            )
     bf_Allen_Bit_Depth: FloatProperty(
             attr='bf_Allen_Bit_Depth',
             name='Bit Depth', default=1.5,
@@ -245,6 +253,15 @@ class add_mesh_bolt(Operator, AddObjectHelper):
             unit='LENGTH',
             )
 
+    bf_Cross_Bit_Dia: FloatProperty(
+            attr='bf_Cross_Bit_Dia',
+            name='Bit Dia', default=1.8199999332427979,
+            min=0, soft_min=0,
+            max=MAX_INPUT_NUMBER,
+            description='Diameter of the Philips Bit',
+            unit='LENGTH',
+            )
+
     bf_Thread_Length: FloatProperty(
             attr='bf_Thread_Length',
             name='Thread Length', default=6,
@@ -363,6 +380,9 @@ class add_mesh_bolt(Operator, AddObjectHelper):
             elif self.bf_Bit_Type == 'bf_Bit_Philips':
                 col.prop(self, 'bf_Phillips_Bit_Depth')
                 col.prop(self, 'bf_Philips_Bit_Dia')
+            elif self.bf_Bit_Type == 'bf_Bit_Cross':
+                col.prop(self, 'bf_Cross_Bit_Depth')
+                col.prop(self, 'bf_Cross_Bit_Dia')
             col.separator()
         # Head
         if self.bf_Model_Type == 'bf_Model_Bolt':
@@ -523,6 +543,7 @@ def BoltParameters():
     "bf_Shank_Length",
     "bf_Shank_Dia",
     "bf_Phillips_Bit_Depth",
+    "bf_Cross_Bit_Depth",
     "bf_Allen_Bit_Depth",
     "bf_Allen_Bit_Flat_Distance",
     "bf_Torx_Bit_Depth",
@@ -535,6 +556,7 @@ def BoltParameters():
     "bf_Dome_Head_Dia",
     "bf_Pan_Head_Dia",
     "bf_Philips_Bit_Dia",
+    "bf_Cross_Bit_Dia",
     "bf_Thread_Length",
     "bf_Major_Dia",
     "bf_Pitch",

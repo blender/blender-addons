@@ -2477,9 +2477,9 @@ def Bolt_Mesh(props, context):
 
     if props.bf_Bit_Type == 'bf_Bit_Cross':
         Bit_Verts, Bit_Faces, Bit_Dia = Create_Cross_Bit(
-                                                props.bf_Philips_Bit_Dia,
-                                                props.bf_Philips_Bit_Dia * (0.5 / 1.82),
-                                                props.bf_Phillips_Bit_Depth
+                                                props.bf_Cross_Bit_Dia,
+                                                props.bf_Cross_Bit_Dia * (0.5 / 1.82),
+                                                props.bf_Cross_Bit_Depth
                                                 )
     # Head Mesh
     if props.bf_Head_Type == 'bf_Head_Hex':
