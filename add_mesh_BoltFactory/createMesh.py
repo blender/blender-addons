@@ -650,6 +650,89 @@ def Create_Phillips_Bit(FLAT_DIA, FLAT_WIDTH, HEIGHT):
 
     return Spin_Verts, Spin_Face, OUTTER_RADIUS * 2
 
+# ####################################################################
+#                    Create Cross Bit
+# ####################################################################
+
+def Cross_Fill(OFFSET, FLIP=0):
+    faces = []
+    Lookup = [[0, 1, 10],
+              [1, 11, 10],
+              [1, 2, 11],
+              [2, 12, 11],
+
+              [2, 3, 12],
+              [3, 4, 12],
+              [4, 5, 12],
+              [5, 6, 12],
+              [6, 7, 12],
+
+              [7, 13, 12],
+              [7, 8, 13],
+              [8, 14, 13],
+              [8, 9, 14],
+
+              [10, 11, 16, 15],
+              [11, 12, 19, 16],
+              [13, 20, 19, 12], # side L
+              [13, 14, 17, 20], # back L
+              [15, 16, 19, 21], # bottom R
+              [19, 20, 17, 22],
+              [19, 22, 23, 21]
+              ]
+    for i in Lookup:
+        if FLIP:
+            if len(i) == 3:
+                faces.append([OFFSET + i[2], OFFSET + i[1], OFFSET + i[0]])
+            else:
+                faces.append([OFFSET + i[3], OFFSET + i[2], OFFSET + i[1], OFFSET + i[0]])
+        else:
+            if len(i) == 3:
+                faces.append([OFFSET + i[0], OFFSET + i[1], OFFSET + i[2]])
+            else:
+                faces.append([OFFSET + i[0], OFFSET + i[1], OFFSET + i[2], OFFSET + i[3]])
+    return faces
+
+def Create_Cross_Bit(FLAT_DIA, FLAT_WIDTH, HEIGHT):
+    verts = []
+    faces = []
+
+    DIV_COUNT = 36
+    FLAT_RADIUS = FLAT_DIA * 0.5
+    OUTTER_RADIUS = FLAT_RADIUS * 1.05
+
+    Flat_Half = float(FLAT_WIDTH) / 2.0
+
+    FaceStart_Outside = len(verts)
+    Deg_Step = 360.0 / float(DIV_COUNT)
+    for i in range(int(DIV_COUNT / 4) + 1):  # only do half and mirror later
+        x = sin(radians(i * Deg_Step)) * OUTTER_RADIUS
+        y = cos(radians(i * Deg_Step)) * OUTTER_RADIUS
+        verts.append([x, y, 0])
+
+    # FaceStart_Inside = len(verts)               # UNUSED
+    verts.append([0, FLAT_RADIUS, 0])             # 10
+    verts.append([Flat_Half, FLAT_RADIUS, 0])     # 11
+    verts.append([Flat_Half, Flat_Half, 0])       # 12
+    verts.append([FLAT_RADIUS, Flat_Half, 0])     # 13
+    verts.append([FLAT_RADIUS, 0, 0])             # 14
+
+    verts.append([verts[10][0], verts[10][1], verts[10][2] - HEIGHT])          # 15
+    verts.append([verts[11][0], verts[11][1], verts[11][2] - HEIGHT])          # 16
+    verts.append([verts[14][0], verts[14][1], verts[14][2] - HEIGHT])          # 17
+
+    verts.append([0, 0, 0 - HEIGHT])            # 18
+    verts.append([verts[12][0], verts[12][1], verts[12][2] - HEIGHT])          # 19
+    verts.append([verts[13][0], verts[13][1], verts[13][2] - HEIGHT])          # 20
+    verts.append([verts[19][0] - Flat_Half, verts[19][1], verts[19][2]])       # 21 (middle bottom)
+    verts.append([verts[19][0], verts[19][1] - Flat_Half, verts[19][2]])       # 22 (middle bottom)
+    verts.append([verts[22][0] - Flat_Half, verts[22][1], verts[22][2]])       # 22 (bottom, center)
+
+    faces.extend(Cross_Fill(FaceStart_Outside, True))
+
+    Spin_Verts, Spin_Face = SpinDup(verts, faces, 360, 4, 'z')
+
+    return Spin_Verts, Spin_Face, OUTTER_RADIUS * 2
 
 # ####################################################################
 #                    Create Head Types
@@ -2387,6 +2470,13 @@ def Bolt_Mesh(props, context):
 
     if props.bf_Bit_Type == 'bf_Bit_Philips':
         Bit_Verts, Bit_Faces, Bit_Dia = Create_Phillips_Bit(
+                                                props.bf_Philips_Bit_Dia,
+                                                props.bf_Philips_Bit_Dia * (0.5 / 1.82),
+                                                props.bf_Phillips_Bit_Depth
+                                                )
+
+    if props.bf_Bit_Type == 'bf_Bit_Cross':
+        Bit_Verts, Bit_Faces, Bit_Dia = Create_Cross_Bit(
                                                 props.bf_Philips_Bit_Dia,
                                                 props.bf_Philips_Bit_Dia * (0.5 / 1.82),
                                                 props.bf_Phillips_Bit_Depth

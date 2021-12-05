@@ -75,7 +75,8 @@ class add_mesh_bolt(Operator, AddObjectHelper):
     Bit_Type_List = [('bf_Bit_None', 'NONE', 'No Bit Type'),
                     ('bf_Bit_Allen', 'ALLEN', 'Allen Bit Type'),
                     ('bf_Bit_Torx', 'TORX', 'Torx Bit Type'),
-                    ('bf_Bit_Philips', 'PHILLIPS', 'Phillips Bit Type')]
+                    ('bf_Bit_Philips', 'PHILLIPS', 'Phillips Bit Type'),
+                    ('bf_Bit_Cross', 'CROSS', 'Cross Bit Type')]
     bf_Bit_Type: EnumProperty(
             attr='bf_Bit_Type',
             name='Bit Type',
