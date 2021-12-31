@@ -244,6 +244,10 @@ def save(
         bm.from_mesh(me)
         ob_eval.to_mesh_clear()
 
+    # Workaround for hardcoded unsigned char limit in other DCCs PLY importers
+    if (ngons := [f for f in bm.faces if len(f.verts) > 255]):
+        bmesh.ops.triangulate(bm, faces=ngons)
+
     mesh = bpy.data.meshes.new("TMP PLY EXPORT")
     bm.to_mesh(mesh)
     bm.free()
