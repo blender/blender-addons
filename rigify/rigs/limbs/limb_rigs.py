@@ -273,8 +273,10 @@ class BaseLimbRig(BaseRig):
     def parent_fk_control_bone(self, i, ctrl, prev, org, parent_mch):
         if parent_mch:
             self.set_bone_parent(ctrl, parent_mch)
+        elif i == 0:
+            self.set_bone_parent(ctrl, prev, inherit_scale='AVERAGE')
         else:
-            self.set_bone_parent(ctrl, prev, use_connect=(i > 0))
+            self.set_bone_parent(ctrl, prev, use_connect=True, inherit_scale='ALIGNED')
 
     @stage.configure_bones
     def configure_fk_control_chain(self):
