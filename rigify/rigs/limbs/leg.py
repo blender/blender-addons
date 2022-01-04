@@ -63,6 +63,11 @@ class Rig(BaseLimbRig):
 
         self.pivot_type = self.params.foot_pivot_type
         self.heel_euler_order = 'ZXY' if self.main_axis == 'x' else 'XZY'
+        self.use_ik_toe = self.params.extra_ik_toe
+
+        if self.use_ik_toe:
+            self.fk_name_suffix_cutoff = 3
+            self.fk_ik_layer_cutoff = 4
 
         assert self.pivot_type in {'ANKLE', 'TOE', 'ANKLE_TOE'}
 
@@ -117,6 +122,9 @@ class Rig(BaseLimbRig):
 
     ####################################################
     # IK controls
+
+    def get_tail_ik_controls(self):
+        return [self.bones.ctrl.ik_toe] if self.use_ik_toe else []
 
     def get_extra_ik_controls(self):
         controls = super().get_extra_ik_controls() + [self.bones.ctrl.heel]
@@ -210,6 +218,31 @@ class Rig(BaseLimbRig):
     def generate_heel_control_widget(self):
         create_ballsocket_widget(self.obj, self.bones.ctrl.heel)
 
+    ####################################################
+    # IK toe control
+
+    @stage.generate_bones
+    def make_ik_toe_control(self):
+        if self.use_ik_toe:
+            self.bones.ctrl.ik_toe = self.make_ik_toe_control_bone(self.bones.org.main[3])
+
+    def make_ik_toe_control_bone(self, org):
+        return self.copy_bone(org, make_derived_name(org, 'ctrl', '_ik'))
+
+    @stage.parent_bones
+    def parent_ik_toe_control(self):
+        if self.use_ik_toe:
+            self.set_bone_parent(self.bones.ctrl.ik_toe, self.bones.mch.heel[2])
+
+    @stage.configure_bones
+    def configure_ik_toe_control(self):
+        if self.use_ik_toe:
+            self.copy_bone_properties(self.bones.org.main[3], self.bones.ctrl.ik_toe)
+
+    @stage.generate_widgets
+    def make_ik_toe_control_widget(self):
+        if self.use_ik_toe:
+            self.make_fk_control_widget(3, self.bones.ctrl.ik_toe)
 
     ####################################################
     # Heel roll MCH
@@ -288,22 +321,25 @@ class Rig(BaseLimbRig):
 
     def parent_fk_parent_bone(self, i, parent_mch, prev_ctrl, org, prev_org):
         if i == 3:
-            align_bone_orientation(self.obj, parent_mch, self.bones.mch.heel[2])
+            if not self.use_ik_toe:
+                align_bone_orientation(self.obj, parent_mch, self.bones.mch.heel[2])
 
-            self.set_bone_parent(parent_mch, prev_org, use_connect=True)
+                self.set_bone_parent(parent_mch, prev_org, use_connect=True)
+            else:
+                self.set_bone_parent(parent_mch, prev_ctrl, use_connect=True, inherit_scale='ALIGNED')
 
         else:
             super().parent_fk_parent_bone(i, parent_mch, prev_ctrl, org, prev_org)
 
     def rig_fk_parent_bone(self, i, parent_mch, org):
         if i == 3:
-            con = self.make_constraint(parent_mch, 'COPY_TRANSFORMS', self.bones.mch.heel[2])
+            if not self.use_ik_toe:
+                con = self.make_constraint(parent_mch, 'COPY_TRANSFORMS', self.bones.mch.heel[2])
 
-            self.make_driver(con, 'influence', variables=[(self.prop_bone, 'IK_FK')], polynomial=[1.0, -1.0])
+                self.make_driver(con, 'influence', variables=[(self.prop_bone, 'IK_FK')], polynomial=[1.0, -1.0])
 
         else:
             super().rig_fk_parent_bone(i, parent_mch, org)
-
 
     ####################################################
     # IK system MCH
@@ -340,9 +376,17 @@ class Rig(BaseLimbRig):
             default = 'ANKLE_TOE'
         )
 
+        params.extra_ik_toe = bpy.props.BoolProperty(
+            name='Separate IK Toe',
+            default=False,
+            description="Generate a separate IK toe control for better IK/FK snapping"
+        )
+
+
     @classmethod
     def parameters_ui(self, layout, params):
         layout.prop(params, 'foot_pivot_type')
+        layout.prop(params, 'extra_ik_toe')
 
         super().parameters_ui(layout, params, 'Foot')
 
