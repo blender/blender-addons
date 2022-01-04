@@ -20,7 +20,7 @@
 
 bl_info = {
     "name": "Stanford PLY format",
-    "author": "Bruce Merry, Campbell Barton, Bastien Montagne, Mikhail Rachinsky",
+    "author": "Bruce Merry, Campbell Barton", "Bastien Montagne"
     "version": (2, 1, 0),
     "blender": (2, 90, 0),
     "location": "File > Import/Export",
