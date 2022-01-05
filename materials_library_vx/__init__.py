@@ -601,7 +601,7 @@ if mat:
         #if material:
         #maybe some test cases doesn't return a material, gotta take care of that
         #i cannot think of any case like that right now
-        #maybe import linked when the database isnt sync
+        #maybe import linked when the database isn't sync
         if context.mode == "EDIT_MESH":
             obj = context.object
             dd(material)
