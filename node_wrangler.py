@@ -3223,8 +3223,8 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
             # Separate CamelCase by space
             fname = re.sub(r"([a-z])([A-Z])", r"\g<1> \g<2>",fname)
             # Replace common separators with SPACE
-            seperators = ['_', '.', '-', '__', '--', '#']
-            for sep in seperators:
+            separators = ['_', '.', '-', '__', '--', '#']
+            for sep in separators:
                 fname = fname.replace(sep, ' ')
 
             components = fname.split(' ')
