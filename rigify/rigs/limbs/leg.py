@@ -470,6 +470,10 @@ def create_sample(obj):
         pbone.rigify_parameters.tweak_layers = [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
     except AttributeError:
         pass
+    try:
+        pbone.rigify_parameters.extra_ik_toe = True
+    except AttributeError:
+        pass
     pbone = obj.pose.bones[bones['shin.L']]
     pbone.rigify_type = ''
     pbone.lock_location = (False, False, False)
