@@ -127,15 +127,12 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
     )
     use_normals: BoolProperty(
         name="Normals",
-        description=(
-            "Export Normals for smooth and hard shaded faces "
-            "(hard shaded faces will be exported as individual faces)"
-        ),
+        description="Export vertex normals",
         default=True,
     )
     use_uv_coords: BoolProperty(
         name="UVs",
-        description="Export the active UV layer",
+        description="Export the active UV layer (will split edges by seams)",
         default=True,
     )
     use_colors: BoolProperty(
