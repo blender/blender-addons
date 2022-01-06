@@ -80,7 +80,7 @@ def save_mesh(filepath, bm, use_ascii, use_normals, use_uv, use_color):
 
     use_uv = use_uv and uv_lay is not None
     use_color = use_color and col_lay is not None
-    uv = color = None
+    normal = uv = color = None
 
     ply_faces = []
     ply_verts = []
@@ -90,10 +90,6 @@ def save_mesh(filepath, bm, use_ascii, use_normals, use_uv, use_color):
     for f in bm.faces:
         pf = []
         ply_faces.append(pf)
-
-        normal = None
-        if use_normals and not f.smooth:
-            normal = f.normal
 
         for loop in f.loops:
             v = map_id = loop.vert
@@ -108,7 +104,7 @@ def save_mesh(filepath, bm, use_ascii, use_normals, use_uv, use_color):
                 pf.append(_id)
                 continue
 
-            if use_normals and normal is None:
+            if use_normals:
                 normal = v.normal
             if use_color:
                 color = tuple(int(x * 255.0) for x in loop[col_lay])
