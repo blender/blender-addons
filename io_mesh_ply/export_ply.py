@@ -96,13 +96,15 @@ def save_mesh(filepath, bm, use_ascii, use_normals, use_uv, use_color):
             normal = f.normal
 
         for loop in f.loops:
-            v = v_key = loop.vert
+            v = map_id = loop.vert
 
             if use_uv:
                 uv = loop[uv_lay].uv[:]
-                v_key = uv
+                map_id = uv
 
-            if (_id := ply_vert_map.get(v_key)) is not None:
+            # Identify vertex by pointer unless exporting UVs,
+            # in which case id by UV coordinate (will split edges by seams).
+            if (_id := ply_vert_map.get(map_id)) is not None:
                 pf.append(_id)
                 continue
 
@@ -112,7 +114,7 @@ def save_mesh(filepath, bm, use_ascii, use_normals, use_uv, use_color):
                 color = tuple(int(x * 255.0) for x in loop[col_lay])
 
             ply_verts.append((v, normal, uv, color))
-            ply_vert_map[v_key] = ply_vert_id
+            ply_vert_map[map_id] = ply_vert_id
             pf.append(ply_vert_id)
             ply_vert_id += 1
 
