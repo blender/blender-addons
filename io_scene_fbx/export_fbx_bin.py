@@ -2769,6 +2769,7 @@ def fbx_header_elements(root, scene_data, time=None):
     lastsaved("p_string", b"ApplicationName", app_name)
     lastsaved("p_string", b"ApplicationVersion", app_ver)
     lastsaved("p_datetime", b"DateTime_GMT", "01/01/1970 00:00:00.000")
+    original("p_string", b"ApplicationNativeFile", bpy.data.filepath)
 
     # ##### End of FBXHeaderExtension element.
 
