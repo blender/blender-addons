@@ -232,7 +232,7 @@ class Rig(BaseLimbRig):
     @stage.parent_bones
     def parent_ik_toe_control(self):
         if self.use_ik_toe:
-            self.set_bone_parent(self.bones.ctrl.ik_toe, self.bones.mch.heel[2])
+            self.set_bone_parent(self.bones.ctrl.ik_toe, self.get_mch_heel_toe_output())
 
     @stage.configure_bones
     def configure_ik_toe_control(self):
@@ -246,6 +246,9 @@ class Rig(BaseLimbRig):
 
     ####################################################
     # Heel roll MCH
+
+    def get_mch_heel_toe_output(self):
+        return self.bones.mch.heel[-3]
 
     @stage.generate_bones
     def make_roll_mch_chain(self):
@@ -322,7 +325,7 @@ class Rig(BaseLimbRig):
     def parent_fk_parent_bone(self, i, parent_mch, prev_ctrl, org, prev_org):
         if i == 3:
             if not self.use_ik_toe:
-                align_bone_orientation(self.obj, parent_mch, self.bones.mch.heel[2])
+                align_bone_orientation(self.obj, parent_mch, self.get_mch_heel_toe_output())
 
                 self.set_bone_parent(parent_mch, prev_org, use_connect=True)
             else:
@@ -334,7 +337,7 @@ class Rig(BaseLimbRig):
     def rig_fk_parent_bone(self, i, parent_mch, org):
         if i == 3:
             if not self.use_ik_toe:
-                con = self.make_constraint(parent_mch, 'COPY_TRANSFORMS', self.bones.mch.heel[2])
+                con = self.make_constraint(parent_mch, 'COPY_TRANSFORMS', self.get_mch_heel_toe_output())
 
                 self.make_driver(con, 'influence', variables=[(self.prop_bone, 'IK_FK')], polynomial=[1.0, -1.0])
 

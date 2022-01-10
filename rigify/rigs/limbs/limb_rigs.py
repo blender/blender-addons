@@ -1026,31 +1026,36 @@ class RigifyLimbIk2FkBase:
             mat = convert_pose_matrix_via_rest_delta(mat, ik, ctrl)
             set_transform_from_matrix(obj, ctrl.name, mat, keyflags=keyflags)
 
+    def assign_extra_controls(self, context, obj, all_matrices, ik_bones, ctrl_bones):
+        for extra in self.extra_ctrl_list:
+            set_transform_from_matrix(
+                obj, extra, Matrix.Identity(4), space='LOCAL', keyflags=self.keyflags
+            )
+
     def apply_frame_state(self, context, obj, all_matrices):
         ik_bones = [ obj.pose.bones[k] for k in self.ik_bone_list ]
         ctrl_bones = [ obj.pose.bones[k] for k in self.ctrl_bone_list ]
         tail_bones = [ obj.pose.bones[k] for k in self.tail_bone_list ]
 
-        assert len(all_matrices) == len(ik_bones) + len(tail_bones)
+        assert len(all_matrices) >= len(ik_bones) + len(tail_bones)
 
         matrices = all_matrices[0:len(ik_bones)]
         tail_matrices = all_matrices[len(ik_bones):]
 
         use_pole = self.get_use_pole(obj)
 
+        # Remove foot heel transform, if present
+        self.assign_extra_controls(context, obj, all_matrices, ik_bones, ctrl_bones)
+
+        context.view_layer.update()
+
         # Set the end control position
-        endmat = convert_pose_matrix_via_rest_delta(matrices[-1], ik_bones[-1], ctrl_bones[-1])
+        endmat = convert_pose_matrix_via_pose_delta(matrices[-1], ik_bones[-1], ctrl_bones[-1])
 
         set_transform_from_matrix(
             obj, self.ctrl_bone_list[-1], endmat, keyflags=self.keyflags,
             undo_copy_scale=True,
         )
-
-        # Remove foot heel transform, if present
-        for extra in self.extra_ctrl_list:
-            set_transform_from_matrix(
-                obj, extra, Matrix.Identity(4), space='LOCAL', keyflags=self.keyflags
-            )
 
         # Set the base bone position
         ctrl_bones[0].matrix_basis = Matrix.Identity(4)
