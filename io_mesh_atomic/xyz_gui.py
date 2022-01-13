@@ -153,6 +153,8 @@ class IMPORT_OT_xyz(Operator, ImportHelper):
         col.prop(self, "images_per_key")
 
     def execute(self, context):
+        # To be on the safe side, we switch to the 'OBJECT' mode.
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         del ALL_FRAMES[:]
         del ELEMENTS[:]
