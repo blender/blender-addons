@@ -1128,7 +1128,7 @@ def add_limb_snap_ik_to_fk(panel, *, master=None, fk_bones=[], ik_bones=[], tail
     add_fk_ik_snap_buttons(
         panel, 'pose.rigify_limb_ik2fk_{rig_id}', 'pose.rigify_limb_ik2fk_bake_{rig_id}',
         label='IK->FK', rig_name=rig_name, properties=op_props,
-        clear_bones=ik_ctrl_bones + ik_extra_ctrls,
+        clear_bones=ik_ctrl_bones + tail_bones + ik_extra_ctrls,
     )
 
 #########################

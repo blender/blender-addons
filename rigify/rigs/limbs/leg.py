@@ -237,7 +237,7 @@ class Rig(BaseLimbRig):
     @stage.configure_bones
     def configure_ik_toe_control(self):
         if self.use_ik_toe:
-            self.copy_bone_properties(self.bones.org.main[3], self.bones.ctrl.ik_toe)
+            self.copy_bone_properties(self.bones.org.main[3], self.bones.ctrl.ik_toe, props=False)
 
     @stage.generate_widgets
     def make_ik_toe_control_widget(self):
