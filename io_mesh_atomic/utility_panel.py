@@ -422,7 +422,6 @@ def separate_atoms(scn):
 
     # Free memory
     bm.free()
-    del(bm)
 
     # Delete already the selected vertices
     bpy.ops.mesh.delete(type='VERT')
@@ -668,7 +667,6 @@ def draw_obj(atom_shape, atom, new_material):
         coll_child = get_collection_object(child)
         coll_child.objects.unlink(child)
         bpy.ops.object.delete()
-        del(child)
 
     # Deselect everything
     bpy.ops.object.select_all(action='DESELECT')
@@ -682,7 +680,6 @@ def draw_obj(atom_shape, atom, new_material):
     coll_old_atom.objects.unlink(atom)
     # Delete the old atom
     bpy.ops.object.delete()
-    del(atom)
 
     #if "_F2+_center" or "_F+_center" or "_F0_center" in coll_old_atom:
     #    print("Delete the collection")
@@ -982,7 +979,6 @@ def draw_obj_special(atom_shape, atom):
     coll_atom.objects.unlink(atom)
     # Delete the old atom
     bpy.ops.object.delete()
-    del(atom)
 
     return new_atom
 
