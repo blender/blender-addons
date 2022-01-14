@@ -769,6 +769,9 @@ def draw_sticks_dupliverts(all_atoms,
 
     if use_sticks_color == False:
         stick_material = bpy.data.materials.new(ELEMENTS[-1].name)
+        stick_material.use_nodes = True
+        mat_P_BSDF = stick_material.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Base Color'].default_value = ELEMENTS[-1].color
         stick_material.diffuse_color = ELEMENTS[-1].color
 
     # Sort the sticks and put them into a new list such that ...
@@ -1057,6 +1060,9 @@ def draw_sticks_skin(all_atoms,
     new_stick_mesh.modifiers[1].render_levels = sticks_subdiv_render
 
     stick_material = bpy.data.materials.new(ELEMENTS[-1].name)
+    stick_material.use_nodes = True
+    mat_P_BSDF = stick_material.node_tree.nodes['Principled BSDF']
+    mat_P_BSDF.inputs['Base Color'].default_value = ELEMENTS[-1].color
     stick_material.diffuse_color = ELEMENTS[-1].color
     new_stick_mesh.active_material = stick_material
 
@@ -1112,6 +1118,9 @@ def draw_sticks_normal(all_atoms,
                        coll_molecule):
 
     stick_material = bpy.data.materials.new(ELEMENTS[-1].name)
+    stick_material.use_nodes = True
+    mat_P_BSDF = stick_material.node_tree.nodes['Principled BSDF']
+    mat_P_BSDF.inputs['Base Color'].default_value = ELEMENTS[-1].color
     stick_material.diffuse_color = ELEMENTS[-1].color
 
     up_axis = Vector([0.0, 0.0, 1.0])
@@ -1336,8 +1345,10 @@ def import_pdb(Ball_type,
     # (e.g. hydrogen)
     for atom_type in atom_all_types_list:
         material = bpy.data.materials.new(atom_type[1])
+        material.use_nodes = True
+        mat_P_BSDF = material.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Base Color'].default_value = atom_type[2]
         material.name = atom_type[0]
-        material.diffuse_color = atom_type[2]
         atom_material_list.append(material)
 
     # Now, we go through all atoms and give them a material. For all atoms ...

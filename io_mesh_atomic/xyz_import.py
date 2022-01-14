@@ -487,8 +487,10 @@ def import_xyz(Ball_type,
         # Take the first atom
         atom = atoms_of_one_type[0]
         material = bpy.data.materials.new(atom.name)
+        material.use_nodes = True
+        mat_P_BSDF = material.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Base Color'].default_value = atom.color
         material.name = atom.name
-        material.diffuse_color = atom.color
         atom_material_list.append(material)
 
     # Now, we go through all atoms and give them a material. For all atoms ...
