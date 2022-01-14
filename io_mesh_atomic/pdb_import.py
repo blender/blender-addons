@@ -772,7 +772,6 @@ def draw_sticks_dupliverts(all_atoms,
         stick_material.use_nodes = True
         mat_P_BSDF = stick_material.node_tree.nodes['Principled BSDF']
         mat_P_BSDF.inputs['Base Color'].default_value = ELEMENTS[-1].color
-        stick_material.diffuse_color = ELEMENTS[-1].color
 
     # Sort the sticks and put them into a new list such that ...
     sticks_all_lists = []
@@ -1063,7 +1062,6 @@ def draw_sticks_skin(all_atoms,
     stick_material.use_nodes = True
     mat_P_BSDF = stick_material.node_tree.nodes['Principled BSDF']
     mat_P_BSDF.inputs['Base Color'].default_value = ELEMENTS[-1].color
-    stick_material.diffuse_color = ELEMENTS[-1].color
     new_stick_mesh.active_material = stick_material
 
     # This is for putting the radius of the sticks onto
@@ -1121,7 +1119,6 @@ def draw_sticks_normal(all_atoms,
     stick_material.use_nodes = True
     mat_P_BSDF = stick_material.node_tree.nodes['Principled BSDF']
     mat_P_BSDF.inputs['Base Color'].default_value = ELEMENTS[-1].color
-    stick_material.diffuse_color = ELEMENTS[-1].color
 
     up_axis = Vector([0.0, 0.0, 1.0])
 
