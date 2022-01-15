@@ -537,9 +537,13 @@ def import_xyz(Ball_type,
                         material.use_nodes = True
                         mat_P_BSDF = material.node_tree.nodes['Principled BSDF']
                         mat_P_BSDF.inputs['Metallic'].default_value = 0.1
-                        mat_P_BSDF.inputs['Roughness'].default_value = 0.2
-                        mat_P_BSDF.inputs['Transmission'].default_value = 0.97
+                        mat_P_BSDF.inputs['Specular'].default_value = 0.15
+                        mat_P_BSDF.inputs['Roughness'].default_value = 0.0
+                        mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.37
                         mat_P_BSDF.inputs['IOR'].default_value = 0.8
+                        mat_P_BSDF.inputs['Transmission'].default_value = 0.6
+                        mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.0
+                        mat_P_BSDF.inputs['Alpha'].default_value = 0.5
                     # The atom gets its properties.
                     atom.material = material
 

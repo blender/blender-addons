@@ -1380,9 +1380,8 @@ def import_pdb(Ball_type,
             # comparison of names ...
             if atom.name in material.name:
                 # ... and give the atom its material properties.
-                # However, before we check, if it is a vacancy, because then it
-                # gets some additional preparation. The vacancy is represented
-                # by a transparent cube.
+                # However, before we check if it is a vacancy.
+                # The vacancy is represented by a transparent cube.
                 if atom.name == "Vacancy":
                     # Some properties for eevee.
                     material.metallic = 0.8
@@ -1394,9 +1393,13 @@ def import_pdb(Ball_type,
                     material.use_nodes = True
                     mat_P_BSDF = material.node_tree.nodes['Principled BSDF']
                     mat_P_BSDF.inputs['Metallic'].default_value = 0.1
-                    mat_P_BSDF.inputs['Roughness'].default_value = 0.2
-                    mat_P_BSDF.inputs['Transmission'].default_value = 0.97
+                    mat_P_BSDF.inputs['Specular'].default_value = 0.15
+                    mat_P_BSDF.inputs['Roughness'].default_value = 0.0
+                    mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.37
                     mat_P_BSDF.inputs['IOR'].default_value = 0.8
+                    mat_P_BSDF.inputs['Transmission'].default_value = 0.6
+                    mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.0
+                    mat_P_BSDF.inputs['Alpha'].default_value = 0.5
                 # The atom gets its properties.
                 atom.material = material
 
