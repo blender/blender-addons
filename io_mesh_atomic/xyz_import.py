@@ -440,7 +440,7 @@ def camera_light_source(use_camera,
         # We now determine the emission strength of the lamp. Note that the
         # intensity depends on 1/r^2. For this we use a value of 100000.0 at a
         # distance of 58. This value was determined manually inside Blender.
-        lamp_data.energy = 100000.0 * ( (length * length) / (58.0 * 58.0) )
+        lamp_data.energy = 500000.0 * ( (length * length) / (58.0 * 58.0) )
         lamp = bpy.data.objects.new("A_lamp_eevee", lamp_data)
         lamp.location = lamp_xyz_vec
         bpy.context.collection.objects.link(lamp)

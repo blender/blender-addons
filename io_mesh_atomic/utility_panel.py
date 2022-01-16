@@ -355,26 +355,30 @@ def modify_objects(action_type,
 
         bpy.context.view_layer.objects.active = None
 
-    # Replace atom objects
+    # Change the  atom objects
     if action_type == "ATOM_REPLACE_OBJ" and "STICK" not in atom.name.upper():
 
         scn = bpy.context.scene.atom_blend
 
-        new_material = draw_obj_material(scn.replace_objs_material,
-                                         atom.active_material)
+        material = atom.active_material
+        new_material = draw_obj_material(scn.replace_objs_material, material)
 
         # Special object (like halo, etc.)
         if scn.replace_objs_special != '0':
-            new_atom = draw_obj_special(scn.replace_objs_special, atom)
+            atom = draw_obj_special(scn.replace_objs_special, atom)
         # Standard geometrical objects
         else:
             # If the atom shape shall not be changed, then:
             if scn.replace_objs == '0':
                 atom.active_material = new_material
-                #return {'FINISHED'}
             # If the atom shape shall change, then:
             else:
-                new_atom = draw_obj(scn.replace_objs, atom, new_material)
+                atom = draw_obj(scn.replace_objs, atom, new_material)
+
+        # If the atom is the representative ball of a dupliverts structure,
+        # then make it invisible.
+        if atom.parent != None:
+            atom.hide_set(True)
 
     # Default shapes and colors for atoms
     if action_type == "ATOM_DEFAULT_OBJ" and "STICK" not in atom.name.upper():
@@ -444,7 +448,6 @@ def separate_atoms(scn):
         # Do not hide the object!
         obj_dupli.hide_set(False)
 
-
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.context.view_layer.objects.active = mesh
 
@@ -452,51 +455,80 @@ def separate_atoms(scn):
 # Prepare a new material
 def draw_obj_material(material_type, material):
 
+    mat_P_BSDF_default = material.node_tree.nodes['Principled BSDF']
+    default_color = mat_P_BSDF_default.inputs['Base Color'].default_value
+
     if material_type == '0': # Unchanged
         material_new = material
     if material_type == '1': # Normal
+        # We create again the 'normal' material. Why? It's because the old
+        # one could have been deleted by the user during the course of the
+        # user's work in Blender ... .
         material_new = bpy.data.materials.new(material.name + "_normal")
+        material_new.use_nodes = True
+        mat_P_BSDF = material_new.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Base Color'].default_value = default_color
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.0
+        mat_P_BSDF.inputs['Specular'].default_value = 0.5
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.5
+        mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.03
+        mat_P_BSDF.inputs['IOR'].default_value = 1.45
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.0
+        mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.0
+        mat_P_BSDF.inputs['Alpha'].default_value = 1.0
+        # Some additional stuff for eevee.
+        material_new.blend_method = 'OPAQUE'
+        material_new.shadow_method = 'OPAQUE'
     if material_type == '2': # Transparent
         material_new = bpy.data.materials.new(material.name + "_transparent")
-        material_new.metallic = 0.8
-        material_new.specular_intensity = 0.5
-        material_new.roughness = 0.3
-        material_new.blend_method = 'OPAQUE'
-        material_new.show_transparent_back = False
-        # Some properties for cycles
         material_new.use_nodes = True
         mat_P_BSDF = material_new.node_tree.nodes['Principled BSDF']
-        mat_P_BSDF.inputs['Metallic'].default_value = 0.1
+        mat_P_BSDF.inputs['Base Color'].default_value = default_color
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.0
+        mat_P_BSDF.inputs['Specular'].default_value = 0.15
         mat_P_BSDF.inputs['Roughness'].default_value = 0.2
-        mat_P_BSDF.inputs['Transmission'].default_value = 0.9
-        mat_P_BSDF.inputs['IOR'].default_value = 0.8
+        mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.37
+        mat_P_BSDF.inputs['IOR'].default_value = 1.45
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.8
+        mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.0
+        mat_P_BSDF.inputs['Alpha'].default_value = 0.4
+        # Some additional stuff for eevee.
+        material_new.blend_method = 'HASHED'
+        material_new.shadow_method = 'HASHED'
+        material_new.use_backface_culling = False
     if material_type == '3': # Reflecting
         material_new = bpy.data.materials.new(material.name + "_reflecting")
-        material_new.metallic = 0.5
-        material_new.specular_intensity = 0.5
-        material_new.roughness = 0.0
-        material_new.blend_method = 'OPAQUE'
-        # Some properties for cycles
         material_new.use_nodes = True
         mat_P_BSDF = material_new.node_tree.nodes['Principled BSDF']
-        mat_P_BSDF.inputs['Metallic'].default_value = 0.95
+        mat_P_BSDF.inputs['Base Color'].default_value = default_color
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.7
+        mat_P_BSDF.inputs['Specular'].default_value = 0.15
         mat_P_BSDF.inputs['Roughness'].default_value = 0.1
+        mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.5
+        mat_P_BSDF.inputs['IOR'].default_value = 0.8
         mat_P_BSDF.inputs['Transmission'].default_value = 0.0
-        mat_P_BSDF.inputs['IOR'].default_value = 1.0
+        mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.0
+        mat_P_BSDF.inputs['Alpha'].default_value = 1.0
+        # Some additional stuff for eevee.
+        material_new.blend_method = 'OPAQUE'
+        material_new.shadow_method = 'OPAQUE'
     if material_type == '4': # Transparent + reflecting
         material_new = bpy.data.materials.new(material.name + "_trans+refl")
-        material_new.metallic = 0.3
-        material_new.specular_intensity = 0.5
-        material_new.roughness = 0.3
-        material_new.blend_method = 'OPAQUE'
-        material_new.show_transparent_back = False
-        # Some properties for cycles
         material_new.use_nodes = True
         mat_P_BSDF = material_new.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Base Color'].default_value = default_color
         mat_P_BSDF.inputs['Metallic'].default_value = 0.5
-        mat_P_BSDF.inputs['Roughness'].default_value = 0.2
-        mat_P_BSDF.inputs['Transmission'].default_value = 0.5
-        mat_P_BSDF.inputs['IOR'].default_value = 0.8
+        mat_P_BSDF.inputs['Specular'].default_value = 0.15
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.05
+        mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.37
+        mat_P_BSDF.inputs['IOR'].default_value = 1.45
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.6
+        mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.0
+        mat_P_BSDF.inputs['Alpha'].default_value = 0.6
+        # Some additional stuff for eevee.
+        material_new.blend_method = 'HASHED'
+        material_new.shadow_method = 'HASHED'
+        material_new.use_backface_culling = False
 
     # Always, when the material is changed, a new name is created. Note that
     # this makes sense: Imagine, an other object uses the same material as the
