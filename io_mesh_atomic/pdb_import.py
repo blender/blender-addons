@@ -628,18 +628,32 @@ def camera_light_source(use_camera,
         object_lamp_vec = Vector((lamp_dl,lamp_dy_right,lamp_dl))
         lamp_xyz_vec = object_center_vec + object_lamp_vec
 
+        # Eevee
+        # =====
+
+        # As a lamp we use a point source.
+        lamp_data = bpy.data.lights.new(name="A_lamp_eevee", type="POINT")
+        lamp_data.energy = 100000.0 # Watts
+        lamp = bpy.data.objects.new("A_lamp_eevee", lamp_data)
+        lamp.location = lamp_xyz_vec
+        bpy.context.collection.objects.link(lamp)
+
+        # Cycles
+        # ======
+
         # As a lamp we use a ball.
         bpy.ops.mesh.primitive_uv_sphere_add(
                         segments=64,
                         ring_count=64,
                         align='WORLD',
                         enter_editmode=False,
-                        location=lamp_xyz_vec,
+                        # We move the lamp below the point source from above.
+                        location=lamp_xyz_vec + Vector((0.0, 0.0, 1.5)),
                         rotation=(0, 0, 0))
         lamp = bpy.context.view_layer.objects.active
         # We put an 'A_' just that the lamp appears first in the outliner
         # tree
-        lamp.name = "A_lamp"
+        lamp.name = "A_lamp_cycles"
 
         # We now determine the emission strength of the lamp. Note that the
         # intensity depends on 1/r^2. For this we use a value of 5000.0 at a
@@ -1383,13 +1397,7 @@ def import_pdb(Ball_type,
                 # However, before we check if it is a vacancy.
                 # The vacancy is represented by a transparent cube.
                 if atom.name == "Vacancy":
-                    # Some properties for eevee.
-                    material.metallic = 0.8
-                    material.specular_intensity = 0.5
-                    material.roughness = 0.3
-                    material.blend_method = 'OPAQUE'
-                    material.show_transparent_back = False
-                    # Some properties for cycles
+                    # For cycles and eevee.
                     material.use_nodes = True
                     mat_P_BSDF = material.node_tree.nodes['Principled BSDF']
                     mat_P_BSDF.inputs['Metallic'].default_value = 0.1
@@ -1400,6 +1408,10 @@ def import_pdb(Ball_type,
                     mat_P_BSDF.inputs['Transmission'].default_value = 0.6
                     mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.0
                     mat_P_BSDF.inputs['Alpha'].default_value = 0.5
+                    # Some additional stuff for eevee.
+                    material.blend_method = 'HASHED'
+                    material.shadow_method = 'HASHED'
+                    material.use_backface_culling = False
                 # The atom gets its properties.
                 atom.material = material
 
