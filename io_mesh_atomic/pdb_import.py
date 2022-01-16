@@ -627,13 +627,17 @@ def camera_light_source(use_camera,
         # Create x, y and z for the lamp.
         object_lamp_vec = Vector((lamp_dl,lamp_dy_right,lamp_dl))
         lamp_xyz_vec = object_center_vec + object_lamp_vec
+        length = lamp_xyz_vec.length
 
         # Eevee
         # =====
 
         # As a lamp we use a point source.
         lamp_data = bpy.data.lights.new(name="A_lamp_eevee", type="POINT")
-        lamp_data.energy = 100000.0 # Watts
+        # We now determine the emission strength of the lamp. Note that the
+        # intensity depends on 1/r^2. For this we use a value of 100000.0 at a
+        # distance of 58. This value was determined manually inside Blender.
+        lamp_data.energy = 100000.0 * ( (length * length) / (58.0 * 58.0) )
         lamp = bpy.data.objects.new("A_lamp_eevee", lamp_data)
         lamp.location = lamp_xyz_vec
         bpy.context.collection.objects.link(lamp)
@@ -655,11 +659,7 @@ def camera_light_source(use_camera,
         # tree
         lamp.name = "A_lamp_cycles"
 
-        # We now determine the emission strength of the lamp. Note that the
-        # intensity depends on 1/r^2. For this we use a value of 5000.0 at a
-        # distance of 58 (58x58 = 3364.0). This value was determined only once
-        # in the Blender viewport
-        length = lamp_xyz_vec.length
+        # See above.
         strength = 5000.0 * ( (length * length) / (58.0 * 58.0) )
 
         # Now, we create the material
@@ -1402,7 +1402,7 @@ def import_pdb(Ball_type,
                     mat_P_BSDF = material.node_tree.nodes['Principled BSDF']
                     mat_P_BSDF.inputs['Metallic'].default_value = 0.1
                     mat_P_BSDF.inputs['Specular'].default_value = 0.15
-                    mat_P_BSDF.inputs['Roughness'].default_value = 0.0
+                    mat_P_BSDF.inputs['Roughness'].default_value = 0.05
                     mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.37
                     mat_P_BSDF.inputs['IOR'].default_value = 0.8
                     mat_P_BSDF.inputs['Transmission'].default_value = 0.6
