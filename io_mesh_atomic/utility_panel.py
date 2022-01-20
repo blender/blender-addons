@@ -732,48 +732,53 @@ def draw_obj_special(atom_shape, atom):
     # ... link it to the collection, which contains 'atom'.
     coll_atom.children.link(coll_new)
 
+    # Get the color of the selected atom.
+    material = atom.active_material
+    mat_P_BSDF_default = material.node_tree.nodes['Principled BSDF']
+    default_color = mat_P_BSDF_default.inputs['Base Color'].default_value
+
+    # Create first a cube
+    bpy.ops.mesh.primitive_cube_add(align='WORLD',
+                                    enter_editmode=False,
+                                    location=atom.location,
+                                    rotation=(0.0, 0.0, 0.0))
+    cube = bpy.context.view_layer.objects.active
+    cube.scale = atom.scale + Vector((0.0,0.0,0.0))
+    cube.select_set(True)
 
     # F2+ center
     if atom_shape == '1':
-        # Create first a cube
-        bpy.ops.mesh.primitive_cube_add(align='WORLD',
-                                        enter_editmode=False,
-                                        location=atom.location,
-                                        rotation=(0.0, 0.0, 0.0))
-        cube = bpy.context.view_layer.objects.active
-        cube.scale = atom.scale + Vector((0.0,0.0,0.0))
         cube.name = atom.name + "_F2+_vac"
-        cube.select_set(True)
+
         # New material for this cube
-        material_cube = bpy.data.materials.new(atom.name + "_F2+_vac")
-        material_cube.diffuse_color = [0.8, 0.0, 0.0, 1.0]
-        material_cube.metallic = 0.8
-        material_cube.specular_intensity = 0.5
-        material_cube.roughness = 0.3
-        material_cube.blend_method = 'OPAQUE'
-        material_cube.show_transparent_back = True
-        # Some properties for cycles
-        material_cube.use_nodes = True
-        mat_P_BSDF = material_cube.node_tree.nodes['Principled BSDF']
-        mat_P_BSDF.inputs['Metallic'].default_value = 0.1
-        mat_P_BSDF.inputs['Roughness'].default_value = 0.2
-        mat_P_BSDF.inputs['Transmission'].default_value = 0.9
-        mat_P_BSDF.inputs['IOR'].default_value = 0.8
-        cube.active_material = material_cube
-        # Put a nice point lamp inside the defect
-        lamp_data = bpy.data.lights.new(name=atom.name + "_F2+_lamp",
-                                        type="POINT")
+        material_new = bpy.data.materials.new(atom.name + "_F2+_vac")
+        material_new.use_nodes = True
+        mat_P_BSDF = material_new.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Base Color'].default_value = default_color
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.7
+        mat_P_BSDF.inputs['Specular'].default_value = 0.0
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.65
+        mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.0
+        mat_P_BSDF.inputs['IOR'].default_value = 1.45
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.6
+        mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.5
+        mat_P_BSDF.inputs['Alpha'].default_value = 0.6
+        # Some additional stuff for eevee.
+        material_new.blend_method = 'HASHED'
+        material_new.shadow_method = 'HASHED'
+        material_new.use_backface_culling = False
+        cube.active_material = material_new
+
+        # Put a point lamp inside the defect.
+        lamp_data = bpy.data.lights.new(name=atom.name + "_F2+_lamp", type="POINT")
         lamp_data.distance = atom.scale[0] * 2.0
-        lamp_data.energy = 1.0
+        lamp_data.energy = 2000.0
         lamp_data.color = (0.8, 0.8, 0.8)
         lamp = bpy.data.objects.new(atom.name + "_F2+_lamp", lamp_data)
         lamp.location = Vector((0.0, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
-        # Some properties for cycles
-        lamp.data.use_nodes = True
-        lmp_P_BSDF = lamp.data.node_tree.nodes['Emission']
-        lmp_P_BSDF.inputs['Strength'].default_value = 2000
+
         # The new 'atom' is the F2+ defect
         new_atom = cube
 
@@ -799,31 +804,27 @@ def draw_obj_special(atom_shape, atom):
 
     # F+ center
     if atom_shape == '2':
-        # Create first a cube
-        bpy.ops.mesh.primitive_cube_add(align='WORLD',
-                                        enter_editmode=False,
-                                        location=atom.location,
-                                        rotation=(0.0, 0.0, 0.0))
-        cube = bpy.context.view_layer.objects.active
-        cube.scale = atom.scale + Vector((0.0,0.0,0.0))
-        cube.name = atom.name + "_F+_vac"
-        cube.select_set(True)
+        cube.name = atom.name + "_F2+_vac"
+
         # New material for this cube
-        material_cube = bpy.data.materials.new(atom.name + "_F+_vac")
-        material_cube.diffuse_color = [0.0, 0.0, 0.8, 1.0]
-        material_cube.metallic = 0.8
-        material_cube.specular_intensity = 0.5
-        material_cube.roughness = 0.3
-        material_cube.blend_method = 'OPAQUE'
-        material_cube.show_transparent_back = True
-        # Some properties for cycles
-        material_cube.use_nodes = True
-        mat_P_BSDF = material_cube.node_tree.nodes['Principled BSDF']
-        mat_P_BSDF.inputs['Metallic'].default_value = 0.1
-        mat_P_BSDF.inputs['Roughness'].default_value = 0.2
-        mat_P_BSDF.inputs['Transmission'].default_value = 0.9
-        mat_P_BSDF.inputs['IOR'].default_value = 0.8
-        cube.active_material = material_cube
+        material_new = bpy.data.materials.new(atom.name + "_F2+_vac")
+        material_new.use_nodes = True
+        mat_P_BSDF = material_new.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Base Color'].default_value = [0.0, 0.0, 0.8, 1.0]
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.7
+        mat_P_BSDF.inputs['Specular'].default_value = 0.0
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.65
+        mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.0
+        mat_P_BSDF.inputs['IOR'].default_value = 1.45
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.6
+        mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.5
+        mat_P_BSDF.inputs['Alpha'].default_value = 0.6
+        # Some additional stuff for eevee.
+        material_new.blend_method = 'HASHED'
+        material_new.shadow_method = 'HASHED'
+        material_new.use_backface_culling = False
+        cube.active_material = material_new
+
         # Create now an electron
         scale = atom.scale / 10.0
         bpy.ops.surface.primitive_nurbs_surface_sphere_add(
@@ -837,27 +838,33 @@ def draw_obj_special(atom_shape, atom):
         electron.parent = cube
         # New material for the electron
         material_electron = bpy.data.materials.new(atom.name + "_F+-center")
-        material_electron.diffuse_color = [0.0, 0.0, 0.8, 1.0]
-        material_electron.metallic = 0.8
-        material_electron.specular_intensity = 0.5
-        material_electron.roughness = 0.3
+        material_electron.use_nodes = True
+        mat_P_BSDF = material_electron.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Base Color'].default_value = [0.0, 0.0, 0.8, 1.0]
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.8
+        mat_P_BSDF.inputs['Specular'].default_value = 0.0
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.3
+        mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.0
+        mat_P_BSDF.inputs['IOR'].default_value = 1.45
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.6
+        mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.5
+        mat_P_BSDF.inputs['Alpha'].default_value = 1.0
+        # Some additional stuff for eevee.
         material_electron.blend_method = 'OPAQUE'
-        material_electron.show_transparent_back = False
+        material_electron.shadow_method = 'OPAQUE'
+        material_electron.use_backface_culling = False
         electron.active_material = material_electron
-        # Put a nice point lamp inside the electron
-        lamp_data = bpy.data.lights.new(name=atom.name + "_F+_lamp",
-                                        type="POINT")
+
+        # Put a point lamp inside the electron
+        lamp_data = bpy.data.lights.new(name=atom.name + "_F+_lamp", type="POINT")
         lamp_data.distance = atom.scale[0] * 2.0
-        lamp_data.energy = 1.0
-        lamp_data.color = (0.8, 0.8, 0.8)
+        lamp_data.energy = 100000.0
+        lamp_data.color = (0.0, 0.0, 0.8)
         lamp = bpy.data.objects.new(atom.name + "_F+_lamp", lamp_data)
         lamp.location = Vector((scale[0]*1.5, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
-        # Some properties for cycles
-        lamp.data.use_nodes = True
-        lmp_P_BSDF = lamp.data.node_tree.nodes['Emission']
-        lmp_P_BSDF.inputs['Strength'].default_value = 2000
+
         # The new 'atom' is the F+ defect complex + lamp
         new_atom = cube
 
@@ -886,32 +893,28 @@ def draw_obj_special(atom_shape, atom):
 
     # F0 center
     if atom_shape == '3':
-        # Create first a cube
-        bpy.ops.mesh.primitive_cube_add(align='WORLD',
-                                        enter_editmode=False,
-                                        location=atom.location,
-                                        rotation=(0.0, 0.0, 0.0))
-        cube = bpy.context.view_layer.objects.active
-        cube.scale = atom.scale + Vector((0.0,0.0,0.0))
-        cube.name = atom.name + "_F0_vac"
-        cube.select_set(True)
+        cube.name = atom.name + "_F2+_vac"
+
         # New material for this cube
-        material_cube = bpy.data.materials.new(atom.name + "_F0_vac")
-        material_cube.diffuse_color = [0.8, 0.8, 0.8, 1.0]
-        material_cube.metallic = 0.8
-        material_cube.specular_intensity = 0.5
-        material_cube.roughness = 0.83
-        material_cube.blend_method = 'OPAQUE'
-        material_cube.show_transparent_back = True
-        # Some properties for cycles
-        material_cube.use_nodes = True
-        mat_P_BSDF = material_cube.node_tree.nodes['Principled BSDF']
-        mat_P_BSDF.inputs['Metallic'].default_value = 0.1
-        mat_P_BSDF.inputs['Roughness'].default_value = 0.2
-        mat_P_BSDF.inputs['Transmission'].default_value = 0.9
-        mat_P_BSDF.inputs['IOR'].default_value = 0.8
-        cube.active_material = material_cube
-        # Create now two electrons
+        material_new = bpy.data.materials.new(atom.name + "_F2+_vac")
+        material_new.use_nodes = True
+        mat_P_BSDF = material_new.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Base Color'].default_value = [0.8, 0.0, 0.0, 1.0]
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.7
+        mat_P_BSDF.inputs['Specular'].default_value = 0.0
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.65
+        mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.0
+        mat_P_BSDF.inputs['IOR'].default_value = 1.45
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.6
+        mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.5
+        mat_P_BSDF.inputs['Alpha'].default_value = 0.6
+        # Some additional stuff for eevee.
+        material_new.blend_method = 'HASHED'
+        material_new.shadow_method = 'HASHED'
+        material_new.use_backface_culling = False
+        cube.active_material = material_new
+
+        # Create now two electrons ... .
         scale = atom.scale / 10.0
         bpy.ops.surface.primitive_nurbs_surface_sphere_add(
                                         align='WORLD',
@@ -920,7 +923,7 @@ def draw_obj_special(atom_shape, atom):
                                         rotation=(0.0, 0.0, 0.0))
         electron1 = bpy.context.view_layer.objects.active
         electron1.scale = scale
-        electron1.name = atom.name + "_F0_electron1"
+        electron1.name = atom.name + "_F0_electron_1"
         electron1.parent = cube
         bpy.ops.surface.primitive_nurbs_surface_sphere_add(
                                         align='WORLD',
@@ -929,44 +932,47 @@ def draw_obj_special(atom_shape, atom):
                                         rotation=(0.0, 0.0, 0.0))
         electron2 = bpy.context.view_layer.objects.active
         electron2.scale = scale
-        electron2.name = atom.name + "_F0_electron2"
+        electron2.name = atom.name + "_F0_electron_2"
         electron2.parent = cube
-        # New material for the electrons
+        # Create a new material for the two electrons.
         material_electron = bpy.data.materials.new(atom.name + "_F0-center")
-        material_electron.diffuse_color = [0.0, 0.0, 0.8, 1.0]
-        material_electron.metallic = 0.8
-        material_electron.specular_intensity = 0.5
-        material_electron.roughness = 0.3
+        material_electron.use_nodes = True
+        mat_P_BSDF = material_electron.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Base Color'].default_value = [0.0, 0.0, 0.8, 1.0]
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.8
+        mat_P_BSDF.inputs['Specular'].default_value = 0.0
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.3
+        mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = 0.0
+        mat_P_BSDF.inputs['IOR'].default_value = 1.45
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.6
+        mat_P_BSDF.inputs['Transmission Roughness'].default_value = 0.5
+        mat_P_BSDF.inputs['Alpha'].default_value = 1.0
+        # Some additional stuff for eevee.
         material_electron.blend_method = 'OPAQUE'
-        material_electron.show_transparent_back = False
+        material_electron.shadow_method = 'OPAQUE'
+        material_electron.use_backface_culling = False
+        # We assign the materials to the two electrons.
         electron1.active_material = material_electron
         electron2.active_material = material_electron
-        # Put two nice point lamps inside the electrons
-        lamp1_data = bpy.data.lights.new(name=atom.name + "_F0_lamp1",
-                                         type="POINT")
+
+        # Put two point lamps inside the electrons.
+        lamp1_data = bpy.data.lights.new(name=atom.name + "_F0_lamp_1", type="POINT")
         lamp1_data.distance = atom.scale[0] * 2.0
-        lamp1_data.energy = 1.0
-        lamp1_data.color = (0.8, 0.8, 0.8)
+        lamp1_data.energy = 20000.0
+        lamp1_data.color = (0.8, 0.0, 0.0)
         lamp1 = bpy.data.objects.new(atom.name + "_F0_lamp", lamp1_data)
         lamp1.location = Vector((scale[0]*1.5, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp1)
         lamp1.parent = cube
-        lamp2_data = bpy.data.lights.new(name=atom.name + "_F0_lamp2",
-                                         type="POINT")
+        lamp2_data = bpy.data.lights.new(name=atom.name + "_F0_lamp_2", type="POINT")
         lamp2_data.distance = atom.scale[0] * 2.0
-        lamp2_data.energy = 1.0
-        lamp2_data.color = (0.8, 0.8, 0.8)
+        lamp2_data.energy = 20000.0
+        lamp2_data.color = (0.8, 0.0, 0.0)
         lamp2 = bpy.data.objects.new(atom.name + "_F0_lamp", lamp2_data)
         lamp2.location = Vector((-scale[0]*1.5, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp2)
         lamp2.parent = cube
-        # Some properties for cycles
-        lamp1.data.use_nodes = True
-        lamp2.data.use_nodes = True
-        lmp1_P_BSDF = lamp1.data.node_tree.nodes['Emission']
-        lmp2_P_BSDF = lamp1.data.node_tree.nodes['Emission']
-        lmp1_P_BSDF.inputs['Strength'].default_value = 200
-        lmp2_P_BSDF.inputs['Strength'].default_value = 200
+
         # The new 'atom' is the F0 defect complex + lamps
         new_atom = cube
 
