@@ -629,52 +629,15 @@ def camera_light_source(use_camera,
         lamp_xyz_vec = object_center_vec + object_lamp_vec
         length = lamp_xyz_vec.length
 
-        # Eevee
-        # =====
-
         # As a lamp we use a point source.
-        lamp_data = bpy.data.lights.new(name="A_lamp_eevee", type="POINT")
+        lamp_data = bpy.data.lights.new(name="A_lamp", type="POINT")
         # We now determine the emission strength of the lamp. Note that the
         # intensity depends on 1/r^2. For this we use a value of 100000.0 at a
         # distance of 58. This value was determined manually inside Blender.
         lamp_data.energy = 500000.0 * ( (length * length) / (58.0 * 58.0) )
-        lamp = bpy.data.objects.new("A_lamp_eevee", lamp_data)
+        lamp = bpy.data.objects.new("A_lamp", lamp_data)
         lamp.location = lamp_xyz_vec
         bpy.context.collection.objects.link(lamp)
-
-        # Cycles
-        # ======
-
-        # As a lamp we use a ball.
-        bpy.ops.mesh.primitive_uv_sphere_add(
-                        segments=64,
-                        ring_count=64,
-                        align='WORLD',
-                        enter_editmode=False,
-                        # We move the lamp below the point source from above.
-                        location=lamp_xyz_vec + Vector((0.0, 0.0, 1.5)),
-                        rotation=(0, 0, 0))
-        lamp = bpy.context.view_layer.objects.active
-        # We put an 'A_' just that the lamp appears first in the outliner
-        # tree
-        lamp.name = "A_lamp_cycles"
-
-        # See above.
-        strength = 5000.0 * ( (length * length) / (58.0 * 58.0) )
-
-        # Now, we create the material
-        lamp_material = bpy.data.materials.new(lamp.name)
-        lamp_material.use_nodes = True
-        # Create the emission Node.
-        material_output = lamp_material.node_tree.nodes.get('Material Output')
-        emission = lamp_material.node_tree.nodes.new('ShaderNodeEmission')
-        # Emission and strength values
-        emission.inputs['Strength'].default_value = strength
-        emission.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
-        # The new material into the tree and link the material of the object
-        # with the new material.
-        lamp_material.node_tree.links.new(material_output.inputs[0], emission.outputs[0])
-        lamp.active_material = lamp_material
 
         # Some settings for the World: a bit ambient occlusion
         bpy.context.scene.world.light_settings.use_ambient_occlusion = True
