@@ -318,33 +318,16 @@ def distance():
 
 
 def choose_objects(action_type,
-                   who,
                    radius_all,
                    radius_pm,
                    radius_type,
                    radius_type_ionic,
                    sticks_all):
 
-    # For selected objects of all selected layers
-    if who == "ALL_IN_LAYER":
-        # Determine all selected layers.
-        layers = []
-        for i, layer in enumerate(bpy.context.scene.layers):
-            if layer == True:
-                layers.append(i)
-
-        # Put all objects, which are in the layers, into a list.
-        change_objects_all = []
-        for atom in bpy.context.scene.objects:
-            for layer in layers:
-                if atom.layers[layer] == True:
-                    change_objects_all.append(atom)
-    # For selected objects of the visible layer
-    elif who == "ALL_ACTIVE":
-        change_objects_all = []
-        # Note all selected objects first.
-        for atom in bpy.context.selected_objects:
-            change_objects_all.append(atom)
+    # Note all selected objects first.
+    change_objects_all = []
+    for atom in bpy.context.selected_objects:
+        change_objects_all.append(atom)
 
     # This is very important now: If there are dupliverts structures, note
     # only the parents and NOT the children! Otherwise the double work is
@@ -467,7 +450,7 @@ def modify_objects(action_type,
 
         bpy.context.view_layer.objects.active = None
 
-    # Change the  atom objects
+    # Change the atom objects
     if action_type == "ATOM_REPLACE_OBJ" and "STICK" not in atom.name.upper():
 
         scn = bpy.context.scene.atom_blend
