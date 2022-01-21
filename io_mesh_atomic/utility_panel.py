@@ -492,26 +492,40 @@ def modify_objects(action_type,
         if atom.parent != None:
             atom.hide_set(True)
 
-    # Default shapes and colors for atoms
+    # Default shape and colors for atoms
     if action_type == "ATOM_DEFAULT_OBJ" and "STICK" not in atom.name.upper():
 
         scn = bpy.context.scene.atom_blend
 
-        # Create new material
-        new_material = bpy.data.materials.new("tmp")
-        # Create new object (NURBS sphere = '1b')
-        new_atom = draw_obj('1b', atom, new_material)
-        new_atom.active_material = new_material
-        new_material = draw_obj_material('0', new_material)
-
-        # Change size and color of the new object
+        # We first obtain the element form the list of elements.
         for element in ELEMENTS:
-            if element.name in new_atom.name:
-                new_atom.scale = (element.radii[0],) * 3
-                new_atom.active_material.diffuse_color = element.color
-                new_atom.name = element.name + "_ball"
-                new_atom.active_material.name = element.name
+            if element.name in atom.name:
                 break
+
+        # Create now a new material with normal properties. Note that the
+        # 'normal material' initially used during the import could have been
+        # deleted by the user. This is why we create a new one.
+        if "vacancy" in atom.name.lower():
+            new_material = draw_obj_material('2', atom.active_material)
+        else:
+            new_material = draw_obj_material('1', atom.active_material)
+        # Assign now the correct color.
+        mat_P_BSDF = new_material.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Base Color'].default_value = element.color
+        new_material.name = element.name + "_normal"
+
+        # Create a new atom because the current atom might have any kind
+        # of shape. For this, we use a definition from below since it also
+        # deletes the old atom.
+        if "vacancy" in atom.name.lower():
+            new_atom = draw_obj('2', atom, new_material)
+        else:
+            new_atom = draw_obj('1b', atom, new_material)
+
+        # Now assign the material properties, name and size.
+        new_atom.active_material = new_material
+        new_atom.name = element.name + "_ball"
+        new_atom.scale = (element.radii[0],) * 3
 
 
 # Separating atoms from a dupliverts structure.
@@ -1154,7 +1168,6 @@ def read_elements():
 # Custom data file: changing color and radii by using the list 'ELEMENTS'.
 def custom_datafile_change_atom_props():
 
-
     for atom in bpy.context.selected_objects:
 
         FLAG = False
@@ -1212,6 +1225,8 @@ def custom_datafile_change_atom_props():
             mat.pass_index = e.mat_Eevee.pass_index
 
             FLAG = False
+
+    bpy.ops.object.select_all(action='DESELECT')
 
 
 # Reading a custom data file and modifying the list 'ELEMENTS'.
