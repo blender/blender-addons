@@ -158,14 +158,126 @@ ELEMENTS = []
 
 # This is the class, which stores the properties for one element.
 class ElementProp(object):
-    __slots__ = ('number', 'name', 'short_name', 'color', 'radii', 'radii_ionic')
-    def __init__(self, number, name, short_name, color, radii, radii_ionic):
-        self.number = number
-        self.name = name
-        self.short_name = short_name
-        self.color = color
-        self.radii = radii
-        self.radii_ionic = radii_ionic
+    __slots__ = ('number',
+                 'name',
+                 'short_name',
+                 'color',
+                 'radii',
+                 'radii_ionic',
+                 'mat_P_BSDF',
+                 'mat_Eevee')
+    def __init__(self,
+                 number,
+                 name,
+                 short_name,
+                 color,
+                 radii,
+                 radii_ionic,
+                 mat_P_BSDF,
+                 mat_Eevee):
+        self.number       = number
+        self.name         = name
+        self.short_name   = short_name
+        self.color        = color
+        self.radii        = radii
+        self.radii_ionic  = radii_ionic
+        self.mat_P_BSDF   = mat_P_BSDF
+        self.mat_Eevee    = mat_Eevee
+
+
+class PBSDFProp(object):
+    __slots__ = ('Subsurface_method',
+                 'Distribution',
+                 'Subsurface',
+                 'Subsurface_color',
+                 'Subsurface_radius',
+                 'Metallic',
+                 'Specular',
+                 'Specular_tilt',
+                 'Roughness',
+                 'Anisotropic',
+                 'Anisotropic_rotation',
+                 'Sheen',
+                 'Sheen_tint',
+                 'Clearcoat',
+                 'Clearcoat_rough',
+                 'IOR',
+                 'Trans',
+                 'Trans_rough',
+                 'Emission',
+                 'Emission_strength',
+                 'Alpha')
+    def __init__(self,
+                 Subsurface_method,
+                 Distribution,
+                 Subsurface,
+                 Subsurface_color,
+                 Subsurface_radius,
+                 Metallic,
+                 Specular,
+                 Specular_tilt,
+                 Roughness,
+                 Anisotropic,
+                 Anisotropic_rotation,
+                 Sheen,
+                 Sheen_tint,
+                 Clearcoat,
+                 Clearcoat_rough,
+                 IOR,
+                 Trans,
+                 Trans_rough,
+                 Emission,
+                 Emission_strength,
+                 Alpha):
+        self.Subsurface_method     = Subsurface_method
+        self.Distribution          = Distribution
+        self.Subsurface            = Subsurface
+        self.Subsurface_color      = Subsurface_color
+        self.Subsurface_radius     = Subsurface_radius
+        self.Metallic              = Metallic
+        self.Specular              = Specular
+        self.Specular_tilt         = Specular_tilt
+        self.Roughness             = Roughness
+        self.Anisotropic           = Anisotropic
+        self.Anisotropic_rotation  = Anisotropic_rotation
+        self.Sheen                 = Sheen
+        self.Sheen_tint            = Sheen_tint
+        self.Clearcoat             = Clearcoat
+        self.Clearcoat_rough       = Clearcoat_rough
+        self.IOR                   = IOR
+        self.Trans                 = Trans
+        self.Trans_rough           = Trans_rough
+        self.Emission              = Emission
+        self.Emission_strength     = Emission_strength
+        self.Alpha                 = Alpha
+
+
+class EeveeProp(object):
+    __slots__ = ('use_backface',
+                 'blend_method',
+                 'shadow_method',
+                 'clip_threshold',
+                 'use_screen_refraction',
+                 'refraction_depth',
+                 'use_sss_translucency',
+                 'pass_index')
+    def __init__(self,
+                 use_backface,
+                 blend_method,
+                 shadow_method,
+                 clip_threshold,
+                 use_screen_refraction,
+                 refraction_depth,
+                 use_sss_translucency,
+                 pass_index):
+        self.use_backface          = use_backface
+        self.blend_method          = blend_method
+        self.shadow_method         = shadow_method
+        self.clip_threshold        = clip_threshold
+        self.use_screen_refraction = use_screen_refraction
+        self.refraction_depth      = refraction_depth
+        self.use_sss_translucency  = use_sss_translucency
+        self.pass_index            = pass_index
 
 
 # This function measures the distance between two selected objects.
@@ -1034,28 +1146,72 @@ def read_elements():
         # empty list.
         radii_ionic = item[7:]
 
-        li = ElementProp(item[0],item[1],item[2],item[3],
-                                     radii,radii_ionic)
+        li = ElementProp(item[0], item[1], item[2], item[3], radii, radii_ionic, [], [])
+
         ELEMENTS.append(li)
 
 
 # Custom data file: changing color and radii by using the list 'ELEMENTS'.
 def custom_datafile_change_atom_props():
 
+
     for atom in bpy.context.selected_objects:
+
+        FLAG = False
         if len(atom.children) != 0:
             child = atom.children[0]
             if child.type in {'SURFACE', 'MESH', 'META'}:
                 for element in ELEMENTS:
                     if element.name in atom.name:
-                        child.scale = (element.radii[0],) * 3
-                        child.active_material.diffuse_color = element.color
+                        obj = child
+                        e = element
+                        FLAG = True
         else:
             if atom.type in {'SURFACE', 'MESH', 'META'}:
                 for element in ELEMENTS:
                     if element.name in atom.name:
-                        atom.scale = (element.radii[0],) * 3
-                        atom.active_material.diffuse_color = element.color
+                        obj = atom
+                        e = element
+                        FLAG = True
+
+        if FLAG:
+            obj.scale = (e.radii[0],) * 3
+            mat = obj.active_material
+            mat_P_BSDF = mat.node_tree.nodes['Principled BSDF']
+
+            mat_P_BSDF.inputs['Base Color'].default_value = e.color
+            mat_P_BSDF.subsurface_method = e.mat_P_BSDF.Subsurface_method
+            mat_P_BSDF.distribution = e.mat_P_BSDF.Distribution
+            mat_P_BSDF.inputs['Subsurface'].default_value = e.mat_P_BSDF.Subsurface
+            mat_P_BSDF.inputs['Subsurface Color'].default_value = e.mat_P_BSDF.Subsurface_color
+            mat_P_BSDF.inputs['Subsurface Radius'].default_value = e.mat_P_BSDF.Subsurface_radius
+            mat_P_BSDF.inputs['Metallic'].default_value = e.mat_P_BSDF.Metallic
+            mat_P_BSDF.inputs['Specular'].default_value = e.mat_P_BSDF.Specular
+            mat_P_BSDF.inputs['Specular Tint'].default_value = e.mat_P_BSDF.Specular_tilt
+            mat_P_BSDF.inputs['Roughness'].default_value = e.mat_P_BSDF.Roughness
+            mat_P_BSDF.inputs['Anisotropic'].default_value = e.mat_P_BSDF.Anisotropic
+            mat_P_BSDF.inputs['Anisotropic Rotation'].default_value = e.mat_P_BSDF.Anisotropic_rotation
+            mat_P_BSDF.inputs['Sheen'].default_value = e.mat_P_BSDF.Sheen
+            mat_P_BSDF.inputs['Sheen Tint'].default_value = e.mat_P_BSDF.Sheen_tint
+            mat_P_BSDF.inputs['Clearcoat'].default_value = e.mat_P_BSDF.Clearcoat
+            mat_P_BSDF.inputs['Clearcoat Roughness'].default_value = e.mat_P_BSDF.Clearcoat_rough
+            mat_P_BSDF.inputs['IOR'].default_value = e.mat_P_BSDF.IOR
+            mat_P_BSDF.inputs['Transmission'].default_value = e.mat_P_BSDF.Trans
+            mat_P_BSDF.inputs['Transmission Roughness'].default_value = e.mat_P_BSDF.Trans_rough
+            mat_P_BSDF.inputs['Emission'].default_value = e.mat_P_BSDF.Emission
+            mat_P_BSDF.inputs['Emission Strength'].default_value = e.mat_P_BSDF.Emission_strength
+            mat_P_BSDF.inputs['Alpha'].default_value = e.mat_P_BSDF.Alpha
+
+            mat.use_backface_culling = e.mat_Eevee.use_backface
+            mat.blend_method = e.mat_Eevee.blend_method
+            mat.shadow_method = e.mat_Eevee.shadow_method
+            mat.alpha_threshold = e.mat_Eevee.clip_threshold
+            mat.use_screen_refraction = e.mat_Eevee.use_screen_refraction
+            mat.refraction_depth = e.mat_Eevee.refraction_depth
+            mat.use_sss_translucency = e.mat_Eevee.use_sss_translucency
+            mat.pass_index = e.mat_Eevee.pass_index
+
+            FLAG = False
 
 
 # Reading a custom data file and modifying the list 'ELEMENTS'.
@@ -1078,39 +1234,217 @@ def custom_datafile(path_datafile):
 
     for line in data_file_p:
 
+        if "#" == line[0]:
+            continue
+
         if "Atom" in line:
 
-            line = data_file_p.readline()
-            # Number
-            line = data_file_p.readline()
-            number = line[19:-1]
-            # Name
-            line = data_file_p.readline()
-            name = line[19:-1]
-            # Short name
-            line = data_file_p.readline()
-            short_name = line[19:-1]
-            # Color
-            line = data_file_p.readline()
-            color_value = line[19:-1].split(',')
-            color = [float(color_value[0]),
-                     float(color_value[1]),
-                     float(color_value[2]),
-                     float(color_value[3])]
-            # Used radius
-            line = data_file_p.readline()
-            radius_used = float(line[19:-1])
-            # Atomic radius
-            line = data_file_p.readline()
-            radius_atomic = float(line[19:-1])
-            # Van der Waals radius
-            line = data_file_p.readline()
-            radius_vdW = float(line[19:-1])
-            radii = [radius_used,radius_atomic,radius_vdW]
-            radii_ionic = []
+            list_radii_ionic = []
+            while True:
 
-            element = ElementProp(number,name,short_name,color,
-                                              radii, radii_ionic)
+                if len(line) in [0,1]:
+                    break
+
+                # Number
+                if "Number                       :" in line:
+                    pos = line.rfind(':') + 1
+                    number = line[pos:].strip()
+                # Name
+                if "Name                         :" in line:
+                    pos = line.rfind(':') + 1
+                    name = line[pos:].strip()
+                # Short name
+                if "Short name                   :" in line:
+                    pos = line.rfind(':') + 1
+                    short_name = line[pos:].strip()
+                # Color
+                if "Color                        :" in line:
+                    pos = line.rfind(':') + 1
+                    color_value = line[pos:].strip().split(',')
+                    color = [float(color_value[0]),
+                             float(color_value[1]),
+                             float(color_value[2]),
+                             float(color_value[3])]
+                # Used radius
+                if "Radius used                  :" in line:
+                    pos = line.rfind(':') + 1
+                    radius_used = float(line[pos:].strip())
+                # Covalent radius
+                if "Radius, covalent             :" in line:
+                    pos = line.rfind(':') + 1
+                    radius_covalent = float(line[pos:].strip())
+                # Atomic radius
+                if "Radius, atomic               :" in line:
+                    pos = line.rfind(':') + 1
+                    radius_atomic = float(line[pos:].strip())
+                if "Charge state                 :" in line:
+                    pos = line.rfind(':') + 1
+                    charge_state = float(line[pos:].strip())
+                    line = data_file_p.readline()
+                    pos = line.rfind(':') + 1
+                    radius_ionic = float(line[pos:].strip())
+                    list_radii_ionic.append(charge_state)
+                    list_radii_ionic.append(radius_ionic)
+
+                # Some Principled BSDF properties
+
+
+                if "P BSDF Subsurface method     :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_subsurface_method = line[pos:].strip()
+                if "P BSDF Distribution          :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_distribution = line[pos:].strip()
+                if "P BSDF Subsurface            :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_subsurface = float(line[pos:].strip())
+                if "P BSDF Subsurface Color      :" in line:
+                    pos = line.rfind(':') + 1
+                    color_value = line[pos:].strip().split(',')
+                    P_BSDF_subsurface_color = [float(color_value[0]),
+                                               float(color_value[1]),
+                                               float(color_value[2]),
+                                               float(color_value[3])]
+                if "P BSDF Subsurface Radius     :" in line:
+                    pos = line.rfind(':') + 1
+                    radii_values = line[pos:].strip().split(',')
+                    P_BSDF_subsurface_radius = [float(color_value[0]),
+                                                float(color_value[1]),
+                                                float(color_value[2])]
+                if "P BSDF Metallic              :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_metallic = float(line[pos:].strip())
+                if "P BSDF Specular              :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_specular = float(line[pos:].strip())
+                if "P BSDF Specular Tilt         :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_specular_tilt = float(line[pos:].strip())
+                if "P BSDF Roughness             :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_roughness = float(line[pos:].strip())
+                if "P BSDF Anisotropic           :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_anisotropic = float(line[pos:].strip())
+                if "P BSDF Anisotropic Rotation  :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_anisotropic_rotation = float(line[pos:].strip())
+                if "P BSDF Sheen                 : " in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_sheen = float(line[pos:].strip())
+                if "P BSDF Sheen Tint            : " in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_sheen_tint = float(line[pos:].strip())
+                if "P BSDF Clearcoat             :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_clearcoat = float(line[pos:].strip())
+                if "P BSDF Clearcoat Rough       :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_clearcoat_roughness = float(line[pos:].strip())
+                if "P BSDF IOR                   :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_IOR = float(line[pos:].strip())
+                if "P BSDF Trans                 :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_transparency = float(line[pos:].strip())
+                if "P BSDF Trans Roughness       :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_transparency_roughness = float(line[pos:].strip())
+                if "P BSDF Emisssion             : " in line:
+                    pos = line.rfind(':') + 1
+                    color_value = line[pos:].strip().split(',')
+                    P_BSDF_emission = [float(color_value[0]),
+                                       float(color_value[1]),
+                                       float(color_value[2]),
+                                       float(color_value[3])]
+                if "P BSDF Emission Strength     :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_emission_strength = float(line[pos:].strip())
+                if "P BSDF Alpha                 :" in line:
+                    pos = line.rfind(':') + 1
+                    P_BSDF_alpha = float(line[pos:].strip())
+
+                if "Eevee Use Backface Culling   :" in line:
+                    pos = line.rfind(':') + 1
+                    line = line[pos:].strip()
+                    if line.lower() in ("yes", "true", "1"):
+                        Eevee_use_backface = True
+                    else:
+                        Eevee_use_backface = False
+                if "Eevee Blend Method           :" in line:
+                    pos = line.rfind(':') + 1
+                    Eevee_blend_method = line[pos:].strip()
+                if "Eevee Shadow Method          :" in line:
+                    pos = line.rfind(':') + 1
+                    Eevee_shadow_method = line[pos:].strip()
+                if "Eevee Clip Threshold         :" in line:
+                    pos = line.rfind(':') + 1
+                    Eevee_clip_threshold = float(line[pos:].strip())
+                if "Eevee Use Screen Refraction  :" in line:
+                    pos = line.rfind(':') + 1
+                    line = line[pos:].strip()
+                    if line.lower() in ("yes", "true", "1"):
+                        Eevee_use_screen_refraction = True
+                    else:
+                        Eevee_use_screen_refraction = False
+                if "Eevee Refraction depth       : " in line:
+                    pos = line.rfind(':') + 1
+                    Eevee_refraction_depth = float(line[pos:].strip())
+                if "Eevee Use SSS Translucency   :" in line:
+                    pos = line.rfind(':') + 1
+                    line = line[pos:].strip()
+                    if line.lower() in ("yes", "true", "1"):
+                        Eevee_use_sss_translucency = True
+                    else:
+                        Eevee_use_sss_translucency = False
+                if "Eevee Pass Index             :" in line:
+                    pos = line.rfind(':') + 1
+                    Eevee_pass_index = int(line[pos:].strip())
+
+
+                line = data_file_p.readline()
+
+            list_radii = [radius_used, radius_covalent, radius_atomic]
+
+            Eevee_material = EeveeProp(Eevee_use_backface,
+                                       Eevee_blend_method,
+                                       Eevee_shadow_method,
+                                       Eevee_clip_threshold,
+                                       Eevee_use_screen_refraction,
+                                       Eevee_refraction_depth,
+                                       Eevee_use_sss_translucency,
+                                       Eevee_pass_index)
+
+            P_BSDF_material = PBSDFProp(P_BSDF_subsurface_method,
+                                        P_BSDF_distribution,
+                                        P_BSDF_subsurface,
+                                        P_BSDF_subsurface_color,
+                                        P_BSDF_subsurface_radius,
+                                        P_BSDF_metallic,
+                                        P_BSDF_specular,
+                                        P_BSDF_specular_tilt,
+                                        P_BSDF_roughness,
+                                        P_BSDF_anisotropic,
+                                        P_BSDF_anisotropic_rotation,
+                                        P_BSDF_sheen,
+                                        P_BSDF_sheen_tint,
+                                        P_BSDF_clearcoat,
+                                        P_BSDF_clearcoat_roughness,
+                                        P_BSDF_IOR,
+                                        P_BSDF_transparency,
+                                        P_BSDF_transparency_roughness,
+                                        P_BSDF_emission,
+                                        P_BSDF_emission_strength,
+                                        P_BSDF_alpha)
+
+            element = ElementProp(number,
+                                  name,
+                                  short_name,
+                                  color,
+                                  list_radii,
+                                  list_radii_ionic,
+                                  P_BSDF_material,
+                                  Eevee_material)
 
             ELEMENTS.append(element)
 
