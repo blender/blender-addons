@@ -1343,6 +1343,7 @@ def import_pdb(Ball_type,
     # (e.g. hydrogen)
     for atom_type in atom_all_types_list:
         material = bpy.data.materials.new(atom_type[1])
+        material.diffuse_color = atom_type[2]
         material.use_nodes = True
         mat_P_BSDF = material.node_tree.nodes['Principled BSDF']
         mat_P_BSDF.inputs['Base Color'].default_value = atom_type[2]
