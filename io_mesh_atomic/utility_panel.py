@@ -470,6 +470,12 @@ def modify_objects(action_type,
             else:
                 atom = draw_obj(scn.replace_objs, atom, new_material)
 
+            # If sticks are available, then assign the same material.
+            sticks_cylinder, sticks_cup =find_sticks_of_atom(atom)
+            if sticks_cylinder != None and sticks_cup != None:
+                sticks_cylinder.active_material = new_material
+                sticks_cup.active_material = new_material
+
         # If the atom is the representative ball of a dupliverts structure,
         # then make it invisible.
         if atom.parent != None:
@@ -509,6 +515,12 @@ def modify_objects(action_type,
         new_atom.active_material = new_material
         new_atom.name = element.name + "_ball"
         new_atom.scale = (element.radii[0],) * 3
+
+        # If sticks are available, then assign the same material.
+        sticks_cylinder, sticks_cup =find_sticks_of_atom(new_atom)
+        if sticks_cylinder != None and sticks_cup != None:
+            sticks_cylinder.active_material = new_material
+            sticks_cup.active_material = new_material
 
 
 # Separating atoms from a dupliverts structure.
@@ -668,6 +680,48 @@ def get_collection_object(obj):
         coll = bpy.context.scene.collection
 
     return coll
+
+
+# Find the sticks of an atom.
+def find_sticks_of_atom(atom):
+
+    # Initialization of the stick objects 'cylinder' and 'cup'.
+    sticks_cylinder = None
+    sticks_cup = None
+
+    if atom.parent != None:
+
+        D = bpy.data
+        C = bpy.context
+
+        # Get a list of all scenes.
+        cols_scene = [c for c in D.collections if C.scene.user_of_id(c)]
+
+        # This is the collection where the atom is inside.
+        col_atom = atom.parent.users_collection[0]
+
+        # Get the parent collection of the latter collection.
+        col_parent = [c for c in cols_scene if c.user_of_id(col_atom)][0]
+
+        # Get **all** children collections inside this parent collection.
+        parent_childrens = col_parent.children_recursive
+
+        # For each child collection do:
+        for child in parent_childrens:
+            # It should not have the name of the atom collection.
+            if child.name != col_atom.name:
+                # If the sticks are inside then ...
+                if "sticks" in child.name:
+                    # For all objects do ...
+                    for obj in child.objects:
+                        # If the stick objects are inside then note them.
+                        if "sticks_cylinder" in obj.name:
+                            sticks_cylinder = obj
+                        if "sticks_cup" in obj.name:
+                            sticks_cup = obj
+
+    # Return the stick objects 'cylinder' and 'cup'.
+    return sticks_cylinder, sticks_cup
 
 
 # Draw an object (e.g. cube, sphere, cylinder, ...)
