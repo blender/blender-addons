@@ -924,12 +924,6 @@ def draw_sticks_dupliverts(all_atoms,
         coll.objects.link(object_stick[0])
         coll.objects.link(object_stick[1])
 
-        # Hide these objects because their appearance has no meaning. They are
-        # just the representative objects. The cylinder and cups are visible at
-        # the vertices of the mesh. Rememmber, this is a dupliverts construct!
-        object_stick[0].hide_set(True)
-        object_stick[1].hide_set(True)
-
         stick_cylinder = object_stick[0]
         stick_cylinder.active_material = stick[3]
         stick_cups = object_stick[1]
@@ -941,6 +935,12 @@ def draw_sticks_dupliverts(all_atoms,
             stick_cylinder.select_set(True)
             stick_cups.select_set(True)
             bpy.ops.object.shade_smooth()
+
+        # Hide these objects because their appearance has no meaning. They are
+        # just the representative objects. The cylinder and cups are visible at
+        # the vertices of the mesh. Rememmber, this is a dupliverts construct!
+        stick_cylinder.hide_set(True)
+        stick_cups.hide_set(True)
 
         # Parenting the mesh to the cylinder.
         stick_cylinder.parent = new_mesh
