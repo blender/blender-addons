@@ -470,11 +470,21 @@ def modify_objects(action_type,
             else:
                 atom = draw_obj(scn.replace_objs, atom, new_material)
 
-            # If sticks are available, then assign the same material.
-            sticks_cylinder, sticks_cup =find_sticks_of_atom(atom)
-            if sticks_cylinder != None and sticks_cup != None:
+        # Find the sticks, if present.
+        sticks_cylinder, sticks_cup = find_sticks_of_atom(atom)
+
+        # Dupliverts sticks
+        if sticks_cylinder != None and sticks_cup != None:
+            sticks_cylinder.active_material = new_material
+            sticks_cup.active_material = new_material
+        if sticks_cylinder != None and sticks_cup == None:
+            # Normal sticks
+            if type(sticks_cylinder) == list:
+                for stick in sticks_cylinder:
+                    stick.active_material = new_material
+            # Skin sticks
+            else:
                 sticks_cylinder.active_material = new_material
-                sticks_cup.active_material = new_material
 
         # If the atom is the representative ball of a dupliverts structure,
         # then make it invisible.
@@ -516,11 +526,21 @@ def modify_objects(action_type,
         new_atom.name = element.name + "_ball"
         new_atom.scale = (element.radii[0],) * 3
 
-        # If sticks are available, then assign the same material.
-        sticks_cylinder, sticks_cup =find_sticks_of_atom(new_atom)
+        # Find the sticks, if present.
+        sticks_cylinder, sticks_cup = find_sticks_of_atom(new_atom)
+
+        # Dupliverts sticks
         if sticks_cylinder != None and sticks_cup != None:
             sticks_cylinder.active_material = new_material
             sticks_cup.active_material = new_material
+        if sticks_cylinder != None and sticks_cup == None:
+            # Normal sticks
+            if type(sticks_cylinder) == list:
+                for stick in sticks_cylinder:
+                    stick.active_material = new_material
+            # Skin sticks
+            else:
+                sticks_cylinder.active_material = new_material
 
 
 # Separating atoms from a dupliverts structure.
@@ -689,6 +709,7 @@ def find_sticks_of_atom(atom):
     sticks_cylinder = None
     sticks_cup = None
 
+    # This is for dupliverts structures.
     if atom.parent != None:
 
         D = bpy.data
@@ -706,7 +727,8 @@ def find_sticks_of_atom(atom):
         # Get **all** children collections inside this parent collection.
         parent_childrens = col_parent.children_recursive
 
-        # For each child collection do:
+        # This is for dupliverts stick structures now: for each child
+        # collection do:
         for child in parent_childrens:
             # It should not have the name of the atom collection.
             if child.name != col_atom.name:
@@ -720,7 +742,37 @@ def find_sticks_of_atom(atom):
                         if "sticks_cup" in obj.name:
                             sticks_cup = obj
 
+        # No dupliverts stick structures found? Then lets search for
+        # 'normal' and 'skin' sticks. Such sticks are in the collection
+        # 'Sticks' of the atomic structure.
+        if sticks_cylinder == None and sticks_cup == None:
+
+            # Get the grandparent collection of the parent collection.
+            col_grandparent = [c for c in cols_scene if c.user_of_id(col_parent)][0]
+
+            # Skin sticks:
+            list_objs = col_grandparent.objects
+            for obj in list_objs:
+                if "Sticks" in obj.name:
+                    sticks_cylinder = obj
+                    break
+
+            # Normal sticks
+            if sticks_cylinder == None:
+                # For each child collection do:
+                for child in col_grandparent.children_recursive:
+                    # If the sticks are inside then ...
+                    if "Sticks_cylinders" in child.name:
+                        sticks_cylinder = []
+                        for obj in child.objects:
+                            sticks_cylinder.append(obj)
+                        break
+
     # Return the stick objects 'cylinder' and 'cup'.
+    #
+    # Dupliverts sticks => sticks_cylinder = 1,   sticks_cup = 1
+    # Skin sticks       => sticks_cylinder = 1,   sticks_cup = None
+    # Normal sticks     => sticks_cylinder = [n], sticks_cup = None
     return sticks_cylinder, sticks_cup
 
 
