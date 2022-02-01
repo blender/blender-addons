@@ -194,7 +194,7 @@ class ImportPOV(bpy.types.Operator, ImportHelper):
                 S = S.replace(";", " ; ")
                 S = S.split()
                 # lenS = len(S) # Not used... why written?
-                for word in enumerate(S):
+                for word in S:
                     # -------- Primitives Import -------- #
                     if word == 'cone':
                         cone_search = True
