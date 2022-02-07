@@ -1874,7 +1874,7 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
             if mod.type not in {'ARMATURE'} or not mod.object:
                 continue
             # We only support vertex groups binding method, not bone envelopes one!
-            if mod.object in {arm_obj.bdata, arm_obj.bdata.proxy} and mod.use_vertex_groups:
+            if mod.object == arm_obj.bdata and mod.use_vertex_groups:
                 found = True
                 break
 

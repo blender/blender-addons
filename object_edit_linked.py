@@ -81,8 +81,6 @@ class OBJECT_OT_EditLinked(bpy.types.Operator):
         return settings["original_file"] == "" and context.active_object is not None and (
                 (context.active_object.instance_collection and
                 context.active_object.instance_collection.library is not None) or
-                (context.active_object.proxy and
-                context.active_object.proxy.library is not None) or
                 context.active_object.library is not None or
                 (context.active_object.override_library and
                 context.active_object.override_library.reference.library is not None))
@@ -94,10 +92,6 @@ class OBJECT_OT_EditLinked(bpy.types.Operator):
             targetpath = target.instance_collection.library.filepath
             settings["linked_objects"].extend({ob.name for ob in target.instance_collection.objects})
         elif target.library:
-            targetpath = target.library.filepath
-            settings["linked_objects"].append(target.name)
-        elif target.proxy:
-            target = target.proxy
             targetpath = target.library.filepath
             settings["linked_objects"].append(target.name)
         elif target.override_library:
@@ -259,10 +253,7 @@ class VIEW3D_PT_PanelLinkedEdit(bpy.types.Panel):
 
         target = None
 
-        if context.active_object.proxy:
-            target = context.active_object.proxy
-        else:
-            target = context.active_object.instance_collection
+        target = context.active_object.instance_collection
 
         if settings["original_file"] == "" and (
                 (target and
