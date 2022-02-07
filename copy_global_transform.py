@@ -320,7 +320,7 @@ class OBJECT_OT_paste_transform(Operator):
             mat = self.parse_print_m4(clipboard)
 
         if mat is None:
-            self.report({'ERROR'}, "Clipboard does not contain a valid matrix.")
+            self.report({'ERROR'}, "Clipboard does not contain a valid matrix")
             return {'CANCELLED'}
 
         applicator = {
