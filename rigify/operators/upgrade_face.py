@@ -435,7 +435,7 @@ class POSE_OT_rigify_upgrade_face(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return obj and obj.type == 'ARMATURE' and obj.mode in {'POSE', 'OBJECT'} and find_face_bone(obj)
+        return obj and obj.type == 'ARMATURE' and find_face_bone(obj)
 
     def invoke(self, context, event):
         return context.window_manager.invoke_confirm(self, event)
