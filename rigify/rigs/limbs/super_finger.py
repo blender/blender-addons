@@ -152,6 +152,12 @@ class Rig(SimpleChainRig):
             no_fix_rotation=True, no_fix_scale=True,
         )
 
+    @stage.parent_bones
+    def parent_ik_control(self):
+        if self.make_ik:
+            bone = self.get_bone(self.bones.ctrl.ik)
+            bone.use_local_location = self.params.ik_local_location
+
     @stage.configure_bones
     def configure_ik_control(self):
         if self.make_ik:
@@ -366,6 +372,12 @@ class Rig(SimpleChainRig):
             description = "Create an optional IK control"
         )
 
+        params.ik_local_location = bpy.props.BoolProperty(
+            name        = 'IK Local Location',
+            default     = True,
+            description = "Specifies the value of the Local Location option for IK controls, which decides if the location channels are aligned to the local control orientation or world",
+        )
+
         ControlLayersOption.TWEAK.add_parameters(params)
         ControlLayersOption.EXTRA_IK.add_parameters(params)
 
@@ -379,6 +391,9 @@ class Rig(SimpleChainRig):
 
         layout.prop(params, 'bbones')
         layout.prop(params, 'make_extra_ik_control', text='IK Control')
+
+        if params.make_extra_ik_control:
+            layout.prop(params, 'ik_local_location')
 
         ControlLayersOption.TWEAK.parameters_ui(layout, params)
 

@@ -432,6 +432,12 @@ class BaseLimbRig(BaseRig):
         else:
             self.set_bone_parent(self.bones.ctrl.ik_base, self.bones.mch.ik_swing)
 
+        self.set_ik_local_location(self.bones.ctrl.ik)
+        self.set_ik_local_location(self.bones.ctrl.ik_pole)
+
+    def set_ik_local_location(self, ctrl):
+        self.get_bone(ctrl).use_local_location = self.params.ik_local_location
+
     @stage.configure_bones
     def configure_ik_controls(self):
         base = self.get_bone(self.bones.ctrl.ik_base)
@@ -927,6 +933,12 @@ class BaseLimbRig(BaseRig):
             description = "Create a rotation pivot control that can be repositioned arbitrarily"
         )
 
+        params.ik_local_location = bpy.props.BoolProperty(
+            name        = "IK Local Location",
+            default     = True,
+            description = "Specifies the value of the Local Location option for IK controls, which decides if the location channels are aligned to the local control orientation or world",
+        )
+
         # Setting up extra layers for the FK and tweak
         ControlLayersOption.FK.add_parameters(params)
         ControlLayersOption.TWEAK.add_parameters(params)
@@ -949,6 +961,7 @@ class BaseLimbRig(BaseRig):
         r.prop(params, "bbones")
 
         layout.prop(params, 'make_custom_pivot', text="Custom IK Pivot")
+        layout.prop(params, 'ik_local_location')
 
         ControlLayersOption.FK.parameters_ui(layout, params)
         ControlLayersOption.TWEAK.parameters_ui(layout, params)

@@ -482,6 +482,20 @@ def align_bone_orientation(obj, bone_name, target_bone_name):
     bone1_e.roll = bone2_e.roll
 
 
+def set_bone_orientation(obj, bone_name, orientation):
+    """ Aligns the orientation of bone to target bone or matrix. """
+    if isinstance(orientation, str):
+        align_bone_orientation(obj, bone_name, orientation)
+
+    else:
+        bone_e = obj.data.edit_bones[bone_name]
+
+        matrix = Matrix(orientation).to_4x4()
+        matrix.translation = bone_e.head
+
+        bone_e.matrix = matrix
+
+
 def align_bone_roll(obj, bone1, bone2):
     """ Aligns the roll of two bones.
     """

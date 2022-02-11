@@ -593,6 +593,8 @@ class EyeClusterControl(RigComponent):
 
     def parent_bones(self):
         if self.rig_count > 1:
+            self.get_bone(self.master_bone).use_local_location = False
+
             for child in self.child_bones:
                 self.set_bone_parent(child, self.master_bone)
 
