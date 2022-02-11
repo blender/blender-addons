@@ -164,6 +164,10 @@ def create_sample(obj, limb=False):
         pbone.rigify_parameters.fk_layers = [False, False, False, False, False, False, False, False, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
     except AttributeError:
         pass
+    try:
+        pbone.rigify_parameters.ik_local_location = False
+    except AttributeError:
+        pass
     pbone = obj.pose.bones[bones['forearm.L']]
     pbone.rigify_type = ''
     pbone.lock_location = (False, False, False)
