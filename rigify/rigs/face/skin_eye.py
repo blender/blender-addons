@@ -92,13 +92,10 @@ class Rig(BaseSkinRig):
         if len(self.eye_corner_nodes) != 2:
             self.raise_error('Expected 2 eye corners, but found {}', len(self.eye_corner_nodes))
 
-        # Build a coordinate space with XY plane based on center and two corners,
-        # and Y axis oriented as close to the eye axis as possible.
-        vecs = [(node.point - self.center).normalized() for node in self.eye_corner_nodes]
-        normal = vecs[0].cross(vecs[1])
-        space_axis = self.axis - self.axis.project(normal)
+        # Build a coordinate space with XY plane based on eye axis and two corners
+        corner_axis = self.eye_corner_nodes[1].point - self.eye_corner_nodes[0].point
 
-        matrix = matrix_from_axis_pair(space_axis, normal, 'z').to_4x4()
+        matrix = matrix_from_axis_pair(self.axis, corner_axis, 'x').to_4x4()
         matrix.translation = self.center
         self.eye_corner_matrix = matrix.inverted()
 
