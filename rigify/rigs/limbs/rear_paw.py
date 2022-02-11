@@ -42,7 +42,7 @@ class Rig(pawRig):
         ik_chain, tail_chain, fk_chain = super().get_ik_fk_position_chains()
         assert not tail_chain
         if not self.use_heel2:
-            return [*ik_chain, ik_chain[-1]], [*fk_chain, fk_chain[-1]]
+            return [*ik_chain, ik_chain[-1]], [], [*fk_chain, fk_chain[-1]]
         return ik_chain, tail_chain, fk_chain
 
     def get_extra_ik_controls(self):
