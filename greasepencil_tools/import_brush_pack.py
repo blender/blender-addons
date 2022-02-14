@@ -84,7 +84,7 @@ class GP_OT_install_brush_pack(bpy.types.Operator):
 
         self.temp = Path(temp)
 
-        dl_url = 'http://download.blender.org/demo/bundles/bundles-3.0/grease-pencil-brush-pack.zip'
+        dl_url = 'https://download.blender.org/demo/bundles/bundles-3.0/grease-pencil-brush-pack.zip'
 
         ## need to create an SSl context or linux fail and raise unverified ssl
         ssl._create_default_https_context = ssl._create_unverified_context
