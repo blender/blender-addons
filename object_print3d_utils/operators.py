@@ -757,8 +757,7 @@ class MESH_OT_print3d_align_to_xy(Operator):
             else:
                 faces = [p for p in obj.data.polygons if p.select]
 
-            face_count = len(faces)
-            if face_count < 1:
+            if not faces:
                 skip_invalid.append(obj.name)
                 continue
 
@@ -788,9 +787,7 @@ class MESH_OT_print3d_align_to_xy(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        if context.mode in {'EDIT_MESH', 'OBJECT'}:
-            pass
-        else:
+        if context.mode not in {'EDIT_MESH', 'OBJECT'}:
             return {'CANCELLED'}
         return self.execute(context)
 

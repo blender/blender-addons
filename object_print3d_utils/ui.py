@@ -116,7 +116,7 @@ class VIEW3D_PT_print3d_transform(View3DPrintPanel, Panel):
         row.operator("mesh.print3d_scale_to_volume", text="Volume")
         row.operator("mesh.print3d_scale_to_bounds", text="Bounds")
         row = layout.row(align=True)
-        row.operator("mesh.print3d_align_to_xy", text="Align to XY Plane")
+        row.operator("mesh.print3d_align_to_xy", text="Align XY")
         row.prop(print_3d, "use_alignxy_face_area")
 
 
