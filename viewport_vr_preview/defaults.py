@@ -46,7 +46,6 @@ class VRDefaultActions(Enum):
 
 # Default action bindings.
 class VRDefaultActionbindings(Enum):
-    COSMOS = "cosmos"
     GAMEPAD = "gamepad"
     HUAWEI = "huawei"
     INDEX = "index"
@@ -54,11 +53,12 @@ class VRDefaultActionbindings(Enum):
     REVERB_G2 = "reverb_g2"
     SIMPLE = "simple"
     VIVE = "vive"
+    VIVE_COSMOS = "vive_cosmos"
+    VIVE_FOCUS = "vive_focus"
     WMR = "wmr"
 
 
 class VRDefaultActionprofiles(Enum):
-    COSMOS = "/interaction_profiles/htc/vive_cosmos_controller"
     GAMEPAD = "/interaction_profiles/microsoft/xbox_controller"
     HUAWEI = "/interaction_profiles/huawei/controller"
     INDEX = "/interaction_profiles/valve/index_controller"
@@ -66,6 +66,8 @@ class VRDefaultActionprofiles(Enum):
     REVERB_G2 = "/interaction_profiles/hp/mixed_reality_controller"
     SIMPLE = "/interaction_profiles/khr/simple_controller"
     VIVE = "/interaction_profiles/htc/vive_controller"
+    VIVE_COSMOS = "/interaction_profiles/htc/vive_cosmos_controller"
+    VIVE_FOCUS = "/interaction_profiles/htc/vive_focus3_controller"
     WMR = "/interaction_profiles/microsoft/motion_controller"
 
 
@@ -198,13 +200,6 @@ def vr_defaults_create_default(session_state):
                                       False)
     if ami:
         vr_defaults_pose_actionbinding_add(ami,
-                                           VRDefaultActionbindings.COSMOS.value,
-                                           VRDefaultActionprofiles.COSMOS.value,
-                                           ["/input/grip/pose",
-                                           "/input/grip/pose"],
-                                           (0, 0, 0),
-                                           (0, 0, 0))
-        vr_defaults_pose_actionbinding_add(ami,
                                            VRDefaultActionbindings.HUAWEI.value,
                                            VRDefaultActionprofiles.HUAWEI.value,
                                            ["/input/grip/pose",
@@ -242,6 +237,20 @@ def vr_defaults_create_default(session_state):
         vr_defaults_pose_actionbinding_add(ami,
                                            VRDefaultActionbindings.VIVE.value,
                                            VRDefaultActionprofiles.VIVE.value,
+                                           ["/input/grip/pose",
+                                           "/input/grip/pose"],
+                                           (0, 0, 0),
+                                           (0, 0, 0))
+        vr_defaults_pose_actionbinding_add(ami,
+                                           VRDefaultActionbindings.VIVE_COSMOS.value,
+                                           VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                           ["/input/grip/pose",
+                                           "/input/grip/pose"],
+                                           (0, 0, 0),
+                                           (0, 0, 0))
+        vr_defaults_pose_actionbinding_add(ami,
+                                           VRDefaultActionbindings.VIVE_FOCUS.value,
+                                           VRDefaultActionprofiles.VIVE_FOCUS.value,
                                            ["/input/grip/pose",
                                            "/input/grip/pose"],
                                            (0, 0, 0),
@@ -262,13 +271,6 @@ def vr_defaults_create_default(session_state):
                                       True)
     if ami:
         vr_defaults_pose_actionbinding_add(ami,
-                                           VRDefaultActionbindings.COSMOS.value,
-                                           VRDefaultActionprofiles.COSMOS.value,
-                                           ["/input/aim/pose",
-                                           "/input/aim/pose"],
-                                           (0, 0, 0),
-                                           (0, 0, 0))
-        vr_defaults_pose_actionbinding_add(ami,
                                            VRDefaultActionbindings.HUAWEI.value,
                                            VRDefaultActionprofiles.HUAWEI.value,
                                            ["/input/aim/pose",
@@ -306,6 +308,20 @@ def vr_defaults_create_default(session_state):
         vr_defaults_pose_actionbinding_add(ami,
                                            VRDefaultActionbindings.VIVE.value,
                                            VRDefaultActionprofiles.VIVE.value,
+                                           ["/input/aim/pose",
+                                           "/input/aim/pose"],
+                                           (0, 0, 0),
+                                           (0, 0, 0))
+        vr_defaults_pose_actionbinding_add(ami,
+                                           VRDefaultActionbindings.VIVE_COSMOS.value,
+                                           VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                           ["/input/aim/pose",
+                                           "/input/aim/pose"],
+                                           (0, 0, 0),
+                                           (0, 0, 0))
+        vr_defaults_pose_actionbinding_add(ami,
+                                           VRDefaultActionbindings.VIVE_FOCUS.value,
+                                           VRDefaultActionprofiles.VIVE_FOCUS.value,
                                            ["/input/aim/pose",
                                            "/input/aim/pose"],
                                            (0, 0, 0),
@@ -332,14 +348,6 @@ def vr_defaults_create_default(session_state):
                                  0.0,
                                  'PRESS')
     if ami:
-        vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.COSMOS.value,
-                                      VRDefaultActionprofiles.COSMOS.value,
-                                      ["/input/trigger/value",
-                                      "/input/trigger/value"],
-                                      0.3,
-                                      'ANY',
-                                      'ANY')
         vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.HUAWEI.value,
                                       VRDefaultActionprofiles.HUAWEI.value,
@@ -389,6 +397,22 @@ def vr_defaults_create_default(session_state):
                                       'ANY',
                                       'ANY')
         vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_COSMOS.value,
+                                      VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                      ["/input/trigger/value",
+                                      "/input/trigger/value"],
+                                      0.3,
+                                      'ANY',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_FOCUS.value,
+                                      VRDefaultActionprofiles.VIVE_FOCUS.value,
+                                      ["/input/trigger/value",
+                                      "/input/trigger/value"],
+                                      0.3,
+                                      'ANY',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.WMR.value,
                                       VRDefaultActionprofiles.WMR.value,
                                       ["/input/trigger/value",
@@ -411,14 +435,6 @@ def vr_defaults_create_default(session_state):
                                  0.0,
                                  'PRESS')
     if ami:
-        vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.COSMOS.value,
-                                      VRDefaultActionprofiles.COSMOS.value,
-                                      ["/input/squeeze/click",
-                                      "/input/squeeze/click"],
-                                      0.3,
-                                      'ANY',
-                                      'ANY')
         vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.HUAWEI.value,
                                       VRDefaultActionprofiles.HUAWEI.value,
@@ -468,6 +484,22 @@ def vr_defaults_create_default(session_state):
                                       'ANY',
                                       'ANY')
         vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_COSMOS.value,
+                                      VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                      ["/input/squeeze/click",
+                                      "/input/squeeze/click"],
+                                      0.3,
+                                      'ANY',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_FOCUS.value,
+                                      VRDefaultActionprofiles.VIVE_FOCUS.value,
+                                      ["/input/squeeze/click",
+                                      "/input/squeeze/click"],
+                                      0.3,
+                                      'ANY',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.WMR.value,
                                       VRDefaultActionprofiles.WMR.value,
                                       ["/input/squeeze/click",
@@ -489,13 +521,6 @@ def vr_defaults_create_default(session_state):
                                  0.0,
                                  'PRESS')
     if ami:
-        vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.COSMOS.value,
-                                      VRDefaultActionprofiles.COSMOS.value,
-                                      ["/input/thumbstick/y"],
-                                      0.3,
-                                      'POSITIVE',
-                                      'ANY')
         vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.HUAWEI.value,
                                       VRDefaultActionprofiles.HUAWEI.value,
@@ -528,6 +553,20 @@ def vr_defaults_create_default(session_state):
                                       VRDefaultActionbindings.VIVE.value,
                                       VRDefaultActionprofiles.VIVE.value,
                                       ["/input/trackpad/y"],
+                                      0.3,
+                                      'POSITIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_COSMOS.value,
+                                      VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                      ["/input/thumbstick/y"],
+                                      0.3,
+                                      'POSITIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_FOCUS.value,
+                                      VRDefaultActionprofiles.VIVE_FOCUS.value,
+                                      ["/input/thumbstick/y"],
                                       0.3,
                                       'POSITIVE',
                                       'ANY')
@@ -553,13 +592,6 @@ def vr_defaults_create_default(session_state):
                                  'PRESS')
     if ami:
         vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.COSMOS.value,
-                                      VRDefaultActionprofiles.COSMOS.value,
-                                      ["/input/thumbstick/y"],
-                                      0.3,
-                                      'NEGATIVE',
-                                      'ANY')
-        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.HUAWEI.value,
                                       VRDefaultActionprofiles.HUAWEI.value,
                                       ["/input/trackpad/y"],
@@ -591,6 +623,20 @@ def vr_defaults_create_default(session_state):
                                       VRDefaultActionbindings.VIVE.value,
                                       VRDefaultActionprofiles.VIVE.value,
                                       ["/input/trackpad/y"],
+                                      0.3,
+                                      'NEGATIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_COSMOS.value,
+                                      VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                      ["/input/thumbstick/y"],
+                                      0.3,
+                                      'NEGATIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_FOCUS.value,
+                                      VRDefaultActionprofiles.VIVE_FOCUS.value,
+                                      ["/input/thumbstick/y"],
                                       0.3,
                                       'NEGATIVE',
                                       'ANY')
@@ -616,13 +662,6 @@ def vr_defaults_create_default(session_state):
                                  'PRESS')
     if ami:
         vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.COSMOS.value,
-                                      VRDefaultActionprofiles.COSMOS.value,
-                                      ["/input/thumbstick/x"],
-                                      0.3,
-                                      'NEGATIVE',
-                                      'ANY')
-        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.HUAWEI.value,
                                       VRDefaultActionprofiles.HUAWEI.value,
                                       ["/input/trackpad/x"],
@@ -654,6 +693,20 @@ def vr_defaults_create_default(session_state):
                                       VRDefaultActionbindings.VIVE.value,
                                       VRDefaultActionprofiles.VIVE.value,
                                       ["/input/trackpad/x"],
+                                      0.3,
+                                      'NEGATIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_COSMOS.value,
+                                      VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                      ["/input/thumbstick/x"],
+                                      0.3,
+                                      'NEGATIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_FOCUS.value,
+                                      VRDefaultActionprofiles.VIVE_FOCUS.value,
+                                      ["/input/thumbstick/x"],
                                       0.3,
                                       'NEGATIVE',
                                       'ANY')
@@ -679,13 +732,6 @@ def vr_defaults_create_default(session_state):
                                  'PRESS')
     if ami:
         vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.COSMOS.value,
-                                      VRDefaultActionprofiles.COSMOS.value,
-                                      ["/input/thumbstick/x"],
-                                      0.3,
-                                      'POSITIVE',
-                                      'ANY')
-        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.HUAWEI.value,
                                       VRDefaultActionprofiles.HUAWEI.value,
                                       ["/input/trackpad/x"],
@@ -717,6 +763,20 @@ def vr_defaults_create_default(session_state):
                                       VRDefaultActionbindings.VIVE.value,
                                       VRDefaultActionprofiles.VIVE.value,
                                       ["/input/trackpad/x"],
+                                      0.3,
+                                      'POSITIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_COSMOS.value,
+                                      VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                      ["/input/thumbstick/x"],
+                                      0.3,
+                                      'POSITIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_FOCUS.value,
+                                      VRDefaultActionprofiles.VIVE_FOCUS.value,
+                                      ["/input/thumbstick/x"],
                                       0.3,
                                       'POSITIVE',
                                       'ANY')
@@ -742,13 +802,6 @@ def vr_defaults_create_default(session_state):
                                  'PRESS')
     if ami:
         vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.COSMOS.value,
-                                      VRDefaultActionprofiles.COSMOS.value,
-                                      ["/input/thumbstick/y"],
-                                      0.3,
-                                      'POSITIVE',
-                                      'ANY')
-        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.HUAWEI.value,
                                       VRDefaultActionprofiles.HUAWEI.value,
                                       ["/input/trackpad/y"],
@@ -780,6 +833,20 @@ def vr_defaults_create_default(session_state):
                                       VRDefaultActionbindings.VIVE.value,
                                       VRDefaultActionprofiles.VIVE.value,
                                       ["/input/trackpad/y"],
+                                      0.3,
+                                      'POSITIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_COSMOS.value,
+                                      VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                      ["/input/thumbstick/y"],
+                                      0.3,
+                                      'POSITIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_FOCUS.value,
+                                      VRDefaultActionprofiles.VIVE_FOCUS.value,
+                                      ["/input/thumbstick/y"],
                                       0.3,
                                       'POSITIVE',
                                       'ANY')
@@ -805,13 +872,6 @@ def vr_defaults_create_default(session_state):
                                  'PRESS')
     if ami:
         vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.COSMOS.value,
-                                      VRDefaultActionprofiles.COSMOS.value,
-                                      ["/input/thumbstick/y"],
-                                      0.3,
-                                      'NEGATIVE',
-                                      'ANY')
-        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.HUAWEI.value,
                                       VRDefaultActionprofiles.HUAWEI.value,
                                       ["/input/trackpad/y"],
@@ -843,6 +903,20 @@ def vr_defaults_create_default(session_state):
                                       VRDefaultActionbindings.VIVE.value,
                                       VRDefaultActionprofiles.VIVE.value,
                                       ["/input/trackpad/y"],
+                                      0.3,
+                                      'NEGATIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_COSMOS.value,
+                                      VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                      ["/input/thumbstick/y"],
+                                      0.3,
+                                      'NEGATIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_FOCUS.value,
+                                      VRDefaultActionprofiles.VIVE_FOCUS.value,
+                                      ["/input/thumbstick/y"],
                                       0.3,
                                       'NEGATIVE',
                                       'ANY')
@@ -868,13 +942,6 @@ def vr_defaults_create_default(session_state):
                                  'PRESS')
     if ami:
         vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.COSMOS.value,
-                                      VRDefaultActionprofiles.COSMOS.value,
-                                      ["/input/thumbstick/x"],
-                                      0.3,
-                                      'NEGATIVE',
-                                      'ANY')
-        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.HUAWEI.value,
                                       VRDefaultActionprofiles.HUAWEI.value,
                                       ["/input/trackpad/x"],
@@ -906,6 +973,20 @@ def vr_defaults_create_default(session_state):
                                       VRDefaultActionbindings.VIVE.value,
                                       VRDefaultActionprofiles.VIVE.value,
                                       ["/input/trackpad/x"],
+                                      0.3,
+                                      'NEGATIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_COSMOS.value,
+                                      VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                      ["/input/thumbstick/x"],
+                                      0.3,
+                                      'NEGATIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_FOCUS.value,
+                                      VRDefaultActionprofiles.VIVE_FOCUS.value,
+                                      ["/input/thumbstick/x"],
                                       0.3,
                                       'NEGATIVE',
                                       'ANY')
@@ -931,13 +1012,6 @@ def vr_defaults_create_default(session_state):
                                  'PRESS')
     if ami:
         vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.COSMOS.value,
-                                      VRDefaultActionprofiles.COSMOS.value,
-                                      ["/input/thumbstick/x"],
-                                      0.3,
-                                      'POSITIVE',
-                                      'ANY')
-        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.HUAWEI.value,
                                       VRDefaultActionprofiles.HUAWEI.value,
                                       ["/input/trackpad/x"],
@@ -973,6 +1047,20 @@ def vr_defaults_create_default(session_state):
                                       'POSITIVE',
                                       'ANY')
         vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_COSMOS.value,
+                                      VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                      ["/input/thumbstick/x"],
+                                      0.3,
+                                      'POSITIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_FOCUS.value,
+                                      VRDefaultActionprofiles.VIVE_FOCUS.value,
+                                      ["/input/thumbstick/x"],
+                                      0.3,
+                                      'POSITIVE',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.WMR.value,
                                       VRDefaultActionprofiles.WMR.value,
                                       ["/input/thumbstick/x"],
@@ -994,14 +1082,6 @@ def vr_defaults_create_default(session_state):
                                  0.5,
                                  'PRESS')
     if ami:
-        vr_defaults_actionbinding_add(ami,
-                                      VRDefaultActionbindings.COSMOS.value,
-                                      VRDefaultActionprofiles.COSMOS.value,
-                                      ["/input/x/click",
-                                      "/input/a/click"],
-                                      0.3,
-                                      'ANY',
-                                      'ANY')
         vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.HUAWEI.value,
                                       VRDefaultActionprofiles.HUAWEI.value,
@@ -1043,6 +1123,22 @@ def vr_defaults_create_default(session_state):
                                       'ANY',
                                       'ANY')
         vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_COSMOS.value,
+                                      VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                      ["/input/x/click",
+                                      "/input/a/click"],
+                                      0.3,
+                                      'ANY',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
+                                      VRDefaultActionbindings.VIVE_FOCUS.value,
+                                      VRDefaultActionprofiles.VIVE_FOCUS.value,
+                                      ["/input/x/click",
+                                      "/input/a/click"],
+                                      0.3,
+                                      'ANY',
+                                      'ANY')
+        vr_defaults_actionbinding_add(ami,
                                       VRDefaultActionbindings.WMR.value,
                                       VRDefaultActionprofiles.WMR.value,
                                       ["/input/menu/click",
@@ -1056,11 +1152,6 @@ def vr_defaults_create_default(session_state):
                                         ["/user/hand/left",
                                         "/user/hand/right"])
     if ami:
-        vr_defaults_haptic_actionbinding_add(ami,
-                                             VRDefaultActionbindings.COSMOS.value,
-                                             VRDefaultActionprofiles.COSMOS.value,
-                                             ["/output/haptic",
-                                             "/output/haptic"])
         vr_defaults_haptic_actionbinding_add(ami,
                                              VRDefaultActionbindings.HUAWEI.value,
                                              VRDefaultActionprofiles.HUAWEI.value,
@@ -1089,6 +1180,16 @@ def vr_defaults_create_default(session_state):
         vr_defaults_haptic_actionbinding_add(ami,
                                              VRDefaultActionbindings.VIVE.value,
                                              VRDefaultActionprofiles.VIVE.value,
+                                             ["/output/haptic",
+                                             "/output/haptic"])
+        vr_defaults_haptic_actionbinding_add(ami,
+                                             VRDefaultActionbindings.VIVE_COSMOS.value,
+                                             VRDefaultActionprofiles.VIVE_COSMOS.value,
+                                             ["/output/haptic",
+                                             "/output/haptic"])
+        vr_defaults_haptic_actionbinding_add(ami,
+                                             VRDefaultActionbindings.VIVE_FOCUS.value,
+                                             VRDefaultActionprofiles.VIVE_FOCUS.value,
                                              ["/output/haptic",
                                              "/output/haptic"])
         vr_defaults_haptic_actionbinding_add(ami,
