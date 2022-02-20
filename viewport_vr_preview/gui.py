@@ -548,6 +548,79 @@ class VIEW3D_PT_vr_actions_extensions(VRActionsPanel, Panel):
         col.prop(scene, "vr_actions_enable_huawei", text="Huawei")
 
 
+### Motion capture.
+class VIEW3D_UL_vr_mocap_objects(UIList):
+    def draw_item(self, context, layout, _data, item, icon, _active_data,
+                  _active_propname, index):
+        scene_mocap_ob = item
+
+        layout.emboss = 'NONE'
+
+        if scene_mocap_ob.object:
+            layout.prop(scene_mocap_ob.object, "name", text="")
+        else:
+            layout.label(icon='X')
+
+
+class VIEW3D_MT_vr_mocap_object_menu(Menu):
+    bl_label = "Motion Capture Object Controls"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("view3d.vr_mocap_objects_enable")
+        layout.operator("view3d.vr_mocap_objects_disable")
+        layout.operator("view3d.vr_mocap_objects_clear")
+        layout.operator("view3d.vr_mocap_object_help")
+
+
+class VIEW3D_PT_vr_motion_capture(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "VR"
+    bl_label = "Motion Capture"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        session_settings = context.window_manager.xr_session_settings
+        scene = context.scene
+
+        col = layout.column(align=True)
+        col.label(icon='ERROR', text="Note:")
+        col.label(text="Settings here may have a significant")
+        col.label(text="performance impact!")
+
+        layout.separator()
+
+        row = layout.row()
+        row.template_list("VIEW3D_UL_vr_mocap_objects", "", scene, "vr_mocap_objects",
+                          session_settings, "selected_mocap_object", rows=3)
+
+        col = row.column(align=True)
+        col.operator("view3d.vr_mocap_object_add", icon='ADD', text="")
+        col.operator("view3d.vr_mocap_object_remove", icon='REMOVE', text="")
+
+        col.menu("VIEW3D_MT_vr_mocap_object_menu", icon='DOWNARROW_HLT', text="")
+
+        mocap_ob = properties.vr_mocap_object_selected_get(session_settings)
+        scene_mocap_ob = properties.vr_scene_mocap_object_selected_get(scene, session_settings)
+
+        if mocap_ob and scene_mocap_ob:
+            row = layout.row()
+            col = row.column(align=True)
+
+            col.prop(scene_mocap_ob, "object", text="Object")
+            col.prop(mocap_ob, "user_path", text="User Path")
+            col.prop(mocap_ob, "enable", text="Enable")
+            col.prop(mocap_ob, "autokey", text="Auto Key")
+            col.prop(mocap_ob, "location_offset", text="Location Offset")
+            col.prop(mocap_ob, "rotation_offset", text="Rotation Offset")
+
+
 ### Viewport feedback.
 class VIEW3D_PT_vr_viewport_feedback(Panel):
     bl_space_type = 'VIEW_3D'
@@ -602,6 +675,7 @@ classes = (
     VIEW3D_PT_vr_actions_bindings,
     VIEW3D_PT_vr_actions_component_paths,
     VIEW3D_PT_vr_actions_extensions,
+    VIEW3D_PT_vr_motion_capture,
     VIEW3D_PT_vr_viewport_feedback,
 
     VIEW3D_UL_vr_landmarks,
@@ -617,6 +691,9 @@ classes = (
     VIEW3D_MT_vr_actionbinding_menu,
     VIEW3D_UL_vr_actionbinding_component_paths,
     VIEW3D_MT_vr_actionbinding_component_path_menu,
+
+    VIEW3D_UL_vr_mocap_objects,
+    VIEW3D_MT_vr_mocap_object_menu,
 )
 
 

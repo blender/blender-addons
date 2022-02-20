@@ -245,7 +245,7 @@ class VIEW3D_OT_vr_landmark_activate(Operator):
         return {'FINISHED'}
 
 
-	### Actions.
+### Actions.
 class VIEW3D_OT_vr_actionmap_add(Operator):
     bl_idname = "view3d.vr_actionmap_add"
     bl_label = "Add VR Action Map"
@@ -781,6 +781,123 @@ class VIEW3D_OT_vr_actionbinding_component_paths_clear(Operator):
         return {'FINISHED'}
 
 
+### Motion capture.
+class VIEW3D_OT_vr_mocap_object_add(Operator):
+    bl_idname = "view3d.vr_mocap_object_add"
+    bl_label = "Add VR Motion Capture Object"
+    bl_description = "Add a new VR motion capture object"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        mocap_ob = session_settings.mocap_objects.new(None)    
+        if not mocap_ob:
+            return {'CANCELLED'}
+
+        # Enable object binding by default.
+        mocap_ob.enable = True
+
+        context.scene.vr_mocap_objects.add()
+
+        # Select newly created object.
+        session_settings.selected_mocap_object = len(session_settings.mocap_objects) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_mocap_object_remove(Operator):
+    bl_idname = "view3d.vr_mocap_object_remove"
+    bl_label = "Remove VR Motion Capture Object"
+    bl_description = "Delete the selected VR motion capture object"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        mocap_ob = properties.vr_mocap_object_selected_get(session_settings)
+        if not mocap_ob:
+            return {'CANCELLED'}
+
+        context.scene.vr_mocap_objects.remove(session_settings.selected_mocap_object)
+
+        session_settings.mocap_objects.remove(mocap_ob)
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_mocap_objects_enable(Operator):
+    bl_idname = "view3d.vr_mocap_objects_enable"
+    bl_label = "Enable VR Motion Capture Objects"
+    bl_description = "Enable all VR motion capture objects"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        for mocap_ob in session_settings.mocap_objects:
+            mocap_ob.enable = True
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_mocap_objects_disable(Operator):
+    bl_idname = "view3d.vr_mocap_objects_disable"
+    bl_label = "Disable VR Motion Capture Objects"
+    bl_description = "Disable all VR motion capture objects"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        for mocap_ob in session_settings.mocap_objects:
+            mocap_ob.enable = False
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_mocap_objects_clear(Operator):
+    bl_idname = "view3d.vr_mocap_objects_clear"
+    bl_label = "Clear VR Motion Capture Objects"
+    bl_description = "Delete all VR motion capture objects from the scene"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        context.scene.vr_mocap_objects.clear()
+
+        while session_settings.mocap_objects:
+            session_settings.mocap_objects.remove(session_settings.mocap_objects[0])
+
+        return {'FINISHED'} 
+
+
+class VIEW3D_OT_vr_mocap_object_help(Operator):
+    bl_idname = "view3d.vr_mocap_object_help"
+    bl_label = "Help"
+    bl_description = "Display information about VR motion capture objects"
+    bl_options = {'REGISTER'}
+
+    def execute(self, context):
+        info_header = "Common User Paths:"
+        info_headset = "Headset - /user/head"
+        info_left_controller = "Left Controller* - /user/hand/left"
+        info_right_controller = "Right Controller* - /user/hand/right"
+        info_note = "*Requires VR actions for controller poses"
+
+        def draw(self, context):
+            self.layout.label(text=info_header)
+            self.layout.label(text=info_headset)
+            self.layout.label(text=info_left_controller)
+            self.layout.label(text=info_right_controller)
+            self.layout.label(text=info_note)
+
+        context.window_manager.popup_menu(draw, title="Motion Capture Objects", icon='INFO') 
+
+        return {'FINISHED'}
+
+
 ### Gizmos.
 class VIEW3D_GT_vr_camera_cone(Gizmo):
     bl_idname = "VIEW_3D_GT_vr_camera_cone"
@@ -1048,6 +1165,13 @@ classes = (
     VIEW3D_OT_vr_actionbinding_component_path_add,
     VIEW3D_OT_vr_actionbinding_component_path_remove,
     VIEW3D_OT_vr_actionbinding_component_paths_clear,
+
+    VIEW3D_OT_vr_mocap_object_add,
+    VIEW3D_OT_vr_mocap_object_remove,
+    VIEW3D_OT_vr_mocap_objects_enable,
+    VIEW3D_OT_vr_mocap_objects_disable,
+    VIEW3D_OT_vr_mocap_objects_clear,
+    VIEW3D_OT_vr_mocap_object_help,
 
     VIEW3D_GT_vr_camera_cone,
     VIEW3D_GT_vr_controller_grip,

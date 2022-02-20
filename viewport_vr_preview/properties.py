@@ -194,8 +194,53 @@ class VRLandmark(PropertyGroup):
         )
 
 
+### Motion capture.
+def vr_mocap_object_selected_get(session_settings):
+    mocap_objects = session_settings.mocap_objects
+    return (
+        None if (len(mocap_objects) <
+                 1) else mocap_objects[session_settings.selected_mocap_object]
+    )
+
+
+def vr_scene_mocap_object_selected_get(scene, session_settings):
+    mocap_objects = scene.vr_mocap_objects
+    return (
+        None if (len(mocap_objects) <
+                 1) else mocap_objects[session_settings.selected_mocap_object]
+    )
+
+
+def vr_scene_mocap_object_update(self, context):
+    session_settings = context.window_manager.xr_session_settings
+    mocap_ob = vr_mocap_object_selected_get(session_settings)
+    if not mocap_ob:
+        return
+
+    scene = context.scene
+    scene_mocap_ob = vr_scene_mocap_object_selected_get(scene, session_settings)
+    if not scene_mocap_ob:
+        return
+
+    # Check for duplicate object.
+    if scene_mocap_ob.object and session_settings.mocap_objects.find(scene_mocap_ob.object):
+        scene_mocap_ob.object = None
+        return
+
+    mocap_ob.object = scene_mocap_ob.object
+
+
+class VRMotionCaptureObject(PropertyGroup):
+    object: bpy.props.PointerProperty(
+        name="Object",
+        type=bpy.types.Object,
+        update=vr_scene_mocap_object_update,
+    )
+
+
 classes = (
     VRLandmark,
+    VRMotionCaptureObject,
 )
 
 
@@ -213,6 +258,13 @@ def register():
     bpy.types.Scene.vr_landmarks_active = bpy.props.IntProperty(
         update=vr_landmark_active_update,
     )
+    # This scene collection property is needed instead of directly accessing
+    # XrSessionSettings.mocap_objects in the UI to avoid invalid pointers when
+    # deleting objects.
+    bpy.types.Scene.vr_mocap_objects = bpy.props.CollectionProperty(
+        name="Motion Capture Object",
+        type=VRMotionCaptureObject,
+    )
 
     bpy.app.handlers.load_post.append(vr_ensure_default_landmark)
 
@@ -224,5 +276,6 @@ def unregister():
     del bpy.types.Scene.vr_landmarks
     del bpy.types.Scene.vr_landmarks_selected
     del bpy.types.Scene.vr_landmarks_active
+    del bpy.types.Scene.vr_mocap_objects
 
     bpy.app.handlers.load_post.remove(vr_ensure_default_landmark)
