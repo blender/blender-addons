@@ -189,10 +189,10 @@ def amb_data_from_args(amb, args, type):
         amb.pose_rotation.z = float(l[2])
 
 
-def actionconfig_export_as_data(session_state, filepath, *, sort=False):
+def actionconfig_export_as_data(session_settings, filepath, *, sort=False):
     export_actionmaps = []
 
-    for am in session_state.actionmaps:
+    for am in session_settings.actionmaps:
         export_actionmaps.append(am)
 
     if sort:
@@ -318,7 +318,7 @@ def actionmap_init_from_data(am, am_items):
         actionmap_item_init_from_data(ami, ami_bindings)
 
 
-def actionconfig_init_from_data(session_state, actionconfig_data, actionconfig_version):
+def actionconfig_init_from_data(session_settings, actionconfig_data, actionconfig_version):
     # Load data in the format defined above.
     #
     # Runs at load time, keep this fast!
@@ -327,7 +327,7 @@ def actionconfig_init_from_data(session_state, actionconfig_data, actionconfig_v
         actionconfig_data = actionconfig_update(actionconfig_data, actionconfig_version)
 
     for (am_name, am_content) in actionconfig_data:
-        am = session_state.actionmaps.new(session_state, am_name, True)
+        am = session_settings.actionmaps.new(am_name, True)
         am_items = am_content["items"]
         # Check here instead of inside 'actionmap_init_from_data'
         # because we want to allow both tuple & list types in that case.
@@ -338,9 +338,9 @@ def actionconfig_init_from_data(session_state, actionconfig_data, actionconfig_v
         actionmap_init_from_data(am, am_items)
 
 
-def actionconfig_import_from_data(session_state, actionconfig_data, *, actionconfig_version=(0, 0, 0)):
+def actionconfig_import_from_data(session_settings, actionconfig_data, *, actionconfig_version=(0, 0, 0)):
     # Load data in the format defined above.
     #
     # Runs at load time, keep this fast!
     import bpy
-    actionconfig_init_from_data(session_state, actionconfig_data, actionconfig_version)
+    actionconfig_init_from_data(session_settings, actionconfig_data, actionconfig_version)

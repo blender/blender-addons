@@ -4,9 +4,11 @@
 
 if "bpy" in locals():
     import importlib
+    importlib.reload(action_map)
+    importlib.reload(defaults)
     importlib.reload(properties)
 else:
-    from . import properties
+    from . import action_map, defaults, properties
 
 import bpy
 from bpy.types import (
@@ -14,10 +16,12 @@ from bpy.types import (
     GizmoGroup,
     Operator,
 )
+from bpy_extras.io_utils import ExportHelper, ImportHelper
 import bgl
 import math
 from math import radians
 from mathutils import Euler, Matrix, Quaternion, Vector
+import os.path
 
 
 ### Landmarks.
@@ -237,6 +241,542 @@ class VIEW3D_OT_vr_landmark_activate(Operator):
             self.index if self.properties.is_property_set(
                 "index") else scene.vr_landmarks_selected
         )
+
+        return {'FINISHED'}
+
+
+	### Actions.
+class VIEW3D_OT_vr_actionmap_add(Operator):
+    bl_idname = "view3d.vr_actionmap_add"
+    bl_label = "Add VR Action Map"
+    bl_description = "Add a new VR action map to the scene"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = session_settings.actionmaps.new("actionmap", False)    
+        if not am:
+            return {'CANCELLED'}
+
+        # Select newly created actionmap.
+        session_settings.selected_actionmap = len(session_settings.actionmaps) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionmap_remove(Operator):
+    bl_idname = "view3d.vr_actionmap_remove"
+    bl_label = "Remove VR Action Map"
+    bl_description = "Delete the selected VR action map from the scene"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        session_settings.actionmaps.remove(am)
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionmap_activate(Operator):
+    bl_idname = "view3d.vr_actionmap_activate"
+    bl_label = "Activate VR Action Map"
+    bl_description = "Set the current VR action map for the session"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    index: bpy.props.IntProperty(
+        name="Index",
+        options={'HIDDEN'},
+    )
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+        if (self.index >= len(session_settings.actionmaps)):
+            return {'CANCELLED'}
+
+        session_settings.active_actionmap = (
+            self.index if self.properties.is_property_set(
+                "index") else session_settings.selected_actionmap
+        )
+
+        action_map.vr_actionset_active_update(context)
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionmaps_defaults_load(Operator):
+    bl_idname = "view3d.vr_actionmaps_defaults_load"
+    bl_label = "Load Default VR Action Maps"
+    bl_description = "Load default VR action maps"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        filepath = defaults.vr_get_default_config_path()
+
+        if not action_map.vr_load_actionmaps(session_settings, filepath): 
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionmaps_import(Operator, ImportHelper):
+    bl_idname = "view3d.vr_actionmaps_import"
+    bl_label = "Import VR Action Maps"
+    bl_description = "Import VR action maps from configuration file"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    filter_glob: bpy.props.StringProperty(
+        default='*.py',
+        options={'HIDDEN'},
+    )
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        filename, ext = os.path.splitext(self.filepath)
+        if (ext != ".py"):
+            return {'CANCELLED'}
+
+        if not action_map.vr_load_actionmaps(session_settings, self.filepath):
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionmaps_export(Operator, ExportHelper):
+    bl_idname = "view3d.vr_actionmaps_export"
+    bl_label = "Export VR Action Maps"
+    bl_description = "Export VR action maps to configuration file"
+    bl_options = {'REGISTER'}
+
+    filter_glob: bpy.props.StringProperty(
+        default='*.py',
+        options={'HIDDEN'},
+    )
+    filename_ext: bpy.props.StringProperty(
+        default='.py',
+        options={'HIDDEN'},
+    )
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        filename, ext = os.path.splitext(self.filepath)
+        if (ext != ".py"):
+            return {'CANCELLED'}
+        
+        if not action_map.vr_save_actionmaps(session_settings, self.filepath):
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionmap_copy(Operator):
+    bl_idname = "view3d.vr_actionmap_copy"
+    bl_label = "Copy VR Action Map"
+    bl_description = "Copy selected VR action map"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        # Copy actionmap.
+        am_new = session_settings.actionmaps.new_from_actionmap(am)
+        if not am_new:
+            return {'CANCELLED'}
+        
+        # Select newly created actionmap.
+        session_settings.selected_actionmap = len(session_settings.actionmaps) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionmaps_clear(Operator):
+    bl_idname = "view3d.vr_actionmaps_clear"
+    bl_label = "Clear VR Action Maps"
+    bl_description = "Delete all VR action maps from the scene"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        while session_settings.actionmaps:
+            session_settings.actionmaps.remove(session_settings.actionmaps[0])
+
+        return {'FINISHED'} 
+
+
+class VIEW3D_OT_vr_action_add(Operator):
+    bl_idname = "view3d.vr_action_add"
+    bl_label = "Add VR Action"
+    bl_description = "Add a new VR action to the action map"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = am.actionmap_items.new("action", False)    
+        if not ami:
+            return {'CANCELLED'}
+
+        # Select newly created item.
+        am.selected_item = len(am.actionmap_items) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_remove(Operator):
+    bl_idname = "view3d.vr_action_remove"
+    bl_label = "Remove VR Action"
+    bl_description = "Delete the selected VR action from the action map"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        am.actionmap_items.remove(ami)
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_copy(Operator):
+    bl_idname = "view3d.vr_action_copy"
+    bl_label = "Copy VR Action"
+    bl_description = "Copy selected VR action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        # Copy item.
+        ami_new = am.actionmap_items.new_from_item(ami)
+        if not ami_new:
+            return {'CANCELLED'}
+        
+        # Select newly created item.
+        am.selected_item = len(am.actionmap_items) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actions_clear(Operator):
+    bl_idname = "view3d.vr_actions_clear"
+    bl_label = "Clear VR Actions"
+    bl_description = "Delete all VR actions from the action map"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        while am.actionmap_items:
+            am.actionmap_items.remove(am.actionmap_items[0])
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_user_path_add(Operator):
+    bl_idname = "view3d.vr_action_user_path_add"
+    bl_label = "Add User Path"
+    bl_description = "Add a new user path to the VR action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        user_path = ami.user_paths.new("/")
+        if not user_path:
+            return {'CANCELLED'}
+
+        # Select newly created user path.
+        ami.selected_user_path = len(ami.user_paths) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_user_path_remove(Operator):
+    bl_idname = "view3d.vr_action_user_path_remove"
+    bl_label = "Remove User Path"
+    bl_description = "Delete the selected user path from the VR action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        user_path = action_map.vr_actionmap_user_path_selected_get(ami)
+        if not user_path:
+            return {'CANCELLED'}
+
+        ami.user_paths.remove(user_path)
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_action_user_paths_clear(Operator):
+    bl_idname = "view3d.vr_action_user_paths_clear"
+    bl_label = "Clear User Paths"
+    bl_description = "Delete all user paths from the VR action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        while ami.user_paths:
+            ami.user_paths.remove(ami.user_paths[0])
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionbinding_add(Operator):
+    bl_idname = "view3d.vr_actionbinding_add"
+    bl_label = "Add VR Action Binding"
+    bl_description = "Add a new VR action binding to the action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        amb = ami.bindings.new("binding", False)    
+        if not amb:
+            return {'CANCELLED'}
+
+        # Select newly created binding.
+        ami.selected_binding = len(ami.bindings) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionbinding_remove(Operator):
+    bl_idname = "view3d.vr_actionbinding_remove"
+    bl_label = "Remove VR Action Binding"
+    bl_description = "Delete the selected VR action binding from the action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        amb = action_map.vr_actionmap_binding_selected_get(ami)
+        if not amb:
+            return {'CANCELLED'}
+
+        ami.bindings.remove(amb)
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionbinding_copy(Operator):
+    bl_idname = "view3d.vr_actionbinding_copy"
+    bl_label = "Copy VR Action Binding"
+    bl_description = "Copy selected VR action binding"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        amb = action_map.vr_actionmap_binding_selected_get(ami)
+        if not amb:
+            return {'CANCELLED'}
+
+        # Copy binding.
+        amb_new = ami.bindings.new_from_binding(amb)
+        if not amb_new:
+            return {'CANCELLED'}
+        
+        # Select newly created binding.
+        ami.selected_binding = len(ami.bindings) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionbindings_clear(Operator):
+    bl_idname = "view3d.vr_actionbindings_clear"
+    bl_label = "Clear VR Action Bindings"
+    bl_description = "Delete all VR action bindings from the action"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        while ami.bindings:
+            ami.bindings.remove(ami.bindings[0])
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionbinding_component_path_add(Operator):
+    bl_idname = "view3d.vr_actionbinding_component_path_add"
+    bl_label = "Add Component Path"
+    bl_description = "Add a new component path to the VR action binding"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        amb = action_map.vr_actionmap_binding_selected_get(ami)
+        if not amb:
+            return {'CANCELLED'}
+
+        component_path = amb.component_paths.new("/")
+        if not component_path:
+            return {'CANCELLED'}
+
+        # Select newly created component path.
+        amb.selected_component_path = len(amb.component_paths) - 1
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionbinding_component_path_remove(Operator):
+    bl_idname = "view3d.vr_actionbinding_component_path_remove"
+    bl_label = "Remove Component Path"
+    bl_description = "Delete the selected component path from the VR action binding"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        amb = action_map.vr_actionmap_binding_selected_get(ami)
+        if not amb:
+            return {'CANCELLED'}
+
+        component_path = action_map.vr_actionmap_component_path_selected_get(amb)
+        if not component_path:
+            return {'CANCELLED'}
+
+        amb.component_paths.remove(component_path)
+
+        return {'FINISHED'}
+
+
+class VIEW3D_OT_vr_actionbinding_component_paths_clear(Operator):
+    bl_idname = "view3d.vr_actionbinding_component_paths_clear"
+    bl_label = "Clear Component Paths"
+    bl_description = "Delete all component paths from the VR action binding"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        session_settings = context.window_manager.xr_session_settings
+
+        am = action_map.vr_actionmap_selected_get(session_settings)
+        if not am:
+            return {'CANCELLED'}
+
+        ami = action_map.vr_actionmap_item_selected_get(am)
+        if not ami:
+            return {'CANCELLED'}
+
+        amb = action_map.vr_actionmap_binding_selected_get(ami)
+        if not amb:
+            return {'CANCELLED'}
+
+        while amb.component_paths:
+            amb.component_paths.remove(amb.component_paths[0])
 
         return {'FINISHED'}
 
@@ -485,6 +1025,29 @@ classes = (
     VIEW3D_OT_vr_landmark_from_camera,
     VIEW3D_OT_cursor_to_vr_landmark,
     VIEW3D_OT_update_vr_landmark,
+
+    VIEW3D_OT_vr_actionmap_add,
+    VIEW3D_OT_vr_actionmap_remove,
+    VIEW3D_OT_vr_actionmap_activate,
+    VIEW3D_OT_vr_actionmaps_defaults_load,
+    VIEW3D_OT_vr_actionmaps_import,
+    VIEW3D_OT_vr_actionmaps_export,
+    VIEW3D_OT_vr_actionmap_copy,
+    VIEW3D_OT_vr_actionmaps_clear,
+    VIEW3D_OT_vr_action_add,
+    VIEW3D_OT_vr_action_remove,
+    VIEW3D_OT_vr_action_copy,
+    VIEW3D_OT_vr_actions_clear,
+    VIEW3D_OT_vr_action_user_path_add,
+    VIEW3D_OT_vr_action_user_path_remove,
+    VIEW3D_OT_vr_action_user_paths_clear,
+    VIEW3D_OT_vr_actionbinding_add,
+    VIEW3D_OT_vr_actionbinding_remove,
+    VIEW3D_OT_vr_actionbinding_copy,
+    VIEW3D_OT_vr_actionbindings_clear,
+    VIEW3D_OT_vr_actionbinding_component_path_add,
+    VIEW3D_OT_vr_actionbinding_component_path_remove,
+    VIEW3D_OT_vr_actionbinding_component_paths_clear,
 
     VIEW3D_GT_vr_camera_cone,
     VIEW3D_GT_vr_controller_grip,

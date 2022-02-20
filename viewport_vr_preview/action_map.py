@@ -4,6 +4,7 @@
 
 if "bpy" in locals():
     import importlib
+    importlib.reload(action_map_io)
     importlib.reload(defaults)
 else:
     from . import action_map_io, defaults
@@ -15,22 +16,65 @@ import importlib.util
 import os.path
 
 
+def vr_actionmap_active_get(session_settings):
+    actionmaps = session_settings.actionmaps
+    return (
+        None if (len(actionmaps) <
+                 1) else actionmaps[session_settings.active_actionmap]
+    )
+
+
+def vr_actionmap_selected_get(session_settings):
+    actionmaps = session_settings.actionmaps
+    return (
+        None if (len(actionmaps) <
+                 1) else actionmaps[session_settings.selected_actionmap]
+    )
+
+
+def vr_actionmap_item_selected_get(am):
+    actionmap_items = am.actionmap_items
+    return (
+        None if (len(actionmap_items) <
+                 1) else actionmap_items[am.selected_item]
+    )
+
+
+def vr_actionmap_user_path_selected_get(ami):
+    user_paths = ami.user_paths
+    return (
+        None if (len(user_paths) <
+                 1) else user_paths[ami.selected_user_path]
+    )
+
+
+def vr_actionmap_binding_selected_get(ami):
+    actionmap_bindings = ami.bindings
+    return (
+        None if (len(actionmap_bindings) <
+                 1) else actionmap_bindings[ami.selected_binding]
+    )
+
+
+def vr_actionmap_component_path_selected_get(amb):
+    component_paths = amb.component_paths
+    return (
+        None if (len(component_paths) <
+                 1) else component_paths[amb.selected_component_path]
+    )
+
+
 def vr_actionset_active_update(context):
     session_state = context.window_manager.xr_session_state
-    if not session_state or len(session_state.actionmaps) < 1:
+    if not session_state:
         return
 
-    scene = context.scene
+    session_settings = context.window_manager.xr_session_settings
+    am = vr_actionmap_active_get(session_settings)
+    if not am:
+        return
 
-    if scene.vr_actions_use_gamepad and session_state.actionmaps.find(session_state, defaults.VRDefaultActionmaps.GAMEPAD.value):
-        session_state.active_action_set_set(context, defaults.VRDefaultActionmaps.GAMEPAD.value)
-    else:
-        # Use first action map.
-        session_state.active_action_set_set(context, session_state.actionmaps[0].name)
-
-
-def vr_actions_use_gamepad_update(self, context):
-    vr_actionset_active_update(context)
+    session_state.active_action_set_set(context, am.name)
 
 
 @persistent
@@ -45,11 +89,14 @@ def vr_create_actions(context: bpy.context):
     if not scene.vr_actions_enable:
         return
 
-    # Ensure default action maps.
-    if not defaults.vr_ensure_default_actionmaps(session_state):
-        return
+    session_settings = context.window_manager.xr_session_settings
 
-    for am in session_state.actionmaps:
+    if (len(session_settings.actionmaps) < 1):
+        # Ensure default action maps.
+        if not defaults.vr_ensure_default_actionmaps(session_settings):
+            return
+
+    for am in session_settings.actionmaps:    
         if len(am.actionmap_items) < 1:
             continue
 
@@ -101,7 +148,7 @@ def vr_create_actions(context: bpy.context):
     vr_actionset_active_update(context)
 
 
-def vr_load_actionmaps(session_state, filepath):
+def vr_load_actionmaps(session_settings, filepath):
     if not os.path.exists(filepath):
         return False
 
@@ -109,16 +156,16 @@ def vr_load_actionmaps(session_state, filepath):
     file = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(file)
 
-    action_map_io.actionconfig_init_from_data(session_state, file.actionconfig_data, file.actionconfig_version)
+    action_map_io.actionconfig_init_from_data(session_settings, file.actionconfig_data, file.actionconfig_version)
 
     return True
 
 
-def vr_save_actionmaps(session_state, filepath, sort=False):
-    action_map_io.actionconfig_export_as_data(session_state, filepath, sort=sort)
+def vr_save_actionmaps(session_settings, filepath, sort=False):
+    action_map_io.actionconfig_export_as_data(session_settings, filepath, sort=sort)
 
     print("Saved XR actionmaps: " + filepath)
-
+    
     return True
 
 
@@ -127,11 +174,6 @@ def register():
         name="Use Controller Actions",
         description="Enable default VR controller actions, including controller poses and haptics",
         default=True,
-    )
-    bpy.types.Scene.vr_actions_use_gamepad = bpy.props.BoolProperty(
-        description="Use input from gamepad (Microsoft Xbox Controller) instead of motion controllers",
-        default=False,
-        update=vr_actions_use_gamepad_update,
     )
     bpy.types.Scene.vr_actions_enable_huawei = bpy.props.BoolProperty(
         description="Enable bindings for the Huawei controllers. Note that this may not be supported by all OpenXR runtimes",
@@ -155,7 +197,6 @@ def register():
 
 def unregister():
     del bpy.types.Scene.vr_actions_enable
-    del bpy.types.Scene.vr_actions_use_gamepad
     del bpy.types.Scene.vr_actions_enable_huawei
     del bpy.types.Scene.vr_actions_enable_reverb_g2
     del bpy.types.Scene.vr_actions_enable_vive_cosmos

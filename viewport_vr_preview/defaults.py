@@ -9,7 +9,6 @@ else:
     from . import action_map
 
 import bpy
-from bpy.app.handlers import persistent
 from enum import Enum
 import math
 import os.path
@@ -71,8 +70,8 @@ class VRDefaultActionprofiles(Enum):
     WMR = "/interaction_profiles/microsoft/motion_controller"
 
 
-def vr_defaults_actionmap_add(session_state, name):
-    am = session_state.actionmaps.new(session_state, name, True)
+def vr_defaults_actionmap_add(session_settings, name):
+    am = session_settings.actionmaps.new(name, True)
 
     return am
 
@@ -186,8 +185,8 @@ def vr_defaults_haptic_actionbinding_add(ami,
     return amb
 
 
-def vr_defaults_create_default(session_state):
-    am = vr_defaults_actionmap_add(session_state,
+def vr_defaults_create_default(session_settings):
+    am = vr_defaults_actionmap_add(session_settings,
                                    VRDefaultActionmaps.DEFAULT.value)
     if not am:
         return
@@ -1199,8 +1198,8 @@ def vr_defaults_create_default(session_state):
                                              "/output/haptic"])
 
 
-def vr_defaults_create_default_gamepad(session_state):
-    am = vr_defaults_actionmap_add(session_state,
+def vr_defaults_create_default_gamepad(session_settings):
+    am = vr_defaults_actionmap_add(session_settings,
                                    VRDefaultActionmaps.GAMEPAD.value)
 
     ami = vr_defaults_action_add(am,
@@ -1476,11 +1475,11 @@ def vr_get_default_config_path():
     return os.path.join(filepath, "default.py")
 
 
-def vr_ensure_default_actionmaps(session_state):
+def vr_ensure_default_actionmaps(session_settings):
     loaded = True
 
     for name in VRDefaultActionmaps:
-        if not session_state.actionmaps.find(session_state, name.value):
+        if not session_settings.actionmaps.find(name.value):
             loaded = False
             break
 
@@ -1492,11 +1491,11 @@ def vr_ensure_default_actionmaps(session_state):
 
     if not os.path.exists(filepath):
         # Create and save default action maps.
-        vr_defaults_create_default(session_state)
-        vr_defaults_create_default_gamepad(session_state)
+        vr_defaults_create_default(session_settings)
+        vr_defaults_create_default_gamepad(session_settings)
 
-        action_map.vr_save_actionmaps(session_state, filepath, sort=False)
+        action_map.vr_save_actionmaps(session_settings, filepath, sort=False)
 
-    loaded = action_map.vr_load_actionmaps(session_state, filepath)
+    loaded = action_map.vr_load_actionmaps(session_settings, filepath)
 
     return loaded
