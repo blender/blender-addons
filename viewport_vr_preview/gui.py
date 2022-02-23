@@ -536,6 +536,7 @@ class VIEW3D_PT_vr_actions_extensions(VRActionsPanel, Panel):
 
     def draw(self, context):
         scene = context.scene
+        session_settings = context.window_manager.xr_session_settings
 
         layout = self.layout
         layout.use_property_split = True
@@ -545,6 +546,8 @@ class VIEW3D_PT_vr_actions_extensions(VRActionsPanel, Panel):
         col.prop(scene, "vr_actions_enable_reverb_g2", text="HP Reverb G2")
         col.prop(scene, "vr_actions_enable_vive_cosmos", text="HTC Vive Cosmos")
         col.prop(scene, "vr_actions_enable_vive_focus", text="HTC Vive Focus")
+        col.prop(session_settings, "enable_vive_tracker_extension", text="HTC Vive Tracker")
+        #col.prop(scene, "vr_actions_enable_vive_tracker", text="HTC Vive Tracker")
         col.prop(scene, "vr_actions_enable_huawei", text="Huawei")
 
 

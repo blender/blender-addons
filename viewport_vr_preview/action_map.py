@@ -100,6 +100,11 @@ def vr_create_actions(context: bpy.context):
         if len(am.actionmap_items) < 1:
             continue
 
+        # Check for action maps where all bindings require OpenXR extensions.
+        if am.name == defaults.VRDefaultActionmaps.TRACKER.value:
+            if not session_settings.enable_vive_tracker_extension: #scene.vr_actions_enable_vive_tracker:
+                continue
+
         ok = session_state.action_set_create(context, am)
         if not ok:
             return
@@ -191,6 +196,11 @@ def register():
         description="Enable bindings for the HTC Vive Focus 3 controllers. Note that this may not be supported by all OpenXR runtimes",
         default=False,
     )
+    # Stored in session settings to use in session creation as a workaround for SteamVR controller/tracker compatibility issues. 
+    #bpy.types.Scene.vr_actions_enable_vive_tracker = bpy.props.BoolProperty(
+    #    description="Enable bindings for the HTC Vive Trackers. Note that this may not be supported by all OpenXR runtimes",
+    #    default=False,
+    #)
 
     bpy.app.handlers.xr_session_start_pre.append(vr_create_actions)
 
@@ -201,5 +211,6 @@ def unregister():
     del bpy.types.Scene.vr_actions_enable_reverb_g2
     del bpy.types.Scene.vr_actions_enable_vive_cosmos
     del bpy.types.Scene.vr_actions_enable_vive_focus
+    #del bpy.types.Scene.vr_actions_enable_vive_tracker
 
     bpy.app.handlers.xr_session_start_pre.remove(vr_create_actions)

@@ -477,6 +477,17 @@ actionconfig_data = \
     ],
    },
   ),
+ ("blender_default_tracker",
+  {"items":
+   [("tracker_pose", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/left_foot', '/user/vive_tracker_htcx/role/right_foot', '/user/vive_tracker_htcx/role/left_shoulder', '/user/vive_tracker_htcx/role/right_shoulder', '/user/vive_tracker_htcx/role/left_elbow', '/user/vive_tracker_htcx/role/right_elbow', '/user/vive_tracker_htcx/role/left_knee', '/user/vive_tracker_htcx/role/right_knee', '/user/vive_tracker_htcx/role/waist', '/user/vive_tracker_htcx/role/chest', '/user/vive_tracker_htcx/role/camera', '/user/vive_tracker_htcx/role/keyboard'], "pose_is_controller_grip": 'True', "pose_is_controller_aim": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ],
+   },
+  ),
  ]
 
 
