@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # -----------------------------------------------------------------------
 # Author: Alan Odom (Clockmender), Rune Morling (ermo) Copyright (c) 2019
 # -----------------------------------------------------------------------
@@ -1060,7 +1043,8 @@ def fillet_geometry(context, pg, mode, obj, bm, verts, values):
     # Note that passing an empty parameter results in that parameter being seen as "0"
     # _offset <= 0 is ignored since a bevel/fillet radius must be > 0 to make sense
     _offset = float(values[0])
-    _segments = float(values[1])
+    # Force _segments to an integer (bug fix T95442)
+    _segments = int(float(values[1]))
     if _segments < 1:
         _segments = 1   # This is a single, flat segment (ignores profile)
     _profile = float(values[2])
