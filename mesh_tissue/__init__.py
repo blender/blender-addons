@@ -38,7 +38,7 @@ bl_info = {
     "location": "Sidebar > Edit Tab",
     "description": "Tools for Computational Design",
     "warning": "",
-    "doc_url": "https://github.com/alessandro-zomparelli/tissue/wiki",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/mesh/tissue.html",
     "tracker_url": "https://github.com/alessandro-zomparelli/tissue/issues",
     "category": "Mesh",
 }
