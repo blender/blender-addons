@@ -25,7 +25,7 @@ def write_cameras(context, filepath, frame_start, frame_end, only_selected=False
         'lens',
         'shift_x',
         'shift_y',
-        'dof_distance',
+        'dof.focus_distance',
         'clip_start',
         'clip_end',
         'display_size',
@@ -60,7 +60,7 @@ def write_cameras(context, filepath, frame_start, frame_end, only_selected=False
     for obj, obj_data in cameras:
         fw("data = bpy.data.cameras.new(%r)\n" % obj.name)
         for attr in data_attrs:
-            fw("data.%s = %s\n" % (attr, repr(getattr(obj_data, attr))))
+            fw("data.%s = %s\n" % (attr, repr(obj_data.path_resolve(attr))))
 
         fw("obj = bpy.data.objects.new(%r, data)\n" % obj.name)
 
