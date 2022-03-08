@@ -591,7 +591,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset, glo
             bl_obj = item.bl_obj
 
         # We want to create actions for objects, but for bones we 'reuse' armatures' actions!
-        grpname = item.bl_obj.name
+        grpname = bl_obj.name
 
         # Since we might get other channels animated in the end, due to all FBX transform magic,
         # we need to add curves for whole loc/rot/scale in any case.
