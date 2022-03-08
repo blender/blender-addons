@@ -1431,9 +1431,9 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
     # No specular color in Principled BSDF shader, assumed to be either white or take some tint from diffuse one...
     # TODO: add way to handle tint option (guesstimate from spec color + intensity...)?
     ma_wrap.specular = elem_props_get_number(fbx_props, b'SpecularFactor', 0.25) * 2.0
-    # XXX Totally empirical conversion, trying to adapt it
-    #     (from 1.0 - 0.0 Principled BSDF range to 0.0 - 100.0 FBX shininess range)...
-    fbx_shininess = elem_props_get_number(fbx_props, b'Shininess', 20.0)
+    # XXX Totally empirical conversion, trying to adapt it (and protect against invalid negative values, see T96076):
+    #     From [1.0 - 0.0] Principled BSDF range to [0.0 - 100.0] FBX shininess range)...
+    fbx_shininess = max(elem_props_get_number(fbx_props, b'Shininess', 20.0), 0.0)
     ma_wrap.roughness = 1.0 - (sqrt(fbx_shininess) / 10.0)
     # Sweetness... Looks like we are not the only ones to not know exactly how FBX is supposed to work (see T59850).
     # According to one of its developers, Unity uses that formula to extract alpha value:
