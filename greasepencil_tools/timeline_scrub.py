@@ -21,13 +21,13 @@ from bpy.props import (BoolProperty,
                        EnumProperty)
 
 
-def nearest(array, value):
+def nearest(array, value) -> int:
     '''
     Get a numpy array and a target value
     Return closest val found in array to passed value
     '''
     idx = (np.abs(array - value)).argmin()
-    return array[idx]
+    return int(array[idx])
 
 
 def draw_callback_px(self, context):
