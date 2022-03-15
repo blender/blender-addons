@@ -156,7 +156,7 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
 
         if ob:  # condition to allow empty scrubing
             if ob.type != 'GPENCIL' or self.evaluate_gp_obj_key:
-                # Get objet keyframe position
+                # Get object keyframe position
                 anim_data = ob.animation_data
                 action = None
 
