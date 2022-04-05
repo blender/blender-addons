@@ -5,7 +5,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (4, 35, 0),
+    "version": (4, 36, 0),
     "blender": (3, 2, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -378,6 +378,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             description="Export selected and visible objects only",
             default=False,
             )
+    use_visible: BoolProperty(
+            name='Visible Objects',
+            description='Export visible objects only',
+            default=False
+            )
     use_active_collection: BoolProperty(
             name="Active Collection",
             description="Export only objects from the active collection (and its children)",
@@ -690,6 +695,7 @@ class FBX_PT_export_include(bpy.types.Panel):
         sublayout = layout.column(heading="Limit to")
         sublayout.enabled = (operator.batch_mode == 'OFF')
         sublayout.prop(operator, "use_selection")
+        sublayout.prop(operator, "use_visible")
         sublayout.prop(operator, "use_active_collection")
 
         layout.column().prop(operator, "object_types")
