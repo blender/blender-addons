@@ -105,6 +105,8 @@ class BrushOptionsMenu(Menu):
                 layout.row().menu("VIEW3D_MT_sv3_stroke_options")
                 layout.row().menu("VIEW3D_MT_sv3_brush_curve_menu")
 
+        layout.row().menu("VIEW3D_MT_sv3_master_symmetry_menu")
+
     def texpaint(self, mode, layout, context):
         toolsettings = context.tool_settings.image_paint
 
@@ -193,6 +195,8 @@ class BrushOptionsMenu(Menu):
             layout.row().separator()
             layout.row().menu(ParticlePuffMenu.bl_idname)
             layout.row().prop(particle_edit.brush, "use_puff_volume", toggle=True)
+
+        layout.row().menu("VIEW3D_MT_sv3_master_symmetry_menu")
 
 
 class BrushRadiusMenu(Menu):
