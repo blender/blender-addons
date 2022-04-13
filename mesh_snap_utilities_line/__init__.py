@@ -6,7 +6,7 @@
 bl_info = {
     "name": "Snap_Utilities_Line",
     "author": "Germano Cavalcante",
-    "version": (6, 9, 7),
+    "version": (6, 9, 8),
     "blender": (3, 2, 0),
     "location": "View3D > TOOLS > Line Tool",
     "description": "Extends Blender Snap controls",
