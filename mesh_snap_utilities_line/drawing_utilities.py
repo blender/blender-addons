@@ -20,6 +20,7 @@ class SnapDrawn():
         '_format_pos_and_color',
         '_program_unif_col',
         '_program_smooth_col',
+        '_UBO',
         '_batch_point',)
 
     def __init__(self, out_color, face_color,
@@ -50,11 +51,12 @@ class SnapDrawn():
         self._format_pos_and_color.attr_add(id="pos", comp_type='F32', len=3, fetch_mode='FLOAT')
         self._format_pos_and_color.attr_add(id="color", comp_type='F32', len=4, fetch_mode='FLOAT')
 
+        self._UBO = None
+
         self._batch_point = None
 
     def _gl_state_push(self, ob_mat=None):
-        clip_planes = gpu.types.Buffer('FLOAT', (6, 4), self.rv3d.clip_planes) if self.rv3d.use_clip_planes else None
-
+        clip_planes = self.rv3d.clip_planes if self.rv3d.use_clip_planes else None
         config = 'CLIPPED' if clip_planes else 'DEFAULT'
         self._program_unif_col = gpu.shader.from_builtin("3D_UNIFORM_COLOR", config=config)
         self._program_smooth_col = gpu.shader.from_builtin("3D_SMOOTH_COLOR", config=config)
@@ -67,20 +69,42 @@ class SnapDrawn():
 
         if clip_planes:
             gpu.state.clip_distances_set(4)
-            mat = ob_mat if ob_mat else Matrix.Identity(4)
+            if self._UBO is None:
+                import ctypes
+                class _GPUClipPlanes(ctypes.Structure):
+                    _pack_ = 16
+                    _fields_ = [
+                        ("ModelMatrix", (ctypes.c_float * 4) * 4),
+                        ("world", (ctypes.c_float * 4) * 6),
+                    ]
+
+                mat = ob_mat.transposed() if ob_mat else Matrix.Identity(4)
+
+                UBO_data = _GPUClipPlanes()
+                UBO_data.ModelMatrix[0] = mat[0][:]
+                UBO_data.ModelMatrix[1] = mat[1][:]
+                UBO_data.ModelMatrix[2] = mat[2][:]
+                UBO_data.ModelMatrix[3] = mat[3][:]
+
+                UBO_data.world[0] = clip_planes[0][:]
+                UBO_data.world[1] = clip_planes[1][:]
+                UBO_data.world[2] = clip_planes[2][:]
+                UBO_data.world[3] = clip_planes[3][:]
+
+                self._UBO = gpu.types.GPUUniformBuf(UBO_data)
 
             self._program_unif_col.bind()
-            self._program_unif_col.uniform_float("ModelMatrix", mat)
-            self._program_unif_col.uniform_vector_float(self._program_unif_col.uniform_from_name("WorldClipPlanes"), clip_planes, 4, 4)
+            self._program_unif_col.uniform_block("clipPlanes", self._UBO)
 
             self._program_smooth_col.bind()
-            self._program_smooth_col.uniform_float("ModelMatrix", mat)
-            self._program_smooth_col.uniform_vector_float(self._program_smooth_col.uniform_from_name("WorldClipPlanes"), clip_planes, 4, 4)
+            self._program_smooth_col.uniform_block("clipPlanes", self._UBO)
 
     def _gl_state_restore(self):
         gpu.state.blend_set('NONE')
         gpu.matrix.pop()
-        if self.rv3d.use_clip_planes:
+        if self._UBO:
+            # del self._UBO
+            self._UBO = None
             gpu.state.clip_distances_set(0)
 
     def batch_line_strip_create(self, coords):
