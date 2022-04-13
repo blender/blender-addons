@@ -432,7 +432,6 @@ class SnapUtilities:
         #Create Snap Context
         self.sctx = global_snap_context_get(context.evaluated_depsgraph_get(), context.region, context.space_data)
         self.sctx.set_pixel_dist(12)
-        self.sctx.use_clip_planes(True)
 
         if SnapUtilities.snapwidgets:
             widget = SnapUtilities.snapwidgets[-1]
