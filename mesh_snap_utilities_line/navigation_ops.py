@@ -17,7 +17,7 @@ class VIEW3D_OT_rotate_custom_pivot(bpy.types.Operator):
 
     def modal(self, context, event):
         from mathutils import Matrix
-        if event.value == 'PRESS' and event.type in {'MOUSEMOVE', 'INBETWEEN_MOUSEMOVE'}:
+        if event.type in {'MOUSEMOVE', 'INBETWEEN_MOUSEMOVE'}:
             dx = self.init_coord[0] - event.mouse_region_x
             dy = self.init_coord[1] - event.mouse_region_y
             rot_ver = Matrix.Rotation(-dx *
