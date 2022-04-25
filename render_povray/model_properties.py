@@ -215,7 +215,8 @@ class RenderPovSettingsObject(PropertyGroup):
 
         """Update POV sphere primitive parameters at creation and anytime they change in UI."""
 
-        bpy.ops.pov.sphere_update()
+        if bpy.ops.pov.sphere_update.poll():
+            bpy.ops.pov.sphere_update()
 
     sphere_radius: FloatProperty(
         name="Sphere radius", min=0.00, max=10.0, default=0.5, update=prop_update_sphere
@@ -226,7 +227,8 @@ class RenderPovSettingsObject(PropertyGroup):
 
         """Update POV cone primitive parameters at creation and anytime they change in UI."""
 
-        bpy.ops.pov.cone_update()
+        if bpy.ops.pov.cone_update.poll():
+            bpy.ops.pov.cone_update()
 
     cone_base_radius: FloatProperty(
         name="Base radius",
@@ -279,7 +281,8 @@ class RenderPovSettingsObject(PropertyGroup):
 
         """Update POV parametric surface primitive settings at creation and on any UI change."""
 
-        bpy.ops.pov.parametric_update()
+        if bpy.ops.pov.parametric_update.poll():
+            bpy.ops.pov.parametric_update()
 
     u_min: FloatProperty(name="U Min", description="", default=0.0, update=prop_update_parametric)
 
@@ -307,7 +310,8 @@ class RenderPovSettingsObject(PropertyGroup):
 
         """Update POV torus primitive parameters at creation and anytime they change in UI."""
 
-        bpy.ops.pov.torus_update()
+        if bpy.ops.pov.torus_update.poll():
+            bpy.ops.pov.torus_update()
 
     torus_major_segments: IntProperty(
         name="Segments",
@@ -385,7 +389,8 @@ class RenderPovSettingsObject(PropertyGroup):
 
         """Update POV superellipsoid primitive settings at creation and on any UI change."""
 
-        bpy.ops.pov.superellipsoid_update()
+        if bpy.ops.pov.superellipsoid_update.poll():
+            bpy.ops.pov.superellipsoid_update()
 
     se_param1: FloatProperty(name="Parameter 1", description="", min=0.00, max=10.0, default=0.04)
 
@@ -455,7 +460,8 @@ class RenderPovSettingsObject(PropertyGroup):
 
         """Update POV supertorus primitive parameters not only at creation and on any UI change."""
 
-        bpy.ops.pov.supertorus_update()
+        if bpy.ops.pov.supertorus_update.poll():
+            bpy.ops.pov.supertorus_update()
 
     st_major_radius: FloatProperty(
         name="Major radius",
