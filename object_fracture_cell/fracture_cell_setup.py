@@ -294,7 +294,7 @@ def cell_fracture_objects(
 
 
 def cell_fracture_boolean(
-    context, collection, obj, objects,
+        context, collection, obj, objects,
         use_debug_bool=False,
         clean=True,
         use_island_split=False,
