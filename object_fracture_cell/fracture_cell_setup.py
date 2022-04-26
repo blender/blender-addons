@@ -7,13 +7,14 @@
 import bpy
 import bmesh
 
-
-def _redraw_yasiamevil():
-    _redraw_yasiamevil.opr(**_redraw_yasiamevil.arg)
-
-
-_redraw_yasiamevil.opr = bpy.ops.wm.redraw_timer
-_redraw_yasiamevil.arg = dict(type='DRAW_WIN_SWAP', iterations=1)
+if bpy.app.background:
+    def _redraw_yasiamevil():
+        pass
+else:
+    def _redraw_yasiamevil():
+        _redraw_yasiamevil.opr(**_redraw_yasiamevil.arg)
+    _redraw_yasiamevil.opr = bpy.ops.wm.redraw_timer
+    _redraw_yasiamevil.arg = dict(type='DRAW_WIN_SWAP', iterations=1)
 
 
 def _points_from_object(depsgraph, scene, obj, source):
