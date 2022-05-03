@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-actionconfig_version = (3, 2, 3)
+actionconfig_version = (3, 2, 8)
 actionconfig_data = \
 [("blender_default",
   {"items":
-   [("controller_grip", {"type": 'POSE', "user_paths": ['/user/hand/left', '/user/hand/right'], "pose_is_controller_grip": 'True', "pose_is_controller_aim": 'False'}, None,
+   [("controller_grip", {"type": 'POSE', "user_paths": ['/user/hand/left', '/user/hand/right'], "pose_is_controller_grip": 'True', "pose_is_controller_aim": 'False', "pose_is_tracker": 'False'}, None,
      {"bindings":
       [("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_paths": ['/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
        ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_paths": ['/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
@@ -18,7 +18,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("controller_aim", {"type": 'POSE', "user_paths": ['/user/hand/left', '/user/hand/right'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'True'}, None,
+    ("controller_aim", {"type": 'POSE', "user_paths": ['/user/hand/left', '/user/hand/right'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'True', "pose_is_tracker": 'False'}, None,
      {"bindings":
       [("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_paths": ['/input/aim/pose', '/input/aim/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
        ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_paths": ['/input/aim/pose', '/input/aim/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
@@ -479,9 +479,103 @@ actionconfig_data = \
   ),
  ("blender_default_tracker",
   {"items":
-   [("tracker_pose", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/left_foot', '/user/vive_tracker_htcx/role/right_foot', '/user/vive_tracker_htcx/role/left_shoulder', '/user/vive_tracker_htcx/role/right_shoulder', '/user/vive_tracker_htcx/role/left_elbow', '/user/vive_tracker_htcx/role/right_elbow', '/user/vive_tracker_htcx/role/left_knee', '/user/vive_tracker_htcx/role/right_knee', '/user/vive_tracker_htcx/role/waist', '/user/vive_tracker_htcx/role/chest', '/user/vive_tracker_htcx/role/camera', '/user/vive_tracker_htcx/role/keyboard'], "pose_is_controller_grip": 'True', "pose_is_controller_aim": 'True'}, None,
+   [("controller_grip", {"type": 'POSE', "user_paths": ['/user/hand/left', '/user/hand/right'], "pose_is_controller_grip": 'True', "pose_is_controller_aim": 'False', "pose_is_tracker": 'False'}, None,
      {"bindings":
-      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+      [("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_paths": ['/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_paths": ['/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("oculus", {"profile": '/interaction_profiles/oculus/touch_controller', "component_paths": ['/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("reverb_g2", {"profile": '/interaction_profiles/hp/mixed_reality_controller', "component_paths": ['/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("simple", {"profile": '/interaction_profiles/khr/simple_controller', "component_paths": ['/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("vive", {"profile": '/interaction_profiles/htc/vive_controller', "component_paths": ['/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("vive_cosmos", {"profile": '/interaction_profiles/htc/vive_cosmos_controller', "component_paths": ['/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("vive_focus", {"profile": '/interaction_profiles/htc/vive_focus3_controller', "component_paths": ['/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("wmr", {"profile": '/interaction_profiles/microsoft/motion_controller', "component_paths": ['/input/grip/pose', '/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("controller_aim", {"type": 'POSE', "user_paths": ['/user/hand/left', '/user/hand/right'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'True', "pose_is_tracker": 'False'}, None,
+     {"bindings":
+      [("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_paths": ['/input/aim/pose', '/input/aim/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_paths": ['/input/aim/pose', '/input/aim/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("oculus", {"profile": '/interaction_profiles/oculus/touch_controller', "component_paths": ['/input/aim/pose', '/input/aim/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("reverb_g2", {"profile": '/interaction_profiles/hp/mixed_reality_controller', "component_paths": ['/input/aim/pose', '/input/aim/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("simple", {"profile": '/interaction_profiles/khr/simple_controller', "component_paths": ['/input/aim/pose', '/input/aim/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("vive", {"profile": '/interaction_profiles/htc/vive_controller', "component_paths": ['/input/aim/pose', '/input/aim/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("vive_cosmos", {"profile": '/interaction_profiles/htc/vive_cosmos_controller', "component_paths": ['/input/aim/pose', '/input/aim/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("vive_focus", {"profile": '/interaction_profiles/htc/vive_focus3_controller', "component_paths": ['/input/aim/pose', '/input/aim/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ("wmr", {"profile": '/interaction_profiles/microsoft/motion_controller', "component_paths": ['/input/aim/pose', '/input/aim/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("left_foot", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/left_foot'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("right_foot", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/right_foot'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("left_shoulder", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/left_shoulder'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("right_shoulder", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/right_shoulder'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("left_elbow", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/left_elbow'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("right_elbow", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/right_elbow'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("left_knee", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/left_knee'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("right_knee", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/right_knee'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("waist", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/waist'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("chest", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/chest'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("camera", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/camera'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
+       ],
+      },
+     ),
+    ("keyboard", {"type": 'POSE', "user_paths": ['/user/vive_tracker_htcx/role/keyboard'], "pose_is_controller_grip": 'False', "pose_is_controller_aim": 'False', "pose_is_tracker": 'True'}, None,
+     {"bindings":
+      [("vive_tracker", {"profile": '/interaction_profiles/htc/vive_tracker_htcx', "component_paths": ['/input/grip/pose'], "pose_location": '(0.0, 0.0, 0.0)', "pose_rotation": '(0.0, 0.0, 0.0)'}),
        ],
       },
      ),

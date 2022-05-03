@@ -111,6 +111,7 @@ def vr_create_actions(context: bpy.context):
 
         controller_grip_name = ""
         controller_aim_name = ""
+        tracker_names = []
 
         for ami in am.actionmap_items:
             if len(ami.bindings) < 1:
@@ -125,6 +126,8 @@ def vr_create_actions(context: bpy.context):
                     controller_grip_name = ami.name
                 if ami.pose_is_controller_aim:
                     controller_aim_name = ami.name
+                if ami.pose_is_tracker:
+                    tracker_names.append(ami.name)
 
             for amb in ami.bindings:
                 # Check for bindings that require OpenXR extensions.
@@ -145,9 +148,12 @@ def vr_create_actions(context: bpy.context):
                 if not ok:
                     return
 
-        # Set controller pose actions.
+        # Set controller and tracker pose actions.
         if controller_grip_name and controller_aim_name:
             session_state.controller_pose_actions_set(context, am.name, controller_grip_name, controller_aim_name)
+
+        for tracker_name in tracker_names:
+            session_state.tracker_pose_action_add(context, am.name, tracker_name)
 
     # Set active action set.
     vr_actionset_active_update(context)

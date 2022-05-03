@@ -63,6 +63,7 @@ def ami_args_as_data(ami):
     elif ami.type == 'POSE':
         s.append(f"\"pose_is_controller_grip\": '{ami.pose_is_controller_grip}'")
         s.append(f"\"pose_is_controller_aim\": '{ami.pose_is_controller_aim}'")
+        s.append(f"\"pose_is_tracker\": '{ami.pose_is_tracker}'")
 
     return "{" + ", ".join(s) + "}"
 
@@ -86,6 +87,7 @@ def ami_data_from_args(ami, args):
     elif ami.type == 'POSE':
         ami.pose_is_controller_grip = True if (args["pose_is_controller_grip"] == 'True') else False
         ami.pose_is_controller_aim = True if (args["pose_is_controller_aim"] == 'True') else False
+        ami.pose_is_tracker = True if (args["pose_is_tracker"] == 'True') else False
 
 
 def _ami_properties_to_lines_recursive(level, properties, lines):

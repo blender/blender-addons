@@ -390,6 +390,7 @@ class VIEW3D_PT_vr_actions_actions(VRActionsPanel, Panel):
                 elif ami.type == 'POSE':
                     col.prop(ami, "pose_is_controller_grip", text="Use for Controller Grips")
                     col.prop(ami, "pose_is_controller_aim", text="Use for Controller Aims")
+                    col.prop(ami, "pose_is_tracker", text="Tracker")
 
 
 class VIEW3D_PT_vr_actions_user_paths(VRActionsPanel, Panel):
