@@ -26,8 +26,12 @@ image_nodes = ("CompositorNodeRLayers",
 class AMTH_NODE_OT_show_active_node_image(bpy.types.Operator):
     """Show active image node image in the image editor"""
     bl_idname = "node.show_active_node_image"
-    bl_label = "Show Active Node Node"
+    bl_label = "Preview Image from Node"
     bl_options = {"UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_node is not None
 
     def execute(self, context):
         return {'FINISHED'}
