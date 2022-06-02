@@ -3777,7 +3777,10 @@ class NWLinkToOutputNode(Operator):
         if not output_node:
             bpy.ops.node.select_all(action="DESELECT")
             if tree_type == 'ShaderNodeTree':
-                output_node = nodes.new('ShaderNodeOutputMaterial')
+                if context.space_data.shader_type == 'OBJECT':
+                    output_node = nodes.new('ShaderNodeOutputMaterial')
+                elif context.space_data.shader_type == 'WORLD':
+                    output_node = nodes.new('ShaderNodeOutputWorld')
             elif tree_type == 'CompositorNodeTree':
                 output_node = nodes.new('CompositorNodeComposite')
             elif tree_type == 'TextureNodeTree':
