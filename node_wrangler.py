@@ -3861,6 +3861,17 @@ class NWAddSequence(Operator, NWBase, ImportHelper):
         type=bpy.types.OperatorFileListElement,
         options={'HIDDEN', 'SKIP_SAVE'}
     )
+    relative_path: BoolProperty(
+        name='Relative Path',
+        description='Set the file path relative to the blend file, when possible',
+        default=True
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.alignment = 'LEFT'
+
+        layout.prop(self, 'relative_path')
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -3936,7 +3947,15 @@ class NWAddSequence(Operator, NWBase, ImportHelper):
         node = nodes.active
         node.label = name_with_hashes
 
-        img = bpy.data.images.load(directory+(without_ext+'.'+extension))
+        filepath = directory+(without_ext+'.'+extension)
+        if self.relative_path:
+            if bpy.data.filepath:
+                try:
+                    filepath = bpy.path.relpath(filepath)
+                except ValueError:
+                    pass
+
+        img = bpy.data.images.load(filepath)
         img.source = 'SEQUENCE'
         img.name = name_with_hashes
         node.image = img
