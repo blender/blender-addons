@@ -1,11 +1,27 @@
-# SPDX-License-Identifier: GPL-2.0-or-later
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
 
 
 bl_info = {
     "name": "Edit Operator Source",
     "author": "scorpion81",
-    "version": (1, 2, 2),
-    "blender": (2, 80, 0),
+    "version": (1, 2, 3),
+    "blender": (3, 2, 0),
     "location": "Text Editor > Sidebar > Edit Operator",
     "description": "Opens source file of chosen operator or call locations, if source not available",
     "warning": "",
@@ -29,18 +45,6 @@ from bpy.props import (
         StringProperty,
         IntProperty
         )
-
-def stdlib_excludes():
-    #need a handy list of modules to avoid walking into
-    import distutils.sysconfig as sysconfig
-    excludes = []
-    std_lib = sysconfig.get_python_lib(standard_lib=True)
-    for top, dirs, files in os.walk(std_lib):
-        for nm in files:
-            if nm != '__init__.py' and nm[-3:] == '.py':
-                excludes.append(os.path.join(top, nm)[len(std_lib)+1:-3].replace('\\','.'))
-
-    return excludes
 
 def make_loc(prefix, c):
     #too long and not helpful... omitting for now
@@ -219,8 +223,10 @@ class TEXT_OT_EditOperator(Operator):
     def show_calls(self, context):
         import bl_ui
         import addon_utils
+        import sys
 
-        exclude = stdlib_excludes()
+        exclude = []
+        exclude.extend(sys.stdlib_module_names)
         exclude.append("bpy")
         exclude.append("sys")
 
