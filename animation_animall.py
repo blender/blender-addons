@@ -3,7 +3,7 @@
 bl_info = {
     "name": "AnimAll",
     "author": "Daniel Salazar <zanqdo@gmail.com>",
-    "version": (0, 9, 0),
+    "version": (0, 9, 1),
     "blender": (3, 3, 0),
     "location": "3D View > Toolbox > Animation tab > AnimAll",
     "description": "Allows animation of mesh, lattice, curve and surface data",
@@ -60,11 +60,6 @@ class AnimallProperties(bpy.types.PropertyGroup):
     key_crease: BoolProperty(
         name="Crease",
         description="Insert keyframes on edge creases",
-        default=False
-    )
-    key_vcols: BoolProperty(
-        name="V-Cols",
-        description="Insert keyframes on active Vertex Color values",
         default=False
     )
     key_vgroups: BoolProperty(
@@ -172,10 +167,22 @@ class VIEW3D_PT_animall(Panel):
             row.prop(animall_properties, "key_crease")
             row.prop(animall_properties, "key_uvs")
             row = col.row()
-            row.prop(animall_properties, "key_vcols")
-            row.prop(animall_properties, "key_vgroups")
-            row = col.row()
             row.prop(animall_properties, "key_attribute")
+            row.prop(animall_properties, "key_vgroups")
+
+        # Vertex group update operator
+        if (context.active_object is not None
+                and context.active_object.type == 'MESH'
+                and context.active_object.data.animation_data is not None
+                and context.active_object.data.animation_data.action is not None):
+            for fcurve in context.active_object.data.animation_data.action.fcurves:
+                if fcurve.data_path.startswith("vertex_colors"):
+                    layout.separator()
+                    row = layout.row()
+                    row.label(text="Object includes old-style vertex colors. Consider updating them.", icon="ERROR")
+                    row = layout.row()
+                    row.operator("anim.update_vertex_color_animation_animall", icon="FILE_REFRESH")
+                    break
 
         elif obj.type == 'CURVE':
             row.prop(animall_properties, "key_points")
@@ -338,12 +345,6 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                             if not animall_properties.key_selected or uv.select:
                                 insert_key(uv, 'uv', group="UV layer %s" % uv_i)
 
-                if animall_properties.key_vcols:
-                    for v_col_layer in data.vertex_colors:
-                        if v_col_layer.active:  # only insert in active VCol layer
-                            for v_i, vcol_data in enumerate(v_col_layer.data):
-                                insert_key(vcol_data, 'color', group="Loop %s" % v_i)
-
                 if animall_properties.key_attribute:
                     if data.attributes.active is not None:
                         attribute = data.attributes.active
@@ -469,12 +470,6 @@ class ANIM_OT_delete_keyframe_animall(Operator):
                             if not animall_properties.key_selected or uv.select:
                                 delete_key(uv, 'uv')
 
-                if animall_properties.key_vcols:
-                    for v_col_layer in data.vertex_colors:
-                        if v_col_layer.active:  # only delete in active VCol layer
-                            for vcol_data in v_col_layer.data:
-                                delete_key(vcol_data, 'color')
-
                 if animall_properties.key_attribute:
                     if data.attributes.active is not None:
                         attribute = data.attributes.active
@@ -599,6 +594,29 @@ class ANIM_OT_clear_animation_animall(Operator):
         return {'FINISHED'}
 
 
+class ANIM_OT_update_vertex_color_animation_animall(Operator):
+    bl_label = "Update Vertex Color Animation"
+    bl_idname = "anim.update_vertex_color_animation_animall"
+    bl_description = "Update old vertex color channel formats from pre-3.3 versions"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(self, context):
+        if (context.active_object is None
+                or context.active_object.type != 'MESH'
+                or context.active_object.data.animation_data is None
+                or context.active_object.data.animation_data.action is None):
+            return False
+        for fcurve in context.active_object.data.animation_data.action.fcurves:
+            if fcurve.data_path.startswith("vertex_colors"):
+                return True
+
+    def execute(self, context):
+        for fcurve in context.active_object.data.animation_data.action.fcurves:
+            if fcurve.data_path.startswith("vertex_colors"):
+                fcurve.data_path = fcurve.data_path.replace("vertex_colors", "attributes")
+        return {'FINISHED'}
+
 # Add-ons Preferences Update Panel
 
 # Define Panel classes for updating
@@ -651,6 +669,7 @@ def register():
     bpy.utils.register_class(ANIM_OT_insert_keyframe_animall)
     bpy.utils.register_class(ANIM_OT_delete_keyframe_animall)
     bpy.utils.register_class(ANIM_OT_clear_animation_animall)
+    bpy.utils.register_class(ANIM_OT_update_vertex_color_animation_animall)
     bpy.utils.register_class(AnimallAddonPreferences)
     update_panel(None, bpy.context)
 
@@ -662,6 +681,7 @@ def unregister():
     bpy.utils.unregister_class(ANIM_OT_insert_keyframe_animall)
     bpy.utils.unregister_class(ANIM_OT_delete_keyframe_animall)
     bpy.utils.unregister_class(ANIM_OT_clear_animation_animall)
+    bpy.utils.unregister_class(ANIM_OT_update_vertex_color_animation_animall)
     bpy.utils.unregister_class(AnimallAddonPreferences)
 
 if __name__ == "__main__":
