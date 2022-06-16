@@ -490,25 +490,6 @@ class ANIM_OT_delete_keyframe_animall(Operator):
                                         or attribute.domain == 'CORNER' and is_selected_vert_loop(data, e_i)):
                                     delete_key(data, f'attributes["{attribute.name}"].data[{e_i}].{attribute_key}')
 
-                if animall_properties.key_attribute:
-                    if data.attributes.active is not None:
-                        attribute = data.attributes.active
-                        if attribute.data_type != 'STRING':
-                            # Cannot animate string attributes?
-                            if attribute.data_type in {'FLOAT', 'INT', 'BOOLEAN', 'INT8'}:
-                                attribute_key = "value"
-                            elif attribute.data_type in {'FLOAT_COLOR', 'BYTE_COLOR'}:
-                                attribute_key = "color"
-                            elif attribute.data_type in {'FLOAT_VECTOR', 'FLOAT2'}:
-                                attribute_key = "vector"
-
-                            for e_i, _attribute_data in enumerate(attribute.data):
-                                if (not animall_properties.key_selected
-                                        or attribute.domain == 'POINT' and data.vertices[e_i].select
-                                        or attribute.domain == 'EDGE' and data.edges[e_i].select
-                                        or attribute.domain == 'FACE' and data.polygons[e_i].select):
-                                    delete_key(data, f'attributes["{attribute.name}"].data[{e_i}].{attribute_key}')
-
             elif obj.type == 'LATTICE':
                 if animall_properties.key_shape:
                     if obj.active_shape_key:
