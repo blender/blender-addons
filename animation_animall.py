@@ -33,22 +33,22 @@ class AnimallProperties(bpy.types.PropertyGroup):
         default=True
     )
     key_shape: BoolProperty(
-        name="Shape",
+        name="Shape Key",
         description="Insert keyframes on active Shape Key layer",
         default=False
     )
     key_uvs: BoolProperty(
-        name="UVs",
+        name="UV Map",
         description="Insert keyframes on active UV coordinates",
         default=False
     )
     key_ebevel: BoolProperty(
-        name="E-Bevel",
+        name="Edge Bevel",
         description="Insert keyframes on edge bevel weight",
         default=False
     )
     key_vbevel: BoolProperty(
-        name="V-Bevel",
+        name="Vertex Bevel",
         description="Insert keyframes on vertex bevel weight",
         default=False
     )
@@ -58,12 +58,12 @@ class AnimallProperties(bpy.types.PropertyGroup):
         default=False
     )
     key_vgroups: BoolProperty(
-        name="V-groups",
+        name="Vertex Groups",
         description="Insert keyframes on active Vertex group values",
         default=False
     )
     key_attribute: BoolProperty(
-        name="Active Attribute",
+        name="Attribute",
         description="Insert keyframes on active attribute values",
         default=False
     )
