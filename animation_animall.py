@@ -42,24 +42,29 @@ class AnimallProperties(bpy.types.PropertyGroup):
         description="Insert keyframes on active UV coordinates",
         default=False
     )
-    key_ebevel: BoolProperty(
-        name="Edge Bevel",
-        description="Insert keyframes on edge bevel weight",
-        default=False
-    )
     key_vbevel: BoolProperty(
         name="Vertex Bevel",
         description="Insert keyframes on vertex bevel weight",
         default=False
     )
-    key_crease: BoolProperty(
-        name="Crease",
-        description="Insert keyframes on edge creases",
+    key_ebevel: BoolProperty(
+        name="Edge Bevel",
+        description="Insert keyframes on edge bevel weight",
+        default=False
+    )
+    # key_vcrease: BoolProperty(
+    #     name="Vertex Crease",
+    #     description="Insert keyframes on vertex crease weight",
+    #     default=False
+    # )
+    key_ecrease: BoolProperty(
+        name="Edge Crease",
+        description="Insert keyframes on edge crease weight",
         default=False
     )
     key_vgroups: BoolProperty(
         name="Vertex Group",
-        description="Insert keyframes on active Vertex group values",
+        description="Insert keyframes on active vertex group values",
         default=False
     )
     key_attribute: BoolProperty(
@@ -156,14 +161,16 @@ class VIEW3D_PT_animall(Panel):
             row.prop(animall_properties, "key_points")
             row.prop(animall_properties, "key_shape")
             row = col.row()
-            row.prop(animall_properties, "key_ebevel")
             row.prop(animall_properties, "key_vbevel")
+            row.prop(animall_properties, "key_ebevel")
             row = col.row()
-            row.prop(animall_properties, "key_crease")
+            row.prop(animall_properties, "key_ecrease")
             row.prop(animall_properties, "key_uvs")
             row = col.row()
             row.prop(animall_properties, "key_attribute")
             row.prop(animall_properties, "key_vgroups")
+            row = col.row()
+            
 
         # Vertex group update operator
         if (context.active_object is not None
@@ -311,18 +318,23 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                         if not animall_properties.key_selected or vert.select:
                             insert_key(vert, 'bevel_weight', group="Vertex %s" % v_i)
 
+                if animall_properties.key_ebevel:
+                    for e_i, edge in enumerate(data.edges):
+                        if not animall_properties.key_selected or edge.select:
+                            insert_key(edge, 'bevel_weight', group="Edge %s" % e_i)
+
                 if animall_properties.key_vgroups:
                     for v_i, vert in enumerate(data.vertices):
                         if not animall_properties.key_selected or vert.select:
                             for group in vert.groups:
                                 insert_key(group, 'weight', group="Vertex %s" % v_i)
 
-                if animall_properties.key_ebevel:
-                    for e_i, edge in enumerate(data.edges):
-                        if not animall_properties.key_selected or edge.select:
-                            insert_key(edge, 'bevel_weight', group="Edge %s" % e_i)
+                # if animall_properties.key_vcrease:
+                #     for v_i, vert in enumerate(data.vertices):
+                #         if not animall_properties.key_selected or vert.select:
+                #             insert_key(vert, 'crease', group="Vertex %s" % v_i)
 
-                if animall_properties.key_crease:
+                if animall_properties.key_ecrease:
                     for e_i, edge in enumerate(data.edges):
                         if not animall_properties.key_selected or edge.select:
                             insert_key(edge, 'crease', group="Edge %s" % e_i)
@@ -437,20 +449,25 @@ class ANIM_OT_delete_keyframe_animall(Operator):
                         if not animall_properties.key_selected or vert.select:
                             delete_key(vert, 'bevel_weight')
 
+                if animall_properties.key_ebevel:
+                    for edge in data.edges:
+                        if not animall_properties.key_selected or edge.select:
+                            delete_key(edge, 'bevel_weight')
+
                 if animall_properties.key_vgroups:
                     for vert in data.vertices:
                         if not animall_properties.key_selected or vert.select:
                             for group in vert.groups:
                                 delete_key(group, 'weight')
 
-                if animall_properties.key_ebevel:
+                # if animall_properties.key_vcrease:
+                #     for vert in data.vertices:
+                #         if not animall_properties.key_selected or vert.select:
+                #             delete_key(vert, 'crease')
+
+                if animall_properties.key_ecrease:
                     for edge in data.edges:
                         if not animall_properties.key_selected or edge.select:
-                            delete_key(edge, 'bevel_weight')
-
-                if animall_properties.key_crease:
-                    for edge in data.edges:
-                        if not animall_properties.key_selected or vert.select:
                             delete_key(edge, 'crease')
 
                 if animall_properties.key_shape:
