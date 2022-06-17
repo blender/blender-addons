@@ -58,7 +58,7 @@ class AnimallProperties(bpy.types.PropertyGroup):
         default=False
     )
     key_vgroups: BoolProperty(
-        name="Vertex Groups",
+        name="Vertex Group",
         description="Insert keyframes on active Vertex group values",
         default=False
     )
