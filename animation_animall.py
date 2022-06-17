@@ -2,8 +2,8 @@
 
 bl_info = {
     "name": "AnimAll",
-    "author": "Daniel Salazar <zanqdo@gmail.com>",
-    "version": (0, 9, 1),
+    "author": "Daniel Salazar (ZanQdo), Damien Picard (pioverfour)",
+    "version": (0, 9, 2),
     "blender": (3, 3, 0),
     "location": "3D View > Toolbox > Animation tab > AnimAll",
     "description": "Allows animation of mesh, lattice, curve and surface data",
@@ -11,11 +11,6 @@ bl_info = {
     "doc_url": "{BLENDER_MANUAL_URL}/addons/animation/animall.html",
     "category": "Animation",
 }
-
-"""
-Thanks to Campbell Barton and Joshua Leung for hes API additions and fixes
-Daniel 'ZanQdo' Salazar
-"""
 
 import bpy
 from bpy.types import (
