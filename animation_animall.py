@@ -3,7 +3,7 @@
 bl_info = {
     "name": "AnimAll",
     "author": "Daniel Salazar (ZanQdo), Damien Picard (pioverfour)",
-    "version": (0, 9, 2),
+    "version": (0, 9, 3),
     "blender": (3, 3, 0),
     "location": "3D View > Toolbox > Animation tab > AnimAll",
     "description": "Allows animation of mesh, lattice, curve and surface data",
@@ -30,7 +30,7 @@ class AnimallProperties(bpy.types.PropertyGroup):
     key_selected: BoolProperty(
         name="Key Selected Only",
         description="Insert keyframes only on selected elements",
-        default=True
+        default=False
     )
     key_shape: BoolProperty(
         name="Shape Key",
@@ -137,7 +137,7 @@ class VIEW3D_PT_animall(Panel):
 
     def draw(self, context):
         obj = context.active_object
-        animall_properties = context.window_manager.animall_properties
+        animall_properties = obj.animall_properties
 
         layout = self.layout
 
@@ -643,7 +643,7 @@ class AnimallAddonPreferences(AddonPreferences):
 
 def register():
     bpy.utils.register_class(AnimallProperties)
-    bpy.types.WindowManager.animall_properties = bpy.props.PointerProperty(type=AnimallProperties)
+    bpy.types.Object.animall_properties = bpy.props.PointerProperty(type=AnimallProperties)
     bpy.utils.register_class(VIEW3D_PT_animall)
     bpy.utils.register_class(ANIM_OT_insert_keyframe_animall)
     bpy.utils.register_class(ANIM_OT_delete_keyframe_animall)
@@ -654,7 +654,7 @@ def register():
 
 
 def unregister():
-    del bpy.types.WindowManager.animall_properties
+    del bpy.types.Object.animall_properties
     bpy.utils.unregister_class(AnimallProperties)
     bpy.utils.unregister_class(VIEW3D_PT_animall)
     bpy.utils.unregister_class(ANIM_OT_insert_keyframe_animall)
