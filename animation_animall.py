@@ -28,7 +28,7 @@ from bpy.app.handlers import persistent
 # Property Definitions
 class AnimallProperties(bpy.types.PropertyGroup):
     key_selected: BoolProperty(
-        name="Selected Only",
+        name="Key Selected Only",
         description="Insert keyframes only on selected elements",
         default=True
     )
@@ -146,12 +146,11 @@ class VIEW3D_PT_animall(Panel):
         animall_properties = context.window_manager.animall_properties
 
         layout = self.layout
-        col = layout.column(align=True)
-        row = col.row()
-        row.prop(animall_properties, "key_selected")
-        col.separator()
 
-        row = col.row()
+        layout.label (text = 'Key:')
+
+        col = layout.column(align=True)
+        row = col.row(align = True)
 
         if obj.type == 'LATTICE':
             row.prop(animall_properties, "key_points")
@@ -160,17 +159,15 @@ class VIEW3D_PT_animall(Panel):
         elif obj.type == 'MESH':
             row.prop(animall_properties, "key_points")
             row.prop(animall_properties, "key_shape")
-            row = col.row()
+            row = col.row(align = True)
             row.prop(animall_properties, "key_vbevel")
             row.prop(animall_properties, "key_ebevel")
-            row = col.row()
+            row = col.row(align = True)
             row.prop(animall_properties, "key_ecrease")
             row.prop(animall_properties, "key_uvs")
-            row = col.row()
+            row = col.row(align = True)
             row.prop(animall_properties, "key_attribute")
             row.prop(animall_properties, "key_vgroups")
-            row = col.row()
-            
 
         # Vertex group update operator
         if (context.active_object is not None
@@ -189,25 +186,29 @@ class VIEW3D_PT_animall(Panel):
         elif obj.type == 'CURVE':
             row.prop(animall_properties, "key_points")
             row.prop(animall_properties, "key_shape")
-            row = col.row()
+            row = col.row(align = True)
             row.prop(animall_properties, "key_radius")
             row.prop(animall_properties, "key_tilt")
-            row = col.row()
+            row = col.row(align = True)
             row.prop(animall_properties, "key_handle_type")
 
         elif obj.type == 'SURFACE':
             row.prop(animall_properties, "key_points")
             row.prop(animall_properties, "key_shape")
-            row = col.row()
+            row = col.row(align = True)
             row.prop(animall_properties, "key_radius")
             row.prop(animall_properties, "key_tilt")
 
-        layout.separator()
+        col.separator()
+        col = layout.column(align=True)
+        row = col.row()
+        row.prop(animall_properties, "key_selected")
+
         row = layout.row(align=True)
         row.operator("anim.insert_keyframe_animall", icon="KEY_HLT")
         row.operator("anim.delete_keyframe_animall", icon="KEY_DEHLT")
         row = layout.row()
-        row.operator("anim.clear_animation_animall", icon="X")
+        row.operator("anim.clear_animation_animall", icon="CANCEL")
 
         if animall_properties.key_shape:
             shape_key = obj.active_shape_key
@@ -234,7 +235,7 @@ class VIEW3D_PT_animall(Panel):
 
 
 class ANIM_OT_insert_keyframe_animall(Operator):
-    bl_label = "Insert"
+    bl_label = "Insert Key"
     bl_idname = "anim.insert_keyframe_animall"
     bl_description = "Insert a Keyframe"
     bl_options = {'REGISTER', 'UNDO'}
@@ -420,7 +421,7 @@ class ANIM_OT_insert_keyframe_animall(Operator):
 
 
 class ANIM_OT_delete_keyframe_animall(Operator):
-    bl_label = "Delete"
+    bl_label = "Delete Key"
     bl_idname = "anim.delete_keyframe_animall"
     bl_description = "Delete a Keyframe"
     bl_options = {'REGISTER', 'UNDO'}
