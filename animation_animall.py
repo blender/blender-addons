@@ -135,7 +135,6 @@ class VIEW3D_PT_animall(Panel):
     bl_region_type = 'UI'
     bl_category = "Animate"
     bl_label = 'AnimAll'
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(self, context):
