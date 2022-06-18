@@ -30,63 +30,59 @@ class AnimallProperties(bpy.types.PropertyGroup):
     key_selected: BoolProperty(
         name="Key Selected Only",
         description="Insert keyframes only on selected elements",
-        default=False
-    )
-    key_shape: BoolProperty(
+        default=False)
+
+    # Generic attributes
+    key_point_location: BoolProperty(
+        name="Location",
+        description="Insert keyframes on point locations",
+        default=False)
+    key_shape_key: BoolProperty(
         name="Shape Key",
         description="Insert keyframes on active Shape Key layer",
-        default=False
-    )
-    key_uvs: BoolProperty(
-        name="UV Map",
-        description="Insert keyframes on active UV coordinates",
-        default=False
-    )
-    key_vbevel: BoolProperty(
+        default=False)
+
+    # Mesh attributes
+    key_vertex_bevel: BoolProperty(
         name="Vertex Bevel",
         description="Insert keyframes on vertex bevel weight",
-        default=False
-    )
-    key_ebevel: BoolProperty(
-        name="Edge Bevel",
-        description="Insert keyframes on edge bevel weight",
-        default=False
-    )
-    # key_vcrease: BoolProperty(
+        default=False)
+    # key_vertex_crease: BoolProperty(
     #     name="Vertex Crease",
     #     description="Insert keyframes on vertex crease weight",
-    #     default=False
-    # )
-    key_ecrease: BoolProperty(
-        name="Edge Crease",
-        description="Insert keyframes on edge crease weight",
-        default=False
-    )
-    key_vgroups: BoolProperty(
+    #     default=False)
+    key_vertex_group: BoolProperty(
         name="Vertex Group",
         description="Insert keyframes on active vertex group values",
-        default=False
-    )
+        default=False)
+
+    key_edge_bevel: BoolProperty(
+        name="Edge Bevel",
+        description="Insert keyframes on edge bevel weight",
+        default=False)
+    key_edge_crease: BoolProperty(
+        name="Edge Crease",
+        description="Insert keyframes on edge creases",
+        default=False)
+
     key_attribute: BoolProperty(
         name="Attribute",
         description="Insert keyframes on active attribute values",
-        default=False
-    )
-    key_points: BoolProperty(
-        name="Points",
-        description="Insert keyframes on point locations",
-        default=False
-    )
+        default=False)
+    key_uvs: BoolProperty(
+        name="UVs",
+        description="Insert keyframes on active UV coordinates",
+        default=False)
+
+    # Curve and surface attributes
     key_radius: BoolProperty(
         name="Radius",
         description="Insert keyframes on point radius (Shrink/Fatten)",
-        default=False
-    )
+        default=False)
     key_tilt: BoolProperty(
         name="Tilt",
         description="Insert keyframes on point tilt",
-        default=False
-    )
+        default=False)
 
 
 # Utility functions
@@ -147,21 +143,21 @@ class VIEW3D_PT_animall(Panel):
         row = col.row(align = True)
 
         if obj.type == 'LATTICE':
-            row.prop(animall_properties, "key_points")
-            row.prop(animall_properties, "key_shape")
+            row.prop(animall_properties, "key_point_location")
+            row.prop(animall_properties, "key_shape_key")
 
         elif obj.type == 'MESH':
-            row.prop(animall_properties, "key_points")
-            row.prop(animall_properties, "key_shape")
-            row = col.row(align = True)
-            row.prop(animall_properties, "key_vbevel")
-            row.prop(animall_properties, "key_ebevel")
-            row = col.row(align = True)
-            row.prop(animall_properties, "key_ecrease")
+            row.prop(animall_properties, "key_point_location")
+            row.prop(animall_properties, "key_shape_key")
+            row = col.row()
+            row.prop(animall_properties, "key_vertex_bevel")
+            row.prop(animall_properties, "key_edge_bevel")
+            row = col.row()
+            row.prop(animall_properties, "key_edge_crease")
             row.prop(animall_properties, "key_uvs")
             row = col.row(align = True)
             row.prop(animall_properties, "key_attribute")
-            row.prop(animall_properties, "key_vgroups")
+            row.prop(animall_properties, "key_vertex_group")
 
         # Vertex group update operator
         if (context.active_object is not None
@@ -178,15 +174,15 @@ class VIEW3D_PT_animall(Panel):
                     break
 
         elif obj.type == 'CURVE':
-            row.prop(animall_properties, "key_points")
-            row.prop(animall_properties, "key_shape")
+            row.prop(animall_properties, "key_point_location")
+            row.prop(animall_properties, "key_shape_key")
             row = col.row(align = True)
             row.prop(animall_properties, "key_radius")
             row.prop(animall_properties, "key_tilt")
 
         elif obj.type == 'SURFACE':
-            row.prop(animall_properties, "key_points")
-            row.prop(animall_properties, "key_shape")
+            row.prop(animall_properties, "key_point_location")
+            row.prop(animall_properties, "key_shape_key")
             row = col.row(align = True)
             row.prop(animall_properties, "key_radius")
             row.prop(animall_properties, "key_tilt")
@@ -202,7 +198,7 @@ class VIEW3D_PT_animall(Panel):
         row = layout.row()
         row.operator("anim.clear_animation_animall", icon="CANCEL")
 
-        if animall_properties.key_shape:
+        if animall_properties.key_shape_key:
             shape_key = obj.active_shape_key
             shape_key_index = obj.active_shape_key_index
 
@@ -221,7 +217,7 @@ class VIEW3D_PT_animall(Panel):
             else:
                 row.label(text="No active Shape Key", icon="ERROR")
 
-        if animall_properties.key_points and animall_properties.key_shape:
+        if animall_properties.key_point_location and animall_properties.key_shape_key:
             row = layout.row()
             row.label(text='"Points" and "Shape" are redundant?', icon="INFO")
 
@@ -249,14 +245,14 @@ class ANIM_OT_insert_keyframe_animall(Operator):
             data = obj.data
 
             if obj.type == 'LATTICE':
-                if animall_properties.key_shape:
+                if animall_properties.key_shape_key:
                     if obj.active_shape_key_index > 0:
                         sk_name = obj.active_shape_key.name
                         for p_i, point in enumerate(obj.active_shape_key.data):
                             if not animall_properties.key_selected or data.points[p_i].select:
                                 insert_key(point, 'co', group="%s Point %s" % (sk_name, p_i))
 
-                if animall_properties.key_points:
+                if animall_properties.key_point_location:
                     for p_i, point in enumerate(data.points):
                         if not animall_properties.key_selected or point.select:
                             insert_key(point, 'co_deform', group="Point %s" % p_i)
@@ -269,7 +265,7 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                                     or CV.select_control_point
                                     or CV.select_left_handle
                                     or CV.select_right_handle):
-                                if animall_properties.key_points:
+                                if animall_properties.key_point_location:
                                     insert_key(CV, 'co', group="Spline %s CV %s" % (s_i, v_i))
                                     insert_key(CV, 'handle_left', group="Spline %s CV %s" % (s_i, v_i))
                                     insert_key(CV, 'handle_right', group="Spline %s CV %s" % (s_i, v_i))
@@ -283,7 +279,7 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                     elif spline.type in ('POLY', 'NURBS'):
                         for v_i, CV in enumerate(spline.points):
                             if not animall_properties.key_selected or CV.select:
-                                if animall_properties.key_points:
+                                if animall_properties.key_point_location:
                                     insert_key(CV, 'co', group="Spline %s CV %s" % (s_i, v_i))
 
                                 if animall_properties.key_radius:
@@ -297,38 +293,37 @@ class ANIM_OT_insert_keyframe_animall(Operator):
         for obj in [o for o in objects if o.type in {'MESH', 'CURVE', 'SURFACE'}]:
             data = obj.data
             if obj.type == 'MESH':
-                if animall_properties.key_points:
+                if animall_properties.key_point_location:
                     for v_i, vert in enumerate(data.vertices):
                         if not animall_properties.key_selected or vert.select:
                             insert_key(vert, 'co', group="Vertex %s" % v_i)
 
-                if animall_properties.key_vbevel:
+                if animall_properties.key_vertex_bevel:
                     for v_i, vert in enumerate(data.vertices):
                         if not animall_properties.key_selected or vert.select:
                             insert_key(vert, 'bevel_weight', group="Vertex %s" % v_i)
+                # if animall_properties.key_vertex_crease:
+                #     for v_i, vert in enumerate(data.vertices):
+                #         if not animall_properties.key_selected or vert.select:
+                #             insert_key(vert, 'crease', group="Vertex %s" % v_i)
 
-                if animall_properties.key_ebevel:
-                    for e_i, edge in enumerate(data.edges):
-                        if not animall_properties.key_selected or edge.select:
-                            insert_key(edge, 'bevel_weight', group="Edge %s" % e_i)
-
-                if animall_properties.key_vgroups:
+                if animall_properties.key_vertex_group:
                     for v_i, vert in enumerate(data.vertices):
                         if not animall_properties.key_selected or vert.select:
                             for group in vert.groups:
                                 insert_key(group, 'weight', group="Vertex %s" % v_i)
 
-                # if animall_properties.key_vcrease:
-                #     for v_i, vert in enumerate(data.vertices):
-                #         if not animall_properties.key_selected or vert.select:
-                #             insert_key(vert, 'crease', group="Vertex %s" % v_i)
+                if animall_properties.key_edge_bevel:
+                    for e_i, edge in enumerate(data.edges):
+                        if not animall_properties.key_selected or edge.select:
+                            insert_key(edge, 'bevel_weight', group="Edge %s" % e_i)
 
-                if animall_properties.key_ecrease:
+                if animall_properties.key_edge_crease:
                     for e_i, edge in enumerate(data.edges):
                         if not animall_properties.key_selected or edge.select:
                             insert_key(edge, 'crease', group="Edge %s" % e_i)
 
-                if animall_properties.key_shape:
+                if animall_properties.key_shape_key:
                     if obj.active_shape_key_index > 0:
                         sk_name = obj.active_shape_key.name
                         for v_i, vert in enumerate(obj.active_shape_key.data):
@@ -373,7 +368,7 @@ class ANIM_OT_insert_keyframe_animall(Operator):
 
             elif obj.type in {'CURVE', 'SURFACE'}:
                 # Shape key keys have to be inserted in object mode for curves...
-                if animall_properties.key_shape:
+                if animall_properties.key_shape_key:
                     sk_name = obj.active_shape_key.name
                     global_spline_index = 0  # numbering for shape keys, which have flattened indices
                     for s_i, spline in enumerate(data.splines):
@@ -428,22 +423,17 @@ class ANIM_OT_delete_keyframe_animall(Operator):
         for obj in objects:
             data = obj.data
             if obj.type == 'MESH':
-                if animall_properties.key_points:
+                if animall_properties.key_point_location:
                     for vert in data.vertices:
                         if not animall_properties.key_selected or vert.select:
                             delete_key(vert, 'co')
 
-                if animall_properties.key_vbevel:
+                if animall_properties.key_vertex_bevel:
                     for vert in data.vertices:
                         if not animall_properties.key_selected or vert.select:
                             delete_key(vert, 'bevel_weight')
 
-                if animall_properties.key_ebevel:
-                    for edge in data.edges:
-                        if not animall_properties.key_selected or edge.select:
-                            delete_key(edge, 'bevel_weight')
-
-                if animall_properties.key_vgroups:
+                if animall_properties.key_vertex_group:
                     for vert in data.vertices:
                         if not animall_properties.key_selected or vert.select:
                             for group in vert.groups:
@@ -454,12 +444,17 @@ class ANIM_OT_delete_keyframe_animall(Operator):
                 #         if not animall_properties.key_selected or vert.select:
                 #             delete_key(vert, 'crease')
 
-                if animall_properties.key_ecrease:
+                if animall_properties.key_edge_bevel:
                     for edge in data.edges:
                         if not animall_properties.key_selected or edge.select:
+                            delete_key(edge, 'bevel_weight')
+
+                if animall_properties.key_edge_crease:
+                    for edge in data.edges:
+                        if not animall_properties.key_selected or vert.select:
                             delete_key(edge, 'crease')
 
-                if animall_properties.key_shape:
+                if animall_properties.key_shape_key:
                     if obj.active_shape_key:
                         for v_i, vert in enumerate(obj.active_shape_key.data):
                             if not animall_properties.key_selected or data.vertices[v_i].select:
@@ -492,19 +487,19 @@ class ANIM_OT_delete_keyframe_animall(Operator):
                                     delete_key(data, f'attributes["{attribute.name}"].data[{e_i}].{attribute_key}')
 
             elif obj.type == 'LATTICE':
-                if animall_properties.key_shape:
+                if animall_properties.key_shape_key:
                     if obj.active_shape_key:
                         for point in obj.active_shape_key.data:
                             delete_key(point, 'co')
 
-                if animall_properties.key_points:
+                if animall_properties.key_point_location:
                     for point in data.points:
                         if not animall_properties.key_selected or point.select:
                             delete_key(point, 'co_deform')
 
             elif obj.type in {'CURVE', 'SURFACE'}:
                 # run this outside the splines loop (only once)
-                if animall_properties.key_shape:
+                if animall_properties.key_shape_key:
                     if obj.active_shape_key_index > 0:
                         for CV in obj.active_shape_key.data:
                             delete_key(CV, 'co')
@@ -518,7 +513,7 @@ class ANIM_OT_delete_keyframe_animall(Operator):
                                     or CV.select_control_point
                                     or CV.select_left_handle
                                     or CV.select_right_handle):
-                                if animall_properties.key_points:
+                                if animall_properties.key_point_location:
                                     delete_key(CV, 'co')
                                     delete_key(CV, 'handle_left')
                                     delete_key(CV, 'handle_right')
@@ -530,7 +525,7 @@ class ANIM_OT_delete_keyframe_animall(Operator):
                     elif spline.type in ('POLY', 'NURBS'):
                         for CV in spline.points:
                             if not animall_properties.key_selected or CV.select:
-                                if animall_properties.key_points:
+                                if animall_properties.key_point_location:
                                     delete_key(CV, 'co')
                                 if animall_properties.key_radius:
                                     delete_key(CV, 'radius')
