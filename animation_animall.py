@@ -3,7 +3,7 @@
 bl_info = {
     "name": "AnimAll",
     "author": "Daniel Salazar (ZanQdo), Damien Picard (pioverfour)",
-    "version": (0, 9, 5),
+    "version": (0, 9, 6),
     "blender": (3, 3, 0),
     "location": "3D View > Toolbox > Animation tab > AnimAll",
     "description": "Allows animation of mesh, lattice, curve and surface data",
@@ -141,95 +141,83 @@ class VIEW3D_PT_animall(Panel):
 
         layout = self.layout
 
-        layout.label (text = 'Key:')
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
-        col = layout.column(align=True)
-        row = col.row(align = True)
+        split = layout.split(factor=0.4, align=True)
+        split.label(text='')
+        split.label(text='     Key:')
 
         if obj.type == 'LATTICE':
-            row.prop(animall_properties, "key_point_location")
-            row.prop(animall_properties, "key_shape_key")
+            col = layout.column(align=True)
+            col.prop(animall_properties, "key_point_location")
+            col.prop(animall_properties, "key_shape_key")
 
         elif obj.type == 'MESH':
-            row.prop(animall_properties, "key_point_location")
-            row.prop(animall_properties, "key_shape_key")
-            row = col.row()
-            row.prop(animall_properties, "key_vertex_bevel")
-            row.prop(animall_properties, "key_edge_bevel")
-            row = col.row()
-            row.prop(animall_properties, "key_edge_crease")
-            row.prop(animall_properties, "key_uvs")
-            row = col.row(align = True)
-            row.prop(animall_properties, "key_attribute")
-            row.prop(animall_properties, "key_vertex_group")
-            row = col.row()
-            row.prop(animall_properties, "key_material_index")
+            col = layout.column(heading="Points", align=True)
+            col.prop(animall_properties, "key_point_location")
+            col.prop(animall_properties, "key_vertex_bevel", text="Bevel")
+            col.prop(animall_properties, "key_vertex_group", text="Vertex Groups")
 
-        # Vertex group update operator
-        if (context.active_object is not None
-                and context.active_object.type == 'MESH'
-                and context.active_object.data.animation_data is not None
-                and context.active_object.data.animation_data.action is not None):
-            for fcurve in context.active_object.data.animation_data.action.fcurves:
-                if fcurve.data_path.startswith("vertex_colors"):
-                    layout.separator()
-                    row = layout.row()
-                    row.label(text="Object includes old-style vertex colors. Consider updating them.", icon="ERROR")
-                    row = layout.row()
-                    row.operator("anim.update_vertex_color_animation_animall", icon="FILE_REFRESH")
-                    break
+            col = layout.column(heading="Edges", align=True)
+            col.prop(animall_properties, "key_edge_bevel", text="Bevel")
+            col.prop(animall_properties, "key_edge_crease", text="Crease")
 
-        elif obj.type == 'CURVE':
-            row.prop(animall_properties, "key_point_location")
-            row.prop(animall_properties, "key_shape_key")
-            row = col.row(align = True)
-            row.prop(animall_properties, "key_radius")
-            row.prop(animall_properties, "key_tilt")
-            row = col.row()
-            row.prop(animall_properties, "key_material_index")
+            col = layout.column(heading="Faces", align=True)
+            col.prop(animall_properties, "key_material_index")
 
-        elif obj.type == 'SURFACE':
-            row.prop(animall_properties, "key_point_location")
-            row.prop(animall_properties, "key_shape_key")
-            row = col.row(align = True)
-            row.prop(animall_properties, "key_radius")
-            row.prop(animall_properties, "key_tilt")
-            row = col.row()
-            row.prop(animall_properties, "key_material_index")
+            col = layout.column(heading="Others", align=True)
+            col.prop(animall_properties, "key_attribute")
+            col.prop(animall_properties, "key_uvs")
+            col.prop(animall_properties, "key_shape_key")
 
-        col.separator()
+            # Vertex group update operator
+            if (obj.data.animation_data is not None
+                    and obj.data.animation_data.action is not None):
+                for fcurve in context.active_object.data.animation_data.action.fcurves:
+                    if fcurve.data_path.startswith("vertex_colors"):
+                        col = layout.column(align=True)
+                        col.label(text="Object includes old-style vertex colors. Consider updating them.", icon="ERROR")
+                        col.operator("anim.update_vertex_color_animation_animall", icon="FILE_REFRESH")
+                        break
+
+        elif obj.type in {'CURVE', 'SURFACE'}:
+            col = layout.column(align=True)
+            col.prop(animall_properties, "key_point_location")
+            col.prop(animall_properties, "key_radius")
+            col.prop(animall_properties, "key_tilt")
+            col.prop(animall_properties, "key_material_index")
+            col.prop(animall_properties, "key_shape_key")
+
+        if animall_properties.key_shape_key:
+            shape_key = obj.active_shape_key
+            shape_key_index = obj.active_shape_key_index
+
+            if shape_key_index > 0:
+                col = layout.column(align=True)
+                row = col.row(align=True)
+                row.prop(shape_key, "value", text=shape_key.name, icon="SHAPEKEY_DATA")
+                row.prop(obj, "show_only_shape_key", text="")
+                if shape_key.value < 1:
+                    col.label(text='Maybe set "%s" to 1.0?' % shape_key.name, icon="INFO")
+            elif shape_key is not None:
+                col = layout.column(align=True)
+                col.label(text="Cannot key on Basis Shape", icon="ERROR")
+            else:
+                col = layout.column(align=True)
+                col.label(text="No active Shape Key", icon="ERROR")
+
+            if animall_properties.key_point_location:
+                col.label(text='"Location" and "Shape Key" are redundant?', icon="INFO")
+
         col = layout.column(align=True)
-        row = col.row()
-        row.prop(animall_properties, "key_selected")
+        col.prop(animall_properties, "key_selected")
 
         row = layout.row(align=True)
         row.operator("anim.insert_keyframe_animall", icon="KEY_HLT")
         row.operator("anim.delete_keyframe_animall", icon="KEY_DEHLT")
         row = layout.row()
         row.operator("anim.clear_animation_animall", icon="CANCEL")
-
-        if animall_properties.key_shape_key:
-            shape_key = obj.active_shape_key
-            shape_key_index = obj.active_shape_key_index
-
-            split = layout.split()
-            row = split.row()
-
-            if shape_key_index > 0:
-                row.label(text=shape_key.name, icon="SHAPEKEY_DATA")
-                row.prop(shape_key, "value", text="")
-                row.prop(obj, "show_only_shape_key", text="")
-                if shape_key.value < 1:
-                    row = layout.row()
-                    row.label(text='Maybe set "%s" to 1.0?' % shape_key.name, icon="INFO")
-            elif shape_key:
-                row.label(text="Cannot key on Basis Shape", icon="ERROR")
-            else:
-                row.label(text="No active Shape Key", icon="ERROR")
-
-        if animall_properties.key_point_location and animall_properties.key_shape_key:
-            row = layout.row()
-            row.label(text='"Points" and "Shape" are redundant?', icon="INFO")
 
 
 class ANIM_OT_insert_keyframe_animall(Operator):
@@ -340,18 +328,6 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                         if not animall_properties.key_selected or edge.select:
                             insert_key(edge, 'crease', group="Edge %s" % e_i)
 
-                if animall_properties.key_shape_key:
-                    if obj.active_shape_key_index > 0:
-                        sk_name = obj.active_shape_key.name
-                        for v_i, vert in enumerate(obj.active_shape_key.data):
-                            if not animall_properties.key_selected or data.vertices[v_i].select:
-                                insert_key(vert, 'co', group="%s Vertex %s" % (sk_name, v_i))
-
-                if animall_properties.key_uvs:
-                    if data.uv_layers.active is not None:
-                        for uv_i, uv in enumerate(data.uv_layers.active.data):
-                            if not animall_properties.key_selected or uv.select:
-                                insert_key(uv, 'uv', group="UV layer %s" % uv_i)
                 if animall_properties.key_material_index:
                     for p_i, polygon in enumerate(data.polygons):
                         if not animall_properties.key_selected or polygon.select:
@@ -386,6 +362,19 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                                         or attribute.domain == 'CORNER' and is_selected_vert_loop(data, e_i)):
                                     insert_key(data, f'attributes["{attribute.name}"].data[{e_i}].{attribute_key}',
                                             group=group % e_i)
+
+                if animall_properties.key_uvs:
+                    if data.uv_layers.active is not None:
+                        for uv_i, uv in enumerate(data.uv_layers.active.data):
+                            if not animall_properties.key_selected or uv.select:
+                                insert_key(uv, 'uv', group="UV layer %s" % uv_i)
+
+                if animall_properties.key_shape_key:
+                    if obj.active_shape_key_index > 0:
+                        sk_name = obj.active_shape_key.name
+                        for v_i, vert in enumerate(obj.active_shape_key.data):
+                            if not animall_properties.key_selected or data.vertices[v_i].select:
+                                insert_key(vert, 'co', group="%s Vertex %s" % (sk_name, v_i))
 
             elif obj.type in {'CURVE', 'SURFACE'}:
                 # Shape key keys have to be inserted in object mode for curves...
