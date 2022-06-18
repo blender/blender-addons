@@ -129,11 +129,17 @@ class VIEW3D_PT_animall(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Animate"
-    bl_label = 'AnimAll'
+    bl_label = ''
 
     @classmethod
     def poll(self, context):
         return context.active_object and context.active_object.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}
+
+    def draw_header(self, context):
+
+        layout = self.layout
+        row = layout.row()
+        row.label (text = 'AnimAll', icon = 'ARMATURE_DATA')
 
     def draw(self, context):
         obj = context.active_object
@@ -141,12 +147,10 @@ class VIEW3D_PT_animall(Panel):
 
         layout = self.layout
 
+        layout.label(text='Key:')
+
         layout.use_property_split = True
         layout.use_property_decorate = False
-
-        split = layout.split(factor=0.4, align=True)
-        split.label(text='')
-        split.label(text='     Key:')
 
         if obj.type == 'LATTICE':
             col = layout.column(align=True)
@@ -210,8 +214,10 @@ class VIEW3D_PT_animall(Panel):
             if animall_properties.key_point_location:
                 col.label(text='"Location" and "Shape Key" are redundant?', icon="INFO")
 
-        col = layout.column(align=True)
-        col.prop(animall_properties, "key_selected")
+        layout.use_property_split = False
+        layout.separator()
+        row = layout.row()
+        row.prop(animall_properties, "key_selected")
 
         row = layout.row(align=True)
         row.operator("anim.insert_keyframe_animall", icon="KEY_HLT")
