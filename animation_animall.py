@@ -3,7 +3,7 @@
 bl_info = {
     "name": "AnimAll",
     "author": "Daniel Salazar (ZanQdo), Damien Picard (pioverfour)",
-    "version": (0, 9, 4),
+    "version": (0, 9, 5),
     "blender": (3, 3, 0),
     "location": "3D View > Toolbox > Animation tab > AnimAll",
     "description": "Allows animation of mesh, lattice, curve and surface data",
@@ -40,6 +40,10 @@ class AnimallProperties(bpy.types.PropertyGroup):
     key_shape_key: BoolProperty(
         name="Shape Key",
         description="Insert keyframes on active Shape Key layer",
+        default=False)
+    key_material_index: BoolProperty(
+        name="Material Index",
+        description="Insert keyframes on face material indices",
         default=False)
 
     # Mesh attributes
@@ -158,6 +162,8 @@ class VIEW3D_PT_animall(Panel):
             row = col.row(align = True)
             row.prop(animall_properties, "key_attribute")
             row.prop(animall_properties, "key_vertex_group")
+            row = col.row()
+            row.prop(animall_properties, "key_material_index")
 
         # Vertex group update operator
         if (context.active_object is not None
@@ -179,6 +185,8 @@ class VIEW3D_PT_animall(Panel):
             row = col.row(align = True)
             row.prop(animall_properties, "key_radius")
             row.prop(animall_properties, "key_tilt")
+            row = col.row()
+            row.prop(animall_properties, "key_material_index")
 
         elif obj.type == 'SURFACE':
             row.prop(animall_properties, "key_point_location")
@@ -186,6 +194,8 @@ class VIEW3D_PT_animall(Panel):
             row = col.row(align = True)
             row.prop(animall_properties, "key_radius")
             row.prop(animall_properties, "key_tilt")
+            row = col.row()
+            row.prop(animall_properties, "key_material_index")
 
         col.separator()
         col = layout.column(align=True)
@@ -258,6 +268,13 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                             insert_key(point, 'co_deform', group="Point %s" % p_i)
 
             else:
+                if animall_properties.key_material_index:
+                    for s_i, spline in enumerate(data.splines):
+                        if (not animall_properties.key_selected
+                                or any(point.select for point in spline.points)
+                                or any(point.select_control_point for point in spline.bezier_points)):
+                            insert_key(spline, 'material_index', group="Spline %s" % s_i)
+
                 for s_i, spline in enumerate(data.splines):
                     if spline.type == 'BEZIER':
                         for v_i, CV in enumerate(spline.bezier_points):
@@ -335,6 +352,10 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                         for uv_i, uv in enumerate(data.uv_layers.active.data):
                             if not animall_properties.key_selected or uv.select:
                                 insert_key(uv, 'uv', group="UV layer %s" % uv_i)
+                if animall_properties.key_material_index:
+                    for p_i, polygon in enumerate(data.polygons):
+                        if not animall_properties.key_selected or polygon.select:
+                            insert_key(polygon, 'material_index', group="Face %s" % p_i)
 
                 if animall_properties.key_attribute:
                     if data.attributes.active is not None:
