@@ -153,8 +153,10 @@ class VIEW3D_PT_animall(Panel):
         layout.use_property_decorate = False
 
         if obj.type == 'LATTICE':
-            col = layout.column(align=True)
+            col = layout.column(heading="Points", align=True)
             col.prop(animall_properties, "key_point_location")
+
+            col = layout.column(heading="Others", align=True)
             col.prop(animall_properties, "key_shape_key")
 
         elif obj.type == 'MESH':
@@ -187,10 +189,15 @@ class VIEW3D_PT_animall(Panel):
 
         elif obj.type in {'CURVE', 'SURFACE'}:
             col = layout.column(align=True)
+            col = layout.column(heading="Points", align=True)
             col.prop(animall_properties, "key_point_location")
             col.prop(animall_properties, "key_radius")
             col.prop(animall_properties, "key_tilt")
+
+            col = layout.column(heading="Splines", align=True)
             col.prop(animall_properties, "key_material_index")
+
+            col = layout.column(heading="Others", align=True)
             col.prop(animall_properties, "key_shape_key")
 
         if animall_properties.key_shape_key:
