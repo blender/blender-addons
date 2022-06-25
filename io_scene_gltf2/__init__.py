@@ -4,7 +4,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (3, 3, 6),
+    "version": (3, 3, 7),
     'blender': (3, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -372,6 +372,14 @@ class ExportGLTF2_Base:
         default=True
     )
 
+    export_nla_strips_merged_animation_name: StringProperty(
+        name='Merged Animation Name',
+        description=(
+            "Name of single glTF animation to be exported"
+        ),
+        default='Animation'
+    )
+
     export_def_bones: BoolProperty(
         name='Export Deformation Bones Only',
         description='Export Deformation bones only (and needed bones for hierarchy)',
@@ -568,6 +576,7 @@ class ExportGLTF2_Base:
             else:
                 export_settings['gltf_def_bones'] = False
             export_settings['gltf_nla_strips'] = self.export_nla_strips
+            export_settings['gltf_nla_strips_merged_animation_name'] = self.export_nla_strips_merged_animation_name
             export_settings['gltf_optimize_animation'] = self.optimize_animation_size
         else:
             export_settings['gltf_frame_range'] = False
@@ -863,6 +872,8 @@ class GLTF_PT_export_animation_export(bpy.types.Panel):
         layout.prop(operator, 'export_frame_step')
         layout.prop(operator, 'export_force_sampling')
         layout.prop(operator, 'export_nla_strips')
+        if operator.export_nla_strips is False:
+            layout.prop(operator, 'export_nla_strips_merged_animation_name')
         layout.prop(operator, 'optimize_animation_size')
 
         row = layout.row()
