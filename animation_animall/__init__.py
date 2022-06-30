@@ -13,16 +13,11 @@ bl_info = {
 }
 
 import bpy
-from bpy.types import (
-        Operator,
-        Panel,
-        AddonPreferences,
-        )
-from bpy.props import (
-        BoolProperty,
-        StringProperty,
-        )
+from bpy.types import (Operator, Panel, AddonPreferences)
+from bpy.props import (BoolProperty, StringProperty)
 from bpy.app.handlers import persistent
+from bpy.app.translations import pgettext_iface
+from . import translations
 
 
 # Property Definitions
@@ -210,7 +205,7 @@ class VIEW3D_PT_animall(Panel):
                 row.prop(shape_key, "value", text=shape_key.name, icon="SHAPEKEY_DATA")
                 row.prop(obj, "show_only_shape_key", text="")
                 if shape_key.value < 1:
-                    col.label(text='Maybe set "%s" to 1.0?' % shape_key.name, icon="INFO")
+                    col.label(text=pgettext_iface('Maybe set "%s" to 1.0?') % shape_key.name, icon="INFO")
             elif shape_key is not None:
                 col = layout.column(align=True)
                 col.label(text="Cannot key on Basis Shape", icon="ERROR")
@@ -658,28 +653,23 @@ class AnimallAddonPreferences(AddonPreferences):
         col.label(text="Tab Category:")
         col.prop(self, "category", text="")
 
+register_classes, unregister_classes = bpy.utils.register_classes_factory(
+    (AnimallProperties, VIEW3D_PT_animall, ANIM_OT_insert_keyframe_animall,
+     ANIM_OT_delete_keyframe_animall, ANIM_OT_clear_animation_animall,
+     ANIM_OT_update_vertex_color_animation_animall, AnimallAddonPreferences))
 
 def register():
-    bpy.utils.register_class(AnimallProperties)
+    register_classes()
     bpy.types.Scene.animall_properties = bpy.props.PointerProperty(type=AnimallProperties)
-    bpy.utils.register_class(VIEW3D_PT_animall)
-    bpy.utils.register_class(ANIM_OT_insert_keyframe_animall)
-    bpy.utils.register_class(ANIM_OT_delete_keyframe_animall)
-    bpy.utils.register_class(ANIM_OT_clear_animation_animall)
-    bpy.utils.register_class(ANIM_OT_update_vertex_color_animation_animall)
-    bpy.utils.register_class(AnimallAddonPreferences)
     update_panel(None, bpy.context)
 
+    bpy.app.translations.register(__name__, translations.translations_dict)
 
 def unregister():
     del bpy.types.Scene.animall_properties
-    bpy.utils.unregister_class(AnimallProperties)
-    bpy.utils.unregister_class(VIEW3D_PT_animall)
-    bpy.utils.unregister_class(ANIM_OT_insert_keyframe_animall)
-    bpy.utils.unregister_class(ANIM_OT_delete_keyframe_animall)
-    bpy.utils.unregister_class(ANIM_OT_clear_animation_animall)
-    bpy.utils.unregister_class(ANIM_OT_update_vertex_color_animation_animall)
-    bpy.utils.unregister_class(AnimallAddonPreferences)
+    unregister_classes()
+
+    bpy.app.translations.unregister(__name__)
 
 if __name__ == "__main__":
     register()
