@@ -2094,13 +2094,26 @@ class NWFrameSelected(Operator, NWBase):
         description='The visual name of the frame node',
         default=' '
     )
+    use_custom_color_prop: BoolProperty(
+        name="Custom Color",
+        description="Use custom color for the frame node",
+        default=False
+    )
     color_prop: FloatVectorProperty(
         name="Color",
         description="The color of the frame node",
-        default=(0.6, 0.6, 0.6),
+        default=(0.604, 0.604, 0.604),
         min=0, max=1, step=1, precision=3,
         subtype='COLOR_GAMMA', size=3
     )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, 'label_prop')
+        layout.prop(self, 'use_custom_color_prop')
+        col = layout.column()
+        col.active = self.use_custom_color_prop
+        col.prop(self, 'color_prop', text="")
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -2112,7 +2125,7 @@ class NWFrameSelected(Operator, NWBase):
         bpy.ops.node.add_node(type='NodeFrame')
         frm = nodes.active
         frm.label = self.label_prop
-        frm.use_custom_color = True
+        frm.use_custom_color = self.use_custom_color_prop
         frm.color = self.color_prop
 
         for node in selected:
