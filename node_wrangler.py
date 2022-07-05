@@ -4417,12 +4417,10 @@ class NWConnectionListOutputs(Menu, NWBase):
         nodes, links = get_nodes_links(context)
 
         n1 = nodes[context.scene.NWLazySource]
-        index=0
-        for o in n1.outputs:
+        for index, output in enumerate(n1.outputs):
             # Only show sockets that are exposed.
-            if o.enabled:
-                layout.operator(NWCallInputsMenu.bl_idname, text=o.name, icon="RADIOBUT_OFF").from_socket=index
-            index+=1
+            if output.enabled:
+                layout.operator(NWCallInputsMenu.bl_idname, text=output.name, icon="RADIOBUT_OFF").from_socket=index
 
 
 class NWConnectionListInputs(Menu, NWBase):
@@ -4435,17 +4433,15 @@ class NWConnectionListInputs(Menu, NWBase):
 
         n2 = nodes[context.scene.NWLazyTarget]
 
-        index = 0
-        for i in n2.inputs:
+        for index, input in enumerate(n2.inputs):
             # Only show sockets that are exposed.
             # This prevents, for example, the scale value socket
             # of the vector math node being added to the list when
             # the mode is not 'SCALE'.
-            if i.enabled:
-                op = layout.operator(NWMakeLink.bl_idname, text=i.name, icon="FORWARD")
+            if input.enabled:
+                op = layout.operator(NWMakeLink.bl_idname, text=input.name, icon="FORWARD")
                 op.from_socket = context.scene.NWSourceSocket
                 op.to_socket = index
-                index+=1
 
 
 class NWMergeMathMenu(Menu, NWBase):
