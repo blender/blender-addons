@@ -137,10 +137,16 @@ class DATA_PT_rigify_advanced(bpy.types.Panel):
         armature_id_store = context.object.data
 
         col = layout.column()
+
+        row = col.row()
+        row.active = not armature_id_store.rigify_target_rig
+        row.prop(armature_id_store, "rigify_rig_basename", text="Rig Name")
+
+        col.separator()
         col.row().prop(armature_id_store, "rigify_target_rig", text="Target Rig")
         col.row().prop(armature_id_store, "rigify_rig_ui", text="Rig UI Script")
-        col.separator()
         col.row().prop(armature_id_store, "rigify_widgets_collection")
+        col.separator()
         col.row().prop(armature_id_store, "rigify_force_widget_update")
         col.row().prop(armature_id_store, "rigify_mirror_widgets")
         col.separator()
