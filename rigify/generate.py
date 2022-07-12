@@ -117,7 +117,7 @@ class Generator(base_generate.BaseGenerator):
         wgts_group_name = "WGTS_" + self.obj.name
         old_collection = bpy.data.collections.get(wgts_group_name)
 
-        if old_collection.library:
+        if old_collection and old_collection.library:
             old_collection = None
 
         if not old_collection:
