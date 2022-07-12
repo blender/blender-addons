@@ -143,9 +143,13 @@ class DATA_PT_rigify_advanced(bpy.types.Panel):
         row.prop(armature_id_store, "rigify_rig_basename", text="Rig Name")
 
         col.separator()
-        col.row().prop(armature_id_store, "rigify_target_rig", text="Target Rig")
-        col.row().prop(armature_id_store, "rigify_rig_ui", text="Rig UI Script")
-        col.row().prop(armature_id_store, "rigify_widgets_collection")
+
+        col2 = col.box().column()
+        col2.label(text="Overwrite Existing:")
+        col2.row().prop(armature_id_store, "rigify_target_rig", text="Target Rig")
+        col2.row().prop(armature_id_store, "rigify_rig_ui", text="Rig UI Script")
+        col2.row().prop(armature_id_store, "rigify_widgets_collection")
+
         col.separator()
         col.row().prop(armature_id_store, "rigify_force_widget_update")
         col.row().prop(armature_id_store, "rigify_mirror_widgets")
