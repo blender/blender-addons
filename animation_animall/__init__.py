@@ -662,14 +662,12 @@ def register():
     register_classes()
     bpy.types.Scene.animall_properties = bpy.props.PointerProperty(type=AnimallProperties)
     update_panel(None, bpy.context)
-
     bpy.app.translations.register(__name__, translations.translations_dict)
 
 def unregister():
+    bpy.app.translations.unregister(__name__)
     del bpy.types.Scene.animall_properties
     unregister_classes()
-
-    bpy.app.translations.unregister(__name__)
 
 if __name__ == "__main__":
     register()
