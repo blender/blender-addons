@@ -65,7 +65,8 @@ class AMTH_store_data():
         'TEXTURE': [],             # Textures (Psys, Brushes)
         'MODIFIER': [],            # Modifiers
         'MESH_DATA': [],           # Vertex Colors
-        'OUTLINER_OB_CAMERA': [],  # Background Images
+        'OUTLINER_OB_CAMERA': [],  # Background Images in Cameras
+        'OUTLINER_OB_EMPTY': [],   # Empty type Image
         'NODETREE': [],            # Compositor
         }
     libraries = []                 # Libraries x type
@@ -688,6 +689,18 @@ class AMTH_SCENE_OT_list_users_for_x(Operator):
                                     .format(ob.name)
                             if name not in AMTH_store_data.users['OUTLINER_OB_CAMERA']:
                                 AMTH_store_data.users['OUTLINER_OB_CAMERA'].append(name)
+
+            # Check Empties type Image
+            for ob in d.objects:
+                if ob and ob.type == 'EMPTY' and ob.image_user:
+                    if ob.image_user.id_data.data:
+                        image = ob.image_user.id_data.data
+
+                        if image and image.name == x:
+                            name = 'Used in Empty "{0}"'\
+                                    .format(ob.name)
+                            if name not in AMTH_store_data.users['OUTLINER_OB_EMPTY']:
+                                AMTH_store_data.users['OUTLINER_OB_EMPTY'].append(name)
 
             # Check the Compositor
             for sce in d.scenes:
