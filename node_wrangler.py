@@ -1228,13 +1228,12 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
 
 def nw_check(context):
     space = context.space_data
+    editor_is_valid = space.type == 'NODE_EDITOR'
+
     valid_trees = ["ShaderNodeTree", "CompositorNodeTree", "TextureNodeTree", "GeometryNodeTree"]
+    tree_is_valid = space.node_tree is not None and space.tree_type in valid_trees
 
-    valid = False
-    if space.type == 'NODE_EDITOR' and space.node_tree is not None and space.tree_type in valid_trees:
-        valid = True
-
-    return valid
+    return editor_is_valid and tree_is_valid
 
 class NWBase:
     @classmethod
@@ -3014,71 +3013,74 @@ class NWAddTextureSetup(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        valid = False
         if nw_check(context):
             space = context.space_data
             if space.tree_type == 'ShaderNodeTree':
-                valid = True
-        return valid
+                return True
+        return False
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
+        
         shader_types = [x[1] for x in shaders_shader_nodes_props if x[1] not in {'MIX_SHADER', 'ADD_SHADER'}]
         texture_types = [x[1] for x in shaders_texture_nodes_props]
         selected_nodes = [n for n in nodes if n.select]
-        for t_node in selected_nodes:
-            valid = False
+        
+        for node in selected_nodes:
+            if not node.inputs:
+                continue
+
             input_index = 0
-            if t_node.inputs:
-                for index, i in enumerate(t_node.inputs):
-                    if not i.is_linked:
-                        valid = True
-                        input_index = index
+            target_input = node.inputs[0]
+            for input in node.inputs:
+                if input.enabled:
+                    input_index += 1
+                    if not input.is_linked:
+                        target_input = input
                         break
-            if valid:
-                locx = t_node.location.x
-                locy = t_node.location.y - t_node.dimensions.y/2
-
-                xoffset = [500, 700]
-                is_texture = False
-                if t_node.type in texture_types + ['MAPPING']:
-                    xoffset = [290, 500]
-                    is_texture = True
-
-                coordout = 2
-                image_type = 'ShaderNodeTexImage'
-
-                if (t_node.type in texture_types and t_node.type != 'TEX_IMAGE') or (t_node.type == 'BACKGROUND'):
-                    coordout = 0  # image texture uses UVs, procedural textures and Background shader use Generated
-                    if t_node.type == 'BACKGROUND':
-                        image_type = 'ShaderNodeTexEnvironment'
-
-                if not is_texture:
-                    tex = nodes.new(image_type)
-                    tex.location = [locx - 200, locy + 112]
-                    nodes.active = tex
-                    links.new(tex.outputs[0], t_node.inputs[input_index])
-
-                t_node.select = False
-                if self.add_mapping or is_texture:
-                    if t_node.type != 'MAPPING':
-                        m = nodes.new('ShaderNodeMapping')
-                        m.location = [locx - xoffset[0], locy + 141]
-                        m.width = 240
-                    else:
-                        m = t_node
-                    coord = nodes.new('ShaderNodeTexCoord')
-                    coord.location = [locx - (200 if t_node.type == 'MAPPING' else xoffset[1]), locy + 124]
-
-                    if not is_texture:
-                        links.new(m.outputs[0], tex.inputs[0])
-                        links.new(coord.outputs[coordout], m.inputs[0])
-                    else:
-                        nodes.active = m
-                        links.new(m.outputs[0], t_node.inputs[input_index])
-                        links.new(coord.outputs[coordout], m.inputs[0])
             else:
-                self.report({'WARNING'}, "No free inputs for node: "+t_node.name)
+                self.report({'WARNING'}, "No free inputs for node: " + node.name)
+                continue
+
+            x_offset = 0
+            padding = 40.0
+            locx = node.location.x
+            locy = node.location.y - (input_index * padding)
+
+            is_texture_node = node.type in texture_types
+            use_environment_texture = node.type == 'BACKGROUND'
+
+            # Add an image texture before normal shader nodes.
+            if not is_texture_node:
+                image_texture_type = 'ShaderNodeTexEnvironment' if use_environment_texture else 'ShaderNodeTexImage'
+                image_texture_node = nodes.new(image_texture_type)
+                x_offset = x_offset + image_texture_node.width + padding
+                image_texture_node.location = [locx - x_offset, locy]
+                nodes.active = image_texture_node
+                links.new(image_texture_node.outputs[0], target_input)
+
+                # The mapping setup following this will connect to the firrst input of this image texture.
+                target_input = image_texture_node.inputs[0]
+
+            node.select = False
+
+            if is_texture_node or self.add_mapping:
+                # Add Mapping node.
+                mapping_node = nodes.new('ShaderNodeMapping')
+                x_offset = x_offset + mapping_node.width + padding
+                mapping_node.location = [locx - x_offset, locy]
+                links.new(mapping_node.outputs[0], target_input)
+
+                # Add Texture Coordinates node.
+                tex_coord_node = nodes.new('ShaderNodeTexCoord')
+                x_offset = x_offset + tex_coord_node.width + padding
+                tex_coord_node.location = [locx - x_offset, locy]
+
+                is_procedural_texture = is_texture_node and node.type != 'TEX_IMAGE'
+                use_generated_coordinates = is_procedural_texture or use_environment_texture
+                tex_coord_output = tex_coord_node.outputs[0 if use_generated_coordinates else 2]
+                links.new(tex_coord_output, mapping_node.inputs[0])
+
         return {'FINISHED'}
 
 
