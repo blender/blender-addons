@@ -820,8 +820,7 @@ def draw_circle_2d_filled(shader, mx, my, radius, colour=(1.0, 1.0, 1.0, 0.7)):
 
 
 def draw_rounded_node_border(shader, node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)):
-    area_width = bpy.context.area.width - (16*dpifac()) - 1
-    bottom_bar = (16*dpifac()) + 1
+    area_width = bpy.context.area.width
     sides = 16
     radius = radius*dpifac()
 
@@ -847,7 +846,7 @@ def draw_rounded_node_border(shader, node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)
     vertices = [(mx,my)]
     for i in range(sides+1):
         if (4<=i<=8):
-            if my > bottom_bar and mx < area_width:
+            if mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
                 sine = radius * sin(i * 2 * pi / sides) + my
                 vertices.append((cosine,sine))
@@ -861,7 +860,7 @@ def draw_rounded_node_border(shader, node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)
     vertices = [(mx,my)]
     for i in range(sides+1):
         if (0<=i<=4):
-            if my > bottom_bar and mx < area_width:
+            if mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
                 sine = radius * sin(i * 2 * pi / sides) + my
                 vertices.append((cosine,sine))
@@ -875,7 +874,7 @@ def draw_rounded_node_border(shader, node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)
     vertices = [(mx,my)]
     for i in range(sides+1):
         if (8<=i<=12):
-            if my > bottom_bar and mx < area_width:
+            if mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
                 sine = radius * sin(i * 2 * pi / sides) + my
                 vertices.append((cosine,sine))
@@ -889,7 +888,7 @@ def draw_rounded_node_border(shader, node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)
     vertices = [(mx,my)]
     for i in range(sides+1):
         if (12<=i<=16):
-            if my > bottom_bar and mx < area_width:
+            if mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
                 sine = radius * sin(i * 2 * pi / sides) + my
                 vertices.append((cosine,sine))
@@ -918,18 +917,15 @@ def draw_rounded_node_border(shader, node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)
     m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy, clip=False)
     m1x = min(m1x, area_width)
     m2x = min(m2x, area_width)
-    if m1y > bottom_bar and m2y > bottom_bar:
-        vertices.extend([(m1x,m1y), (m2x,m1y),
-                         (m2x,m1y+radius), (m1x,m1y+radius)])
-        indices.extend([(id_last, id_last+1, id_last+3),
-                        (id_last+3, id_last+1, id_last+2)])
-        id_last += 4
+    vertices.extend([(m1x,m1y), (m2x,m1y),
+                     (m2x,m1y+radius), (m1x,m1y+radius)])
+    indices.extend([(id_last, id_last+1, id_last+3),
+                    (id_last+3, id_last+1, id_last+2)])
+    id_last += 4
 
     # Right edge
     m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy, clip=False)
     m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy, clip=False)
-    m1y = max(m1y, bottom_bar)
-    m2y = max(m2y, bottom_bar)
     if m1x < area_width and m2x < area_width:
         vertices.extend([(m1x,m2y), (m1x+radius,m2y),
                          (m1x+radius,m1y), (m1x,m1y)])
@@ -942,11 +938,10 @@ def draw_rounded_node_border(shader, node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)
     m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy-ndimy, clip=False)
     m1x = min(m1x, area_width)
     m2x = min(m2x, area_width)
-    if m1y > bottom_bar and m2y > bottom_bar:
-        vertices.extend([(m1x,m2y), (m2x,m2y),
-                         (m2x,m1y-radius), (m1x,m1y-radius)])
-        indices.extend([(id_last, id_last+1, id_last+3),
-                        (id_last+3, id_last+1, id_last+2)])
+    vertices.extend([(m1x,m2y), (m2x,m2y),
+                     (m2x,m1y-radius), (m1x,m1y-radius)])
+    indices.extend([(id_last, id_last+1, id_last+3),
+                    (id_last+3, id_last+1, id_last+2)])
 
     # now draw all edges in one batch
     if len(vertices) != 0:
