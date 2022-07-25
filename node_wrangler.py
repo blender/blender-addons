@@ -596,6 +596,13 @@ def get_nodes_from_category(category_name, context):
         if category.name == category_name:
             return sorted(category.items(context), key=lambda node: node.label)
 
+def get_first_enabled_output(node):
+    for output in node.outputs:
+        if output.enabled:
+            return output
+    else:
+        return node.outputs[0]
+
 def is_visible_socket(socket):
     return not socket.hide and socket.enabled and socket.type != 'CUSTOM'
 
@@ -2452,8 +2459,8 @@ class NWMergeNodes(Operator, NWBase):
             mode = 'MIX'
         if (merge_type != 'MATH' and merge_type != 'GEOMETRY') and tree_type == 'GEOMETRY':
             merge_type = 'AUTO'
-        # The math nodes used for geometry nodes are of type 'ShaderNode'
-        if merge_type == 'MATH' and tree_type == 'GEOMETRY':
+        # The MixRGB node and math nodes used for geometry nodes are of type 'ShaderNode'
+        if (merge_type == 'MATH' or merge_type == 'MIX') and tree_type == 'GEOMETRY':
             node_type = 'ShaderNode'
         selected_mix = []  # entry = [index, loc]
         selected_shader = []  # entry = [index, loc]
@@ -2473,7 +2480,8 @@ class NWMergeNodes(Operator, NWBase):
                             ('VALUE', [t[0] for t in operations], selected_math),
                             ('VECTOR', [], selected_vector),
                     ):
-                        output_type = node.outputs[0].type
+                        output = get_first_enabled_output(node)
+                        output_type = output.type
                         valid_mode = mode in types_list
                         # When mode is 'MIX' we have to cheat since the mix node is not used in
                         # geometry nodes.
@@ -2524,7 +2532,7 @@ class NWMergeNodes(Operator, NWBase):
 
             # Change the node type for math nodes in a geometry node tree.
             if tree_type == 'GEOMETRY':
-                if nodes_list is selected_math or nodes_list is selected_vector:
+                if nodes_list is selected_math or nodes_list is selected_vector or nodes_list is selected_mix:
                     node_type = 'ShaderNode'
                     if mode == 'MIX':
                         mode = 'ADD'
@@ -2649,8 +2657,9 @@ class NWMergeNodes(Operator, NWBase):
             # Special case:
             # Two nodes were selected and first selected has no output links, second selected has output links.
             # Then add links from last add to all links 'to_socket' of out links of second selected.
+            first_selected_output = get_first_enabled_output(first_selected)
             if len(nodes_list) == 2:
-                if not first_selected.outputs[0].links:
+                if not first_selected_output.links:
                     second_selected = nodes[nodes_list[1][0]]
                     for ss_link in second_selected.outputs[0].links:
                         # Prevent cyclic dependencies when nodes to be merged are linked to one another.
@@ -2658,16 +2667,16 @@ class NWMergeNodes(Operator, NWBase):
                         if not self.link_creates_cycle(ss_link, invalid_nodes):
                             links.new(last_add.outputs[0], ss_link.to_socket)
             # add links from last_add to all links 'to_socket' of out links of first selected.
-            for fs_link in first_selected.outputs[0].links:
+            for fs_link in first_selected_output.links:
                 # Link only if "to_node" index not in invalid indexes list.
                 if not self.link_creates_cycle(fs_link, invalid_nodes):
                     links.new(last_add.outputs[0], fs_link.to_socket)
             # add link from "first" selected and "first" add node
             node_to = nodes[count_after - 1]
-            links.new(first_selected.outputs[0], node_to.inputs[first])
+            links.new(first_selected_output, node_to.inputs[first])
             if node_to.type == 'ZCOMBINE':
                 for fs_out in first_selected.outputs:
-                    if fs_out != first_selected.outputs[0] and fs_out.name in ('Z', 'Depth'):
+                    if fs_out != first_selected_output and fs_out.name in ('Z', 'Depth'):
                         links.new(fs_out, node_to.inputs[1])
                         break
             # add links between added ADD nodes and between selected and ADD nodes
@@ -2677,20 +2686,20 @@ class NWMergeNodes(Operator, NWBase):
                     node_to = nodes[index - 1]
                     node_to_input_i = first
                     node_to_z_i = 1  # if z combine - link z to first z input
-                    links.new(node_from.outputs[0], node_to.inputs[node_to_input_i])
+                    links.new(get_first_enabled_output(node_from), node_to.inputs[node_to_input_i])
                     if node_to.type == 'ZCOMBINE':
                         for from_out in node_from.outputs:
-                            if from_out != node_from.outputs[0] and from_out.name in ('Z', 'Depth'):
+                            if from_out != get_first_enabled_output(node_from) and from_out.name in ('Z', 'Depth'):
                                 links.new(from_out, node_to.inputs[node_to_z_i])
                 if len(nodes_list) > 1:
                     node_from = nodes[nodes_list[i + 1][0]]
                     node_to = nodes[index]
                     node_to_input_i = second
                     node_to_z_i = 3  # if z combine - link z to second z input
-                    links.new(node_from.outputs[0], node_to.inputs[node_to_input_i])
+                    links.new(get_first_enabled_output(node_from), node_to.inputs[node_to_input_i])
                     if node_to.type == 'ZCOMBINE':
                         for from_out in node_from.outputs:
-                            if from_out != node_from.outputs[0] and from_out.name in ('Z', 'Depth'):
+                            if from_out != get_first_enabled_output(node_from) and from_out.name in ('Z', 'Depth'):
                                 links.new(from_out, node_to.inputs[node_to_z_i])
                 index -= 1
             # set "last" of added nodes as active
