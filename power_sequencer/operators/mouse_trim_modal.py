@@ -1,8 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2016-2020 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
-
-# This file is part of Power Sequencer.
-
+# Copyright (C) 2016-2020 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
 import bpy
 import bgl
 import gpu
@@ -35,7 +32,7 @@ class POWER_SEQUENCER_OT_mouse_trim(bpy.types.Operator):
     *brief* Cut or Trim strips quickly with the mouse cursor
 
 
-    Click somewhere in the Sequencer to insert a cut, click and drag to trim
+    Click somehwere in the Sequencer to insert a cut, click and drag to trim
     With this function you can quickly cut and remove a section of strips while keeping or
     collapsing the remaining gap.
     Press <kbd>Ctrl</kbd> to snap to cuts.
