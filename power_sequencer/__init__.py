@@ -24,7 +24,7 @@ bl_info = {
     "name": "Power Sequencer",
     "description": "Video editing tools for content creators",
     "author": "Nathan Lovato",
-    "version": (2, 0, 1),
+    "version": (2, 0, 2),
     "blender": (2, 93, 3),
     "location": "Sequencer",
     "tracker_url": "https://github.com/GDquest/Blender-power-sequencer/issues",
