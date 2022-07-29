@@ -908,61 +908,36 @@ class Eroder(bpy.types.Operator):
 
     stats = Stats()
     counts= {}
+    maps = {
+        'rainmap': lambda g, r, c: g.rainmap[r, c],
+        'scree': lambda g, r, c: g.avalanced[r, c],
+        'avalanced': lambda g, r, c: -g.avalanced[r, c],
+        'water': lambda g, r, c: g.water[r, c] / g.watermax,
+        'scour': lambda g, r, c: g.scour[r, c] / max(g.scourmax, -g.scourmin),
+        'deposit': lambda g, r, c: g.scour[r, c] / min(-g.scourmax, g.scourmin),
+        'flowrate': lambda g, r, c: g.flowrate[r, c],
+        'sediment': lambda g, r, c: g.sediment[r, c],
+        'sedimentpct': lambda g, r, c: g.sedimentpct[r, c],
+        'capacity': lambda g, r, c: g.capacity[r, c]
+    }
 
     def execute(self, context):
 
         ob = context.active_object
-        me = ob.data
+        oldMesh = ob.data
         self.stats.reset()
-        try:
-            vgActive = ob.vertex_groups.active.name
-        except:
-            vgActive = "capacity"
-        print("ActiveGroup", vgActive)
-        try:
-            vg=ob.vertex_groups["rainmap"]
-        except:
-            vg=ob.vertex_groups.new(name="rainmap")
-        try:
-            vgscree=ob.vertex_groups["scree"]
-        except:
-            vgscree=ob.vertex_groups.new(name="scree")
-        try:
-            vgavalanced=ob.vertex_groups["avalanced"]
-        except:
-            vgavalanced=ob.vertex_groups.new(name="avalanced")
-        try:
-            vgw=ob.vertex_groups["water"]
-        except:
-            vgw=ob.vertex_groups.new(name="water")
-        try:
-            vgscour=ob.vertex_groups["scour"]
-        except:
-            vgscour=ob.vertex_groups.new(name="scour")
-        try:
-            vgdeposit=ob.vertex_groups["deposit"]
-        except:
-            vgdeposit=ob.vertex_groups.new(name="deposit")
-        try:
-            vgflowrate=ob.vertex_groups["flowrate"]
-        except:
-            vgflowrate=ob.vertex_groups.new(name="flowrate")
-        try:
-            vgsediment=ob.vertex_groups["sediment"]
-        except:
-            vgsediment=ob.vertex_groups.new(name="sediment")
-        try:
-            vgsedimentpct=ob.vertex_groups["sedimentpct"]
-        except:
-            vgsedimentpct=ob.vertex_groups.new(name="sedimentpct")
-        try:
-            vgcapacity=ob.vertex_groups["capacity"]
-        except:
-            vgcapacity=ob.vertex_groups.new(name="capacity")
+        index_to_name = {}
 
-        g = Grid.fromBlenderMesh(me, vg, self.Ef)
+        for name in self.maps:
+            try:
+                ob.vertex_groups[name]
+            except:
+                ob.vertex_groups.new(name=name)
+            # Save a mapping from index to name, in case,
+            # the next iteration is different.
+            index_to_name[ob.vertex_groups[name].index] = name
 
-        me = bpy.data.meshes.new(me.name)
+        g = Grid.fromBlenderMesh(oldMesh, ob.vertex_groups['rainmap'], self.Ef)
 
         self.counts['diffuse'] = 0
         self.counts['avalanche'] = 0
@@ -986,64 +961,29 @@ class Eroder(bpy.types.Operator):
                 g.fluvial_erosion(self.Kr, self.Kv, self.userainmap, self.Kc, self.Ks, self.Kz*50, self.Ka, 0,0,0,0, self.numexpr)
                 self.counts['water']+=1
 
-        g.toBlenderMesh(me)
-        ob.data = me
+        newMesh = bpy.data.meshes.new(oldMesh.name)
+        g.toBlenderMesh(newMesh)
 
-        if vg:
-            for row in range(g.rainmap.shape[0]):
-                for col in range(g.rainmap.shape[1]):
-                    i = row * g.rainmap.shape[1] + col
-                    vg.add([i],g.rainmap[row,col],'ADD')
-        if vgscree:
-            for row in range(g.rainmap.shape[0]):
-                for col in range(g.rainmap.shape[1]):
-                    i = row * g.rainmap.shape[1] + col
-                    vgscree.add([i],g.avalanced[row,col],'ADD')
-        if vgavalanced:
-            for row in range(g.rainmap.shape[0]):
-                for col in range(g.rainmap.shape[1]):
-                    i = row * g.rainmap.shape[1] + col
-                    vgavalanced.add([i],-g.avalanced[row,col],'ADD')
-        if vgw:
-            for row in range(g.rainmap.shape[0]):
-                for col in range(g.rainmap.shape[1]):
-                    i = row * g.rainmap.shape[1] + col
-                    vgw.add([i],g.water[row,col]/g.watermax,'ADD')
-        if vgscour:
-            for row in range(g.rainmap.shape[0]):
-                for col in range(g.rainmap.shape[1]):
-                    i = row * g.rainmap.shape[1] + col
-                    vgscour.add([i],g.scour[row,col]/max(g.scourmax, -g.scourmin),'ADD')
-        if vgdeposit:
-            for row in range(g.rainmap.shape[0]):
-                for col in range(g.rainmap.shape[1]):
-                    i = row * g.rainmap.shape[1] + col
-                    vgdeposit.add([i],g.scour[row,col]/min(-g.scourmax, g.scourmin),'ADD')
-        if vgflowrate:
-            for row in range(g.rainmap.shape[0]):
-                for col in range(g.rainmap.shape[1]):
-                    i = row * g.rainmap.shape[1] + col
-                    vgflowrate.add([i],g.flowrate[row,col],'ADD')
-        if vgsediment:
-            for row in range(g.rainmap.shape[0]):
-                for col in range(g.rainmap.shape[1]):
-                    i = row * g.rainmap.shape[1] + col
-                    vgsediment.add([i],g.sediment[row,col],'ADD')
-        if vgsedimentpct:
-            for row in range(g.rainmap.shape[0]):
-                for col in range(g.rainmap.shape[1]):
-                    i = row * g.rainmap.shape[1] + col
-                    vgsedimentpct.add([i],g.sedimentpct[row,col],'ADD')
-        if vgcapacity:
-            for row in range(g.rainmap.shape[0]):
-                for col in range(g.rainmap.shape[1]):
-                    i = row * g.rainmap.shape[1] + col
-                    vgcapacity.add([i],g.capacity[row,col],'ADD')
-        try:
-            vg = ob.vertex_groups["vgActive"]
-        except:
-            vg = vgcapacity
-        ob.vertex_groups.active = vg
+        # This empties ob.vertex_groups.
+        ob.data = newMesh
+
+        # Copy vertex groups from the old mesh.
+        for name in self.maps:
+            ob.vertex_groups.new(name=name)
+        for vert in oldMesh.vertices:
+            for group in vert.groups:
+                name = index_to_name[group.group]
+                if name:
+                    ob.vertex_groups[name].add([vert.index], group.weight, 'REPLACE')
+
+        # Add the new data.
+        for row in range(g.rainmap.shape[0]):
+            for col in range(g.rainmap.shape[1]):
+                i = row * g.rainmap.shape[1] + col
+                for name, fn in self.maps.items():
+                    ob.vertex_groups[name].add([i], fn(g, row, col), 'ADD')
+
+        ob.vertex_groups.active = ob.vertex_groups['capacity']
 
         if self.smooth:
             bpy.ops.object.shade_smooth()
