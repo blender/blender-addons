@@ -15,7 +15,7 @@ def create_gltf_ao_group(operator, group_name):
 
 class NODE_OT_GLTF_SETTINGS(bpy.types.Operator):
     bl_idname = "node.gltf_settings_node_operator"
-    bl_label  = "glTF Material Ouptut"
+    bl_label  = "glTF Material Output"
     bl_description = "Add a node to the active tree for glTF export"
 
     @classmethod
@@ -208,10 +208,10 @@ class SCENE_OT_gltf2_assign_to_variant(bpy.types.Operator):
 
         return {'FINISHED'}
 
-# Operator to reset mesh to orignal (using default material when exists)
+# Operator to reset mesh to original (using default material when exists)
 class SCENE_OT_gltf2_reset_to_original(bpy.types.Operator):
     bl_idname = "scene.gltf2_reset_to_original"
-    bl_label = "Reset to Orignal"
+    bl_label = "Reset to Original"
     bl_options = {'REGISTER'}
 
     @classmethod
