@@ -143,6 +143,7 @@ class OperatorOriginToSpline0Start(bpy.types.Operator):
     bl_idname = "curvetools.operatororigintospline0start"
     bl_label = "OriginToSpline0Start"
     bl_description = "Sets the origin of the active/selected curve to the starting point of the (first) spline. Nice for curve modifiers"
+    bl_options = {'UNDO'}
 
 
     @classmethod
@@ -180,6 +181,7 @@ class OperatorIntersectCurves(bpy.types.Operator):
     bl_idname = "curvetools.operatorintersectcurves"
     bl_label = "Intersect"
     bl_description = "Intersects selected curves"
+    bl_options = {'UNDO'}
 
 
     @classmethod
@@ -231,6 +233,7 @@ class OperatorLoftCurves(bpy.types.Operator):
     bl_idname = "curvetools.operatorloftcurves"
     bl_label = "Loft"
     bl_description = "Lofts selected curves"
+    bl_options = {'UNDO'}
 
 
     @classmethod
@@ -256,6 +259,7 @@ class OperatorSweepCurves(bpy.types.Operator):
     bl_idname = "curvetools.operatorsweepcurves"
     bl_label = "Sweep"
     bl_description = "Sweeps the active curve along to other curve (rail)"
+    bl_options = {'UNDO'}
 
 
     @classmethod
@@ -281,6 +285,7 @@ class OperatorBirail(bpy.types.Operator):
     bl_idname = "curvetools.operatorbirail"
     bl_label = "Birail"
     bl_description = "Generates a birailed surface from 3 selected curves -- in order: rail1, rail2 and profile"
+    bl_options = {'UNDO'}
 
 
     @classmethod
@@ -304,6 +309,7 @@ class OperatorSplinesSetResolution(bpy.types.Operator):
     bl_idname = "curvetools.operatorsplinessetresolution"
     bl_label = "SplinesSetResolution"
     bl_description = "Sets the resolution of all splines"
+    bl_options = {'UNDO'}
 
 
     @classmethod
@@ -328,6 +334,7 @@ class OperatorSplinesRemoveZeroSegment(bpy.types.Operator):
     bl_idname = "curvetools.operatorsplinesremovezerosegment"
     bl_label = "SplinesRemoveZeroSegment"
     bl_description = "Removes splines with no segments -- they seem to creep up, sometimes"
+    bl_options = {'UNDO'}
 
 
     @classmethod
@@ -362,6 +369,7 @@ class OperatorSplinesRemoveShort(bpy.types.Operator):
     bl_idname = "curvetools.operatorsplinesremoveshort"
     bl_label = "SplinesRemoveShort"
     bl_description = "Removes splines with a length smaller than the threshold"
+    bl_options = {'UNDO'}
 
 
     @classmethod
@@ -391,6 +399,7 @@ class OperatorSplinesJoinNeighbouring(bpy.types.Operator):
     bl_idname = "curvetools.operatorsplinesjoinneighbouring"
     bl_label = "SplinesJoinNeighbouring"
     bl_description = "Joins neighbouring splines within a distance smaller than the threshold"
+    bl_options = {'UNDO'}
 
 
     @classmethod
