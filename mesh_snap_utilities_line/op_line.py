@@ -51,10 +51,10 @@ def get_closest_edge(bm, point, dist):
     return r_edge
 
 
-def get_loose_linked_edges(bmvert):
-    linked = [e for e in bmvert.link_edges if not e.link_faces]
+def get_loose_linked_edges(vert):
+    linked = [e for e in vert.link_edges if e.is_wire]
     for e in linked:
-        linked += [le for v in e.verts if not v.link_faces for le in v.link_edges if le not in linked]
+        linked += [le for v in e.verts if v.is_wire for le in v.link_edges if le not in linked]
     return linked
 
 
