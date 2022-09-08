@@ -59,6 +59,8 @@ def __gather_scene(blender_scene, export_settings):
     # Now, we can filter tree if needed
     vtree.filter()
 
+    vtree.variants_reset_to_original()
+
     export_user_extensions('vtree_after_filter_hook', export_settings, vtree)
 
     export_settings['vtree'] = vtree
@@ -94,9 +96,12 @@ def __gather_animations(blender_scene, export_settings):
     if export_settings['gltf_nla_strips'] is False:
         # Fake an animation with all animations of the scene
         merged_tracks = {}
-        merged_tracks['Animation'] = []
+        merged_tracks_name = 'Animation'
+        if(len(export_settings['gltf_nla_strips_merged_animation_name']) > 0):
+            merged_tracks_name = export_settings['gltf_nla_strips_merged_animation_name']
+        merged_tracks[merged_tracks_name] = []
         for idx, animation in enumerate(animations):
-            merged_tracks['Animation'].append(idx)
+            merged_tracks[merged_tracks_name].append(idx)
 
 
     to_delete_idx = []

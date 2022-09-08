@@ -3,7 +3,6 @@
 
 import bpy
 
-import bgl
 import blf
 import gpu
 from gpu_extras.batch import batch_for_shader
@@ -66,7 +65,7 @@ def draw(self, context, splines, sequence_color, font_thickness, font_size, matr
             batch = batch_for_shader(shader, 'LINES', {"pos": points})
 
             shader.bind()
-            bgl.glLineWidth(font_thickness)
+            gpu.state.line_width_set(font_thickness)
             shader.uniform_float("color", sequence_color)
             batch.draw(shader)
             i += font_size + font_size * 0.5
@@ -215,6 +214,7 @@ class RearrangeSpline(bpy.types.Operator):
     bl_idname = "curvetools.rearrange_spline"
     bl_label = "Rearrange Spline"
     bl_description = "Rearrange Spline"
+    bl_options = {'UNDO'}
 
     Types = [('NEXT', "Next", "next"),
              ('PREV', "Prev", "prev")]

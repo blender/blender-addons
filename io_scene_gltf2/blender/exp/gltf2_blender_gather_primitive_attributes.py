@@ -44,7 +44,7 @@ def array_to_accessor(array, component_type, data_type, include_max_and_min=Fals
         amin = np.amin(array, axis=0).tolist()
 
     return gltf2_io.Accessor(
-        buffer_view=gltf2_io_binary_data.BinaryData(array.tobytes()),
+        buffer_view=gltf2_io_binary_data.BinaryData(array.tobytes(), gltf2_io_constants.BufferViewTarget.ARRAY_BUFFER),
         byte_offset=None,
         component_type=component_type,
         count=len(array),
@@ -124,28 +124,34 @@ def __gather_colors(blender_primitive, export_settings):
         color_index = 0
         color_id = 'COLOR_' + str(color_index)
         while blender_primitive["attributes"].get(color_id) is not None:
-            colors = blender_primitive["attributes"][color_id]
+            colors = blender_primitive["attributes"][color_id]["data"]
 
             if type(colors) is not np.ndarray:
                 colors = np.array(colors, dtype=np.float32)
                 colors = colors.reshape(len(colors) // 4, 4)
 
-            # Convert to normalized ushorts
-            colors *= 65535
-            colors += 0.5  # bias for rounding
-            colors = colors.astype(np.uint16)
+            if blender_primitive["attributes"][color_id]["norm"] is True:
+                comp_type = gltf2_io_constants.ComponentType.UnsignedShort
+
+                # Convert to normalized ushorts
+                colors *= 65535
+                colors += 0.5  # bias for rounding
+                colors = colors.astype(np.uint16)
+
+            else:
+                comp_type = gltf2_io_constants.ComponentType.Float
 
             attributes[color_id] = gltf2_io.Accessor(
-                buffer_view=gltf2_io_binary_data.BinaryData(colors.tobytes()),
+                buffer_view=gltf2_io_binary_data.BinaryData(colors.tobytes(), gltf2_io_constants.BufferViewTarget.ARRAY_BUFFER),
                 byte_offset=None,
-                component_type=gltf2_io_constants.ComponentType.UnsignedShort,
+                component_type=comp_type,
                 count=len(colors),
                 extensions=None,
                 extras=None,
                 max=None,
                 min=None,
                 name=None,
-                normalized=True,
+                normalized=blender_primitive["attributes"][color_id]["norm"],
                 sparse=None,
                 type=gltf2_io_constants.DataType.Vec4,
             )
@@ -166,6 +172,13 @@ def __gather_skins(blender_primitive, export_settings):
     while blender_primitive["attributes"].get('JOINTS_' + str(max_bone_set_index)) and blender_primitive["attributes"].get('WEIGHTS_' + str(max_bone_set_index)):
         max_bone_set_index += 1
     max_bone_set_index -= 1
+
+    # Here, a set represents a group of 4 weights.
+    # So max_bone_set_index value:
+    # if -1 => No weights
+    # if 1 => Max 4 weights
+    # if 2 => Max 8 weights
+    # etc...
 
     # If no skinning
     if max_bone_set_index < 0:

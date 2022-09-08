@@ -1,8 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright 2016-2020 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
-
-# This file is part of Power Sequencer.
-
+# Copyright (C) 2016-2020 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
 import bpy
 from mathutils import Vector
 from math import floor
@@ -40,7 +37,10 @@ class POWER_SEQUENCER_OT_fade_add(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     duration_seconds: bpy.props.FloatProperty(
-        name="Fade Duration", description="Duration of the fade in seconds", default=1.0, min=0.01,
+        name="Fade Duration",
+        description="Duration of the fade in seconds",
+        default=1.0,
+        min=0.01,
     )
     type: bpy.props.EnumProperty(
         items=[

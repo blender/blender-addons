@@ -136,7 +136,7 @@ class SunPosProperties(PropertyGroup):
 
     object_collection_type: EnumProperty(
         name="Display type",
-        description="Show object group as sun motion",
+        description="Show object collection as sun motion",
         items=(
             ('ANALEMMA', "Analemma", ""),
             ('DIURNAL', "Diurnal", ""),
@@ -174,6 +174,7 @@ class SunPosProperties(PropertyGroup):
         update=sun_update)
 
     bind_to_sun: BoolProperty(
+        name="Bind Texture to Sun",
         description="If true, Environment texture moves with sun",
         default=False,
         update=sun_update)

@@ -8,7 +8,6 @@
 # noinspection PyUnresolvedReferences
 import bpy
 # noinspection PyUnresolvedReferences
-import bgl
 from bpy.types import Operator, Panel, SpaceView3D
 from math import sqrt, fabs, pi, asin
 from .achm_tools import *
@@ -36,6 +35,7 @@ class ARCHIMESH_OT_Hole(Operator):
     bl_label = "Auto Holes"
     bl_description = "Enable windows and doors holes for any selected object (needs wall thickness)"
     bl_category = 'View'
+    bl_options = {'UNDO', 'REGISTER'}
 
     # ------------------------------
     # Execute
@@ -170,6 +170,7 @@ class ARCHIMESH_OT_Pencil(Operator):
     bl_label = "Room from Draw"
     bl_description = "Create a room base on grease pencil strokes (draw from top view (7 key))"
     bl_category = 'View'
+    bl_options = {'UNDO', 'REGISTER'}
 
     # ------------------------------
     # Execute

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 bl_info = {
-    "name": "Wavefront OBJ format",
+    "name": "Wavefront OBJ format (legacy)",
     "author": "Campbell Barton, Bastien Montagne",
     "version": (3, 9, 0),
     "blender": (3, 0, 0),
@@ -459,11 +459,11 @@ class OBJ_PT_export_geometry(bpy.types.Panel):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportOBJ.bl_idname, text="Wavefront (.obj)")
+    self.layout.operator(ImportOBJ.bl_idname, text="Wavefront (.obj) (legacy)")
 
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)")
+    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj) (legacy)")
 
 
 classes = (

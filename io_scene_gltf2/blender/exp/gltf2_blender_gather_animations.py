@@ -64,21 +64,24 @@ def gather_animations(  obj_uuid: int,
         # No TRS animation are found for this object.
         # But we need to bake, in case we export selection
         # (Only when force sampling is ON)
-        # If force sampling is OFF, can lead to inconsistant export anyway
+        # If force sampling is OFF, can lead to inconsistent export anyway
         if export_settings['gltf_selected'] is True and blender_object.type != "ARMATURE" and export_settings['gltf_force_sampling'] is True:
-            channels = __gather_channels_baked(obj_uuid, export_settings)
-            if channels is not None:
-                animation = gltf2_io.Animation(
-                        channels=channels,
-                        extensions=None, # as other animations
-                        extras=None, # Because there is no animation to get extras from
-                        name=blender_object.name, # Use object name as animation name
-                        samplers=[]
-                    )
+            # We also have to check if this is a skinned mesh, because we don't have to force animation baking on this case
+            # (skinned meshes TRS must be ignored, says glTF specification)
+            if export_settings['vtree'].nodes[obj_uuid].skin is None:
+                channels = __gather_channels_baked(obj_uuid, export_settings)
+                if channels is not None:
+                    animation = gltf2_io.Animation(
+                            channels=channels,
+                            extensions=None, # as other animations
+                            extras=None, # Because there is no animation to get extras from
+                            name=blender_object.name, # Use object name as animation name
+                            samplers=[]
+                        )
 
-                __link_samplers(animation, export_settings)
-                if animation is not None:
-                    animations.append(animation)
+                    __link_samplers(animation, export_settings)
+                    if animation is not None:
+                        animations.append(animation)
         elif export_settings['gltf_selected'] is True and blender_object.type == "ARMATURE":
             # We need to bake all bones. Because some bone can have some constraints linking to
             # some other armature bones, for example
@@ -319,20 +322,21 @@ def __get_blender_actions(blender_object: bpy.types.Object,
                         action_on_type[strip.action.name] = "SHAPEKEY"
 
     # If there are only 1 armature, include all animations, even if not in NLA
-    if blender_object.type == "ARMATURE":
-        if len(export_settings['vtree'].get_all_node_of_type(VExportNode.ARMATURE)) == 1:
-            # Keep all actions on objects (no Shapekey animation)
-            for act in [a for a in bpy.data.actions if a.id_root == "OBJECT"]:
-                # We need to check this is an armature action
-                # Checking that at least 1 bone is animated
-                if not __is_armature_action(act):
-                    continue
-                # Check if this action is already taken into account
-                if act.name in blender_tracks.keys():
-                    continue
-                blender_actions.append(act)
-                blender_tracks[act.name] = None
-                action_on_type[act.name] = "OBJECT"
+    if export_settings['gltf_export_anim_single_armature'] is True:
+        if blender_object.type == "ARMATURE":
+            if len(export_settings['vtree'].get_all_node_of_type(VExportNode.ARMATURE)) == 1:
+                # Keep all actions on objects (no Shapekey animation)
+                for act in [a for a in bpy.data.actions if a.id_root == "OBJECT"]:
+                    # We need to check this is an armature action
+                    # Checking that at least 1 bone is animated
+                    if not __is_armature_action(act):
+                        continue
+                    # Check if this action is already taken into account
+                    if act.name in blender_tracks.keys():
+                        continue
+                    blender_actions.append(act)
+                    blender_tracks[act.name] = None
+                    action_on_type[act.name] = "OBJECT"
 
     export_user_extensions('gather_actions_hook', export_settings, blender_object, blender_actions, blender_tracks, action_on_type)
 

@@ -865,9 +865,9 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         if last_subsurf:
             elem_data_single_int32(geom, b"Smoothness", 2) # Display control mesh and smoothed
             if last_subsurf.boundary_smooth == "PRESERVE_CORNERS":
-                elem_data_single_int32(geom, b"BoundaryRule", 2) # CreaseAll
+                elem_data_single_int32(geom, b"BoundaryRule", 1) # CreaseAll
             else:
-                elem_data_single_int32(geom, b"BoundaryRule", 1) # CreaseEdge
+                elem_data_single_int32(geom, b"BoundaryRule", 2) # CreaseEdge
             elem_data_single_int32(geom, b"PreviewDivisionLevels", last_subsurf.levels)
             elem_data_single_int32(geom, b"RenderDivisionLevels", last_subsurf.render_levels)
 
@@ -1528,7 +1528,7 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
             elem_data_single_int32(fbx_skin, b"Version", FBX_DEFORMER_SKIN_VERSION)
             elem_data_single_float64(fbx_skin, b"Link_DeformAcuracy", 50.0)  # Only vague idea what it is...
 
-            # Pre-process vertex weights (also to check vertices assigned ot more than four bones).
+            # Pre-process vertex weights (also to check vertices assigned to more than four bones).
             ob = ob_obj.bdata
             bo_vg_idx = {bo_obj.bdata.name: ob.vertex_groups[bo_obj.bdata.name].index
                          for bo_obj in clusters.keys() if bo_obj.bdata.name in ob.vertex_groups}
