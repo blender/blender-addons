@@ -5,7 +5,7 @@ bl_info = {
     "author": "Campbell Barton, Matt Ebb",
     "version": (1, 1, 4),
     "blender": (3, 0, 0),
-    "location": "Image-Window > UVs > Export UV Layout",
+    "location": "UV Editor > UV > Export UV Layout",
     "description": "Export the UV layout as a 2D graphic",
     "warning": "",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/import_export/mesh_uv_layout.html",
