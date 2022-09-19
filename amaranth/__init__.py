@@ -41,7 +41,6 @@ from amaranth.node_editor import (
     simplify_nodes,
     node_stats,
     normal_node,
-    switch_material,
     node_shader_extra,
     )
 
