@@ -133,3 +133,7 @@ def register():
 
 def unregister():
     clear_properties()
+
+    from bpy.utils import unregister_class
+    for cls in classes:
+        unregister_class(cls)
