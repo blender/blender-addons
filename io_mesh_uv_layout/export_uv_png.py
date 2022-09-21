@@ -26,7 +26,10 @@ def export(filepath, face_data, colors, width, height, opacity):
 
 
 def draw_image(face_data, opacity):
-    gpu.state.blend_set('ALPHA_PREMULT')
+    bgl.glLineWidth(1)
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glEnable(bgl.GL_LINE_SMOOTH)
+    bgl.glHint(bgl.GL_LINE_SMOOTH_HINT, bgl.GL_NICEST)
 
     with gpu.matrix.push_pop():
         gpu.matrix.load_matrix(get_normalize_uvs_matrix())
@@ -35,7 +38,8 @@ def draw_image(face_data, opacity):
         draw_background_colors(face_data, opacity)
         draw_lines(face_data)
 
-    gpu.state.blend_set('NONE')
+    bgl.glDisable(bgl.GL_BLEND)
+    bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
 def get_normalize_uvs_matrix():
@@ -86,9 +90,7 @@ def draw_lines(face_data):
     shader.uniform_float("color", (0, 0, 0, 1))
     batch = batch_for_shader(shader, 'LINES', {"pos": coords})
 
-    bgl.glEnable(bgl.GL_LINE_SMOOTH)
     batch.draw(shader)
-    bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
 def save_pixels(filepath, pixel_data, width, height):
