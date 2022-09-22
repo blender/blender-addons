@@ -122,13 +122,12 @@ def set_tab(tabtype, spaces):
         The beginning blank space for each line of the generated pov file
     """
     tab_str = ""
-    match tabtype:
-        case 'SPACE':
-            tab_str = spaces * " "
-        case 'NONE':
-            tab_str = ""
-        case 'TAB':
-            tab_str = "\t"
+    if tabtype == 'SPACE':
+        tab_str = spaces * " "
+    elif tabtype == 'NONE':
+        tab_str = ""
+    elif tabtype == 'TAB':
+        tab_str = "\t"
     return tab_str
 
 
