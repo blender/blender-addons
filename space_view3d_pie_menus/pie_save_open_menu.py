@@ -8,13 +8,13 @@ bl_info = {
     "warning": "",
     "doc_url": "",
     "category": "Save Open Pie"
-    }
+}
 
 import bpy
 from bpy.types import (
-        Menu,
-        Operator,
-        )
+    Menu,
+    Operator,
+)
 import os
 
 
@@ -136,7 +136,7 @@ classes = (
     PIE_MT_recover,
     PIE_MT_link,
     PIE_MT_openio,
-    )
+)
 
 addon_keymaps = []
 
