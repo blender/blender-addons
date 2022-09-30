@@ -23,7 +23,7 @@ def export(filepath, face_data, colors, width, height, opacity):
         offscreen.free()
 
 def draw_image(face_data, opacity):
-    gpu.state.blend_set('ALPHA_PREMULT')
+    gpu.state.blend_set('ALPHA')
 
     with gpu.matrix.push_pop():
         gpu.matrix.load_matrix(get_normalize_uvs_matrix())
@@ -70,16 +70,20 @@ def draw_lines(face_data):
         for i in range(len(uvs)):
             start = uvs[i]
             end = uvs[(i+1) % len(uvs)]
-            coords.append((start[0], start[1], 0.0))
-            coords.append((end[0], end[1], 0.0))
+            coords.append((start[0], start[1]))
+            coords.append((end[0], end[1]))
 
-    # Use '2D_UNIFORM_COLOR' if smooth lines are not required.
+    # Use '2D_UNIFORM_COLOR' in the `batch_for_shader` so we don't need to
+    # convert the coordinates to 3D as in the case of
+    # '3D_POLYLINE_UNIFORM_COLOR'.
+    batch = batch_for_shader(gpu.shader.from_builtin('2D_UNIFORM_COLOR'), 'LINES', {"pos" : coords})
+
     shader = gpu.shader.from_builtin('3D_POLYLINE_UNIFORM_COLOR')
-    batch = batch_for_shader(shader, 'LINES', {"pos" : coords})
     shader.bind()
     shader.uniform_float("viewportSize", gpu.state.viewport_get()[2:])
-    shader.uniform_float("lineWidth", 0.5)
-    shader.uniform_float("color", (0, 0, 0, 1))
+    shader.uniform_float("lineWidth", 1.0)
+    shader.uniform_float("color", (0.0, 0.0, 0.0, 1.0))
+
     batch.draw(shader)
 
 def save_pixels(filepath, pixel_data, width, height):
