@@ -884,14 +884,17 @@ class SVGPathParser:
             if cmd is None:
                 raise Exception('Unknown path command: {0}' . format(code))
 
-            if cmd in {'Z', 'z'}:
+            if code in {'Z', 'z'}:
                 closed = True
             else:
                 closed = False
 
+            if code in {'M', 'm'} and self._use_fill and not closed:
+                self._pathClose('z') # Ensure closed before MoveTo path command
+
             cmd(code)
         if self._use_fill and not closed:
-            self._pathClose('z')
+            self._pathClose('z') # Ensure closed at the end of parsing
 
     def getSplines(self):
         """
