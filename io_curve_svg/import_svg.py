@@ -484,7 +484,7 @@ class SVGPathParser:
     """
 
     __slots__ = ('_data',  # Path data supplird
-                 '_point',  # Current point coorfinate
+                 '_point',  # Current point coordinate
                  '_handle',  # Last handle coordinate
                  '_splines',  # List of all splies created during parsing
                  '_spline',  # Currently handling spline
@@ -870,6 +870,14 @@ class SVGPathParser:
             cv = self._spline['points'][0]
             self._point = (cv['x'], cv['y'])
 
+    def _pathCloseImplicitly(self):
+        """
+        Close path implicitly without changing current point coordinate
+        """
+
+        if self._spline:
+            self._spline['closed'] = True
+
     def parse(self):
         """
         Execute parser
@@ -890,11 +898,11 @@ class SVGPathParser:
                 closed = False
 
             if code in {'M', 'm'} and self._use_fill and not closed:
-                self._pathClose('z') # Ensure closed before MoveTo path command
+                self._pathCloseImplicitly() # Ensure closed before MoveTo path command
 
             cmd(code)
         if self._use_fill and not closed:
-            self._pathClose('z') # Ensure closed at the end of parsing
+            self._pathCloseImplicitly() # Ensure closed at the end of parsing
 
     def getSplines(self):
         """
