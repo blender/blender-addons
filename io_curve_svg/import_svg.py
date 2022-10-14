@@ -161,7 +161,7 @@ def SVGParseTransform(transform):
 
         proc = SVGTransforms.get(func)
         if proc is None:
-            raise Exception('Unknown trasnform function: ' + func)
+            raise Exception('Unknown transform function: ' + func)
 
         m = m @ proc(params)
 
