@@ -441,7 +441,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             name="Ignore Transforms",
             description="Skips some matrix multiplication that screws up transforms on nested structures."
                         "Only works if all of the objects in the hierarchy have transforms applied (scale:1, rotation:0)."
-                        "Requires 'Apply Transform' to be True and all transforms to be applied in the object hierarchy.",
+                        "Requires 'Apply Transform' to be True.",
             default=True,
             )
     object_types: EnumProperty(
