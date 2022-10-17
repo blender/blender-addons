@@ -435,9 +435,15 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             description="Bake space transform into object data, avoids getting unwanted rotations to objects when "
                         "target space is not aligned with Blender's space "
                         "(WARNING! experimental option, use at own risks, known broken with armatures/animations)",
-            default=False,
+            default=True,
             )
-
+    ignore_transforms: BoolProperty(
+            name="Ignore Transforms",
+            description="Skips some matrix multiplication that screws up transforms on nested structures."
+                        "Only works if all of the objects in the hierarchy have transforms applied (scale:1, rotation:0)."
+                        "Requires 'Apply Transform' to be True and all transforms to be applied in the object hierarchy.",
+            default=True,
+            )
     object_types: EnumProperty(
             name="Object Types",
             options={'ENUM_FLAG'},
@@ -751,7 +757,8 @@ class FBX_PT_export_transform(bpy.types.Panel):
         row = layout.row()
         row.prop(operator, "bake_space_transform")
         row.label(text="", icon='ERROR')
-
+        row = layout.row()
+        row.prop(operator, "ignore_transforms")
 
 class FBX_PT_export_geometry(bpy.types.Panel):
     bl_space_type = 'FILE_BROWSER'

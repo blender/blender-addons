@@ -1107,26 +1107,28 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
                 # Have to bring it back into bone root, which is FBX expected value.
                 matrix = Matrix.Translation((0, (parent.bdata.tail - parent.bdata.head).length, 0)) @ matrix
 
-        # Our matrix is in local space, time to bring it in its final desired space.
-        if parent:
-            if is_global:
-                # Move matrix to global Blender space.
-                matrix = (parent.matrix_rest_global if rest else parent.matrix_global) @ matrix
-            elif parent.use_bake_space_transform(scene_data):
-                # Blender's and FBX's local space of parent may differ if we use bake_space_transform...
-                # Apply parent's *Blender* local space...
-                matrix = (parent.matrix_rest_local if rest else parent.matrix_local) @ matrix
-                # ...and move it back into parent's *FBX* local space.
-                par_mat = parent.fbx_object_matrix(scene_data, rest=rest, local_space=True)
-                matrix = par_mat.inverted_safe() @ matrix
+        if scene_data.settings.ignore_transforms == False:
 
-        if self.use_bake_space_transform(scene_data):
-            # If we bake the transforms we need to post-multiply inverse global transform.
-            # This means that the global transform will not apply to children of this transform.
-            matrix = matrix @ scene_data.settings.global_matrix_inv
-        if is_global:
-            # In any case, pre-multiply the global matrix to get it in FBX global space!
-            matrix = scene_data.settings.global_matrix @ matrix
+            # Our matrix is in local space, time to bring it in its final desired space.
+            if parent:
+                if is_global:
+                    # Move matrix to global Blender space.
+                    matrix = (parent.matrix_rest_global if rest else parent.matrix_global) @ matrix
+                elif parent.use_bake_space_transform(scene_data):
+                    # Blender's and FBX's local space of parent may differ if we use bake_space_transform...
+                    # Apply parent's *Blender* local space...
+                    matrix = (parent.matrix_rest_local if rest else parent.matrix_local) @ matrix
+                    # ...and move it back into parent's *FBX* local space.
+                    par_mat = parent.fbx_object_matrix(scene_data, rest=rest, local_space=True)
+                    matrix = par_mat.inverted_safe() @ matrix
+
+            if self.use_bake_space_transform(scene_data):
+                # If we bake the transforms we need to post-multiply inverse global transform.
+                # This means that the global transform will not apply to children of this transform.
+                matrix = matrix @ scene_data.settings.global_matrix_inv
+            if is_global:
+                # In any case, pre-multiply the global matrix to get it in FBX global space!
+                matrix = scene_data.settings.global_matrix @ matrix
 
         return matrix
 
@@ -1213,7 +1215,7 @@ FBXExportSettingsMedia = namedtuple("FBXExportSettingsMedia", (
 # Helper container gathering all exporter settings.
 FBXExportSettings = namedtuple("FBXExportSettings", (
     "report", "to_axes", "global_matrix", "global_scale", "apply_unit_scale", "unit_scale",
-    "bake_space_transform", "global_matrix_inv", "global_matrix_inv_transposed",
+    "bake_space_transform", "ignore_transforms", "global_matrix_inv", "global_matrix_inv_transposed",
     "context_objects", "object_types", "use_mesh_modifiers", "use_mesh_modifiers_render",
     "mesh_smooth_type", "use_subsurf", "use_mesh_edges", "use_tspace", "use_triangles",
     "armature_nodetype", "use_armature_deform_only", "add_leaf_bones",

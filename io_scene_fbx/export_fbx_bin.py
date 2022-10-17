@@ -3033,7 +3033,8 @@ def save_single(operator, scene, depsgraph, filepath="",
                 use_triangles=False,
                 embed_textures=False,
                 use_custom_props=False,
-                bake_space_transform=False,
+                bake_space_transform=True,
+                ignore_transforms=True,
                 armature_nodetype='NULL',
                 colors_type='SRGB',
                 **kwargs
@@ -3096,7 +3097,7 @@ def save_single(operator, scene, depsgraph, filepath="",
 
     settings = FBXExportSettings(
         operator.report, (axis_up, axis_forward), global_matrix, global_scale, apply_unit_scale, unit_scale,
-        bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
+        bake_space_transform, ignore_transforms, global_matrix_inv, global_matrix_inv_transposed,
         context_objects, object_types, use_mesh_modifiers, use_mesh_modifiers_render,
         mesh_smooth_type, use_subsurf, use_mesh_edges, use_tspace, use_triangles,
         armature_nodetype, use_armature_deform_only,
@@ -3161,8 +3162,8 @@ def defaults_unity3d():
         "global_matrix": Matrix.Rotation(-math.pi / 2.0, 4, 'X'),
         # Should really be True, but it can cause problems if a model is already in a scene or prefab
         # with the old transforms.
-        "bake_space_transform": False,
-
+        "bake_space_transform": True,
+        "ignore_transforms": True,
         "use_selection": False,
 
         "object_types": {'ARMATURE', 'EMPTY', 'MESH', 'OTHER'},
