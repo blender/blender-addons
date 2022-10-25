@@ -16,6 +16,7 @@ from .utils.misc import gamma_correct, select_object, ArmatureObject, verify_arm
 from .utils.collections import (ensure_collection, list_layer_collections,
                                 filter_layer_collections_by_object)
 from .utils.rig import get_rigify_type, get_rigify_layers
+from .utils.action_layers import ActionLayerBuilder
 
 from . import base_generate
 from . import rig_ui_template
@@ -37,6 +38,7 @@ class Timer:
 
 class Generator(base_generate.BaseGenerator):
     usable_collections: list[bpy.types.LayerCollection]
+    action_layers: ActionLayerBuilder
 
     def __init__(self, context, metarig):
         super().__init__(context, metarig)
@@ -456,6 +458,7 @@ class Generator(base_generate.BaseGenerator):
         obj.data["rig_id"] = self.rig_id
 
         self.script = rig_ui_template.ScriptGenerator(self)
+        self.action_layers = ActionLayerBuilder(self)
 
         ###########################################
         bpy.ops.object.mode_set(mode='OBJECT')
