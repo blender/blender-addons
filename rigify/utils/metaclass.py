@@ -114,6 +114,11 @@ class StagedMetaclass(type):
     def make_stage_decorators(self):
         return [(name, rigify_stage(name)) for name in self.rigify_stages]
 
+    def stage_decorator_container(self, cls):
+        for name, stage in self.make_stage_decorators():
+            setattr(cls, name, stage)
+        return cls
+
 
 class BaseStagedClass(object, metaclass=StagedMetaclass):
     rigify_sub_objects = tuple()

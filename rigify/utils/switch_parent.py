@@ -14,7 +14,6 @@ from .mechanism import MechanismUtilityMixin
 from .rig import rig_is_child
 from .misc import map_list, map_apply, force_lazy
 
-from ..base_rig import *
 from ..base_generate import GeneratorPlugin
 
 from collections import defaultdict

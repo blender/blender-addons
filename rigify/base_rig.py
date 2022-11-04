@@ -1,18 +1,17 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import collections
+import typing
 
 from .utils.errors import RaiseErrorMixin
 from .utils.bones import BoneDict, BoneUtilityMixin
 from .utils.mechanism import MechanismUtilityMixin
 from .utils.metaclass import BaseStagedClass
 
-# Only export certain symbols via 'from base_rig import *'
-__all__ = ['BaseRig', 'stage']
 
-#=============================================
+##############################################
 # Base Rig
-#=============================================
+##############################################
 
 class GenerateCallbackHost(BaseStagedClass, define_stages=True):
     """
@@ -162,13 +161,13 @@ class BaseRig(GenerateCallbackHost, RaiseErrorMixin, BoneUtilityMixin, Mechanism
         # Collection of bone names for use in implementing the rig
         self.bones = BoneDict(
             # ORG bone names
-            org = self.find_org_bones(pose_bone),
+            org=self.find_org_bones(pose_bone),
             # Control bone names
-            ctrl = BoneDict(),
+            ctrl=BoneDict(),
             # MCH bone names
-            mch = BoneDict(),
+            mch=BoneDict(),
             # DEF bone names
-            deform = BoneDict(),
+            deform=BoneDict(),
         )
 
         # Data useful for complex rig interaction:
@@ -234,9 +233,9 @@ class BaseRig(GenerateCallbackHost, RaiseErrorMixin, BoneUtilityMixin, Mechanism
         """
 
 
-#=============================================
+##############################################
 # Rig Utility
-#=============================================
+##############################################
 
 
 class RigUtility(BoneUtilityMixin, MechanismUtilityMixin):
@@ -270,13 +269,21 @@ class RigComponent(LazyRigComponent):
         self.enable_component()
 
 
-#=============================================
+##############################################
 # Rig Stage Decorators
-#=============================================
+##############################################
 
+# Generate @stage.<...> decorators for all valid stages.
+@GenerateCallbackHost.stage_decorator_container
 class stage:
-    pass
-
-# Generate @stage.<...> decorators for all valid stages
-for name, decorator in GenerateCallbackHost.make_stage_decorators():
-    setattr(stage, name, decorator)
+    # Declare stages for auto-completion - doesn't affect execution.
+    initialize: typing.Callable
+    prepare_bones: typing.Callable
+    generate_bones: typing.Callable
+    parent_bones: typing.Callable
+    configure_bones: typing.Callable
+    preapply_bones: typing.Callable
+    apply_bones: typing.Callable
+    rig_bones: typing.Callable
+    generate_widgets: typing.Callable
+    finalize: typing.Callable
