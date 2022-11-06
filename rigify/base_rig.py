@@ -1,12 +1,20 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import collections
-import typing
+
+from bpy.types import PoseBone
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 from .utils.errors import RaiseErrorMixin
 from .utils.bones import BoneDict, BoneUtilityMixin
 from .utils.mechanism import MechanismUtilityMixin
 from .utils.metaclass import BaseStagedClass
+from .utils.misc import ArmatureObject
+from .utils.rig import get_rigify_params
+
+if TYPE_CHECKING:
+    from .base_generate import BaseGenerator
+    from .rig_ui_template import ScriptGenerator
 
 
 ##############################################
@@ -137,6 +145,21 @@ class GenerateCallbackHost(BaseStagedClass, define_stages=True):
 
 
 class BaseRig(GenerateCallbackHost, RaiseErrorMixin, BoneUtilityMixin, MechanismUtilityMixin):
+    generator: 'BaseGenerator'
+
+    obj: ArmatureObject
+    script: 'ScriptGenerator'
+    base_bone: str
+    params: Any
+    bones: BoneDict
+
+    rigify_parent: Optional['BaseRig']
+    rigify_children: list['BaseRig']
+    rigify_org_bones: set[str]
+    rigify_child_bones: set[str]
+    rigify_new_bones: dict[str, Optional[str]]
+    rigify_derived_bones: dict[str, set[str]]
+
     """
     Base class for all rigs.
 
@@ -150,13 +173,13 @@ class BaseRig(GenerateCallbackHost, RaiseErrorMixin, BoneUtilityMixin, Mechanism
     and the common generator object. The generation process is also
     split into multiple stages.
     """
-    def __init__(self, generator, pose_bone):
+    def __init__(self, generator: 'BaseGenerator', pose_bone: PoseBone):
         self.generator = generator
 
         self.obj = generator.obj
         self.script = generator.script
         self.base_bone = pose_bone.name
-        self.params = pose_bone.rigify_parameters
+        self.params = get_rigify_params(pose_bone)
 
         # Collection of bone names for use in implementing the rig
         self.bones = BoneDict(
@@ -193,7 +216,7 @@ class BaseRig(GenerateCallbackHost, RaiseErrorMixin, BoneUtilityMixin, Mechanism
     ###########################################################
     # Bone ownership
 
-    def find_org_bones(self, pose_bone):
+    def find_org_bones(self, pose_bone: PoseBone) -> str | list[str] | BoneDict:
         """
         Select bones directly owned by the rig. Returning the
         same bone from multiple rigs is an error.
@@ -277,13 +300,13 @@ class RigComponent(LazyRigComponent):
 @GenerateCallbackHost.stage_decorator_container
 class stage:
     # Declare stages for auto-completion - doesn't affect execution.
-    initialize: typing.Callable
-    prepare_bones: typing.Callable
-    generate_bones: typing.Callable
-    parent_bones: typing.Callable
-    configure_bones: typing.Callable
-    preapply_bones: typing.Callable
-    apply_bones: typing.Callable
-    rig_bones: typing.Callable
-    generate_widgets: typing.Callable
-    finalize: typing.Callable
+    initialize: Callable
+    prepare_bones: Callable
+    generate_bones: Callable
+    parent_bones: Callable
+    configure_bones: Callable
+    preapply_bones: Callable
+    apply_bones: Callable
+    rig_bones: Callable
+    generate_widgets: Callable
+    finalize: Callable
