@@ -37,7 +37,6 @@ class Timer:
 
 class Generator(base_generate.BaseGenerator):
     usable_collections: list[bpy.types.LayerCollection]
-    action_layers: ActionLayerBuilder
 
     def __init__(self, context, metarig):
         super().__init__(context, metarig)
