@@ -6,7 +6,7 @@ import importlib.util
 import re
 
 from itertools import count
-from typing import TYPE_CHECKING, Any, Optional, Sequence, Mapping
+from typing import TYPE_CHECKING, Any, Optional, Sequence
 from bpy.types import bpy_struct, Constraint, Object, PoseBone, Bone, Armature
 
 # noinspection PyUnresolvedReferences

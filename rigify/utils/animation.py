@@ -7,10 +7,14 @@ import math
 # noinspection PyUnresolvedReferences
 from mathutils import Matrix, Vector
 
-from typing import Callable, Any, Collection, Iterator
+from typing import TYPE_CHECKING, Callable, Any, Collection, Iterator, Optional, Sequence
 from bpy.types import Action, bpy_struct, FCurve
 
 import json
+
+if TYPE_CHECKING:
+    from ..rig_ui_template import PanelLayout
+
 
 rig_id = None
 
@@ -849,7 +853,7 @@ class POSE_OT_rigify_clear_keyframes(bpy.types.Operator):
 
 
 # noinspection PyDefaultArgument,PyUnusedLocal
-def add_clear_keyframes_button(panel, *, bones=[], label='', text=''):
+def add_clear_keyframes_button(panel: 'PanelLayout', *, bones: list[str] = [], label='', text=''):
     panel.use_bake_settings()
     panel.script.add_utilities(SCRIPT_UTILITIES_OP_CLEAR_KEYS)
     panel.script.register_classes(SCRIPT_REGISTER_OP_CLEAR_KEYS)
@@ -921,8 +925,10 @@ class POSE_OT_rigify_generic_snap_bake(RigifyGenericSnapBase, RigifyBakeKeyframe
 ''']
 
 
-def add_fk_ik_snap_buttons(panel, op_single, op_bake, *, label=None, rig_name='', properties=None,
-                           clear_bones=None, compact=None):
+def add_fk_ik_snap_buttons(panel: 'PanelLayout', op_single: str, op_bake: str, *,
+                           label, rig_name='', properties: dict[str, Any],
+                           clear_bones: Optional[list[str]] = None,
+                           compact: Optional[bool] = None):
     assert label and properties
 
     if rig_name:
@@ -944,8 +950,12 @@ def add_fk_ik_snap_buttons(panel, op_single, op_bake, *, label=None, rig_name=''
 
 
 # noinspection PyDefaultArgument
-def add_generic_snap(panel, *, output_bones=[], input_bones=[], input_ctrl_bones=[], label='Snap',
-                     rig_name='', undo_copy_scale=False, compact=None, clear=True, locks=None, tooltip=None):
+def add_generic_snap(panel: 'PanelLayout', *,
+                     output_bones: list[str] = [], input_bones: list[str] = [],
+                     input_ctrl_bones: list[str] = [], label='Snap',
+                     rig_name='', undo_copy_scale=False, compact: Optional[bool] = None,
+                     clear=True, locks: Optional[Sequence[bool]] = None,
+                     tooltip: Optional[str] = None):
     panel.use_bake_settings()
     panel.script.add_utilities(SCRIPT_UTILITIES_OP_SNAP)
     panel.script.register_classes(SCRIPT_REGISTER_OP_SNAP)
@@ -972,8 +982,11 @@ def add_generic_snap(panel, *, output_bones=[], input_bones=[], input_ctrl_bones
 
 
 # noinspection PyDefaultArgument
-def add_generic_snap_fk_to_ik(panel, *, fk_bones=[], ik_bones=[], ik_ctrl_bones=[], label='FK->IK',
-                              rig_name='', undo_copy_scale=False, compact=None, clear=True):
+def add_generic_snap_fk_to_ik(panel: 'PanelLayout', *,
+                              fk_bones: list[str] = [], ik_bones: list[str] = [],
+                              ik_ctrl_bones: list[str] = [], label='FK->IK',
+                              rig_name='', undo_copy_scale=False,
+                              compact: Optional[bool] = None, clear=True):
     add_generic_snap(
         panel, output_bones=fk_bones, input_bones=ik_bones, input_ctrl_bones=ik_ctrl_bones,
         label=label, rig_name=rig_name, undo_copy_scale=undo_copy_scale, compact=compact, clear=clear

@@ -4,7 +4,7 @@ import bpy
 import math
 
 from mathutils import Vector, Matrix
-from typing import Optional, Callable
+from typing import Optional, Callable, Iterable
 
 from .errors import MetarigError
 from .naming import get_name, make_derived_name, is_control_bone
@@ -15,7 +15,69 @@ from .misc import pairwise, ArmatureObject
 # Bone collection
 ########################
 
-class BoneDict(dict):
+class BaseBoneDict(dict):
+    """
+    Special dictionary for holding bone names in a structured way.
+
+    Allows access to contained items as attributes, and only
+    accepts certain types of values.
+    """
+
+    @staticmethod
+    def __sanitize_attr(key, value):
+        if hasattr(BaseBoneDict, key):
+            raise KeyError(f"Invalid BoneDict key: {key}")
+
+        if value is None or isinstance(value, (str, list, BaseBoneDict)):
+            return value
+
+        if isinstance(value, dict):
+            return BaseBoneDict(value)
+
+        raise ValueError(f"Invalid BoneDict value: {repr(value)}")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+
+        for key, value in dict(*args, **kwargs).items():
+            dict.__setitem__(self, key, BaseBoneDict.__sanitize_attr(key, value))
+
+        self.__dict__ = self
+
+    def __repr__(self):
+        return "BoneDict(%s)" % (dict.__repr__(self))
+
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, key, BaseBoneDict.__sanitize_attr(key, value))
+
+    def update(self, *args, **kwargs):
+        for key, value in dict(*args, **kwargs).items():
+            dict.__setitem__(self, key, BaseBoneDict.__sanitize_attr(key, value))
+
+    def flatten(self, key: Optional[str] = None):
+        """Return all contained bones or a single key as a list."""
+
+        items = [self[key]] if key is not None else self.values()
+
+        all_bones = []
+
+        for item in items:
+            if isinstance(item, BaseBoneDict):
+                all_bones.extend(item.flatten())
+            elif isinstance(item, list):
+                all_bones.extend(item)
+            elif item is not None:
+                all_bones.append(item)
+
+        return all_bones
+
+
+class TypedBoneDict(BaseBoneDict):
+    # Omit DynamicAttrs to ensure usages of undeclared attributes are highlighted
+    pass
+
+
+class BoneDict(BaseBoneDict):
     """
     Special dictionary for holding bone names in a structured way.
 
@@ -24,54 +86,6 @@ class BoneDict(dict):
 
     @DynamicAttrs
     """
-
-    @staticmethod
-    def __sanitize_attr(key, value):
-        if hasattr(BoneDict, key):
-            raise KeyError(f"Invalid BoneDict key: {key}")
-
-        if value is None or isinstance(value, (str, list, BoneDict)):
-            return value
-
-        if isinstance(value, dict):
-            return BoneDict(value)
-
-        raise ValueError(f"Invalid BoneDict value: {repr(value)}")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-
-        for key, value in dict(*args, **kwargs).items():
-            dict.__setitem__(self, key, BoneDict.__sanitize_attr(key, value))
-
-        self.__dict__ = self
-
-    def __repr__(self):
-        return "BoneDict(%s)" % (dict.__repr__(self))
-
-    def __setitem__(self, key, value):
-        dict.__setitem__(self, key, BoneDict.__sanitize_attr(key, value))
-
-    def update(self, *args, **kwargs):
-        for key, value in dict(*args, **kwargs).items():
-            dict.__setitem__(self, key, BoneDict.__sanitize_attr(key, value))
-
-    def flatten(self, key=None):
-        """Return all contained bones or a single key as a list."""
-
-        items = [self[key]] if key is not None else self.values()
-
-        all_bones = []
-
-        for item in items:
-            if isinstance(item, BoneDict):
-                all_bones.extend(item.flatten())
-            elif isinstance(item, list):
-                all_bones.extend(item)
-            elif item is not None:
-                all_bones.append(item)
-
-        return all_bones
 
 
 ########################
@@ -220,7 +234,7 @@ def flip_bone(obj: ArmatureObject, bone_name: str):
         raise MetarigError("Cannot flip bones outside of edit mode")
 
 
-def flip_bone_chain(obj: ArmatureObject, bone_names: list[str]):
+def flip_bone_chain(obj: ArmatureObject, bone_names: Iterable[str]):
     """Flips a connected bone chain."""
     assert obj.mode == 'EDIT'
 
@@ -282,7 +296,7 @@ def put_bone(obj: ArmatureObject, bone_name: str, pos: Optional[Vector], *,
         raise MetarigError("Cannot 'put' bones outside of edit mode")
 
 
-def disable_bbones(obj: ArmatureObject, bone_names: list[str]):
+def disable_bbones(obj: ArmatureObject, bone_names: Iterable[str]):
     """Disables B-Bone segments on the specified bones."""
     assert(obj.mode != 'EDIT')
     for bone in bone_names:
@@ -440,7 +454,7 @@ class BoneUtilityMixin(object):
             bone.inherit_scale = inherit_scale
         bone.parent = (eb[parent_name] if parent_name else None)
 
-    def parent_bone_chain(self, bone_names: list[str],
+    def parent_bone_chain(self, bone_names: Iterable[str],
                           use_connect: Optional[bool] = None,
                           inherit_scale: Optional[str] = None):
         """Link bones into a chain with parenting. First bone may be None."""
@@ -453,7 +467,7 @@ class BoneUtilityMixin(object):
 # B-Bones
 ##############################################
 
-def connect_bbone_chain_handles(obj: ArmatureObject, bone_names: list[str]):
+def connect_bbone_chain_handles(obj: ArmatureObject, bone_names: Iterable[str]):
     assert obj.mode == 'EDIT'
 
     for prev_name, next_name in pairwise(bone_names):

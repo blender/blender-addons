@@ -151,6 +151,15 @@ class ControlLayersOption:
 
         layout_layer_buttons(box, params, self.layers_option, active_layers)
 
+    # Declarations for auto-completion
+    FK: 'ControlLayersOption'
+    TWEAK: 'ControlLayersOption'
+    EXTRA_IK: 'ControlLayersOption'
+    FACE_PRIMARY: 'ControlLayersOption'
+    FACE_SECONDARY: 'ControlLayersOption'
+    SKIN_PRIMARY: 'ControlLayersOption'
+    SKIN_SECONDARY: 'ControlLayersOption'
+
 
 ControlLayersOption.FK = ControlLayersOption(
     'fk', description="Layers for the FK controls to be on")

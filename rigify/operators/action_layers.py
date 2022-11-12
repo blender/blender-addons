@@ -119,21 +119,21 @@ class ActionSlot(PropertyGroup, ActionSlotBase):
     trans_min: FloatProperty(
         name="Min",
         default=-0.05,
-        description="Value that the transformation value must reach to put the action's timeline"
+        description="Value that the transformation value must reach to put the action's timeline "
                     "to the first frame. Rotations are in degrees"
     )
 
     trans_max: FloatProperty(
         name="Max",
         default=0.05,
-        description="Value that the transformation value must reach to put the action's timeline"
+        description="Value that the transformation value must reach to put the action's timeline "
                     "to the last frame. Rotations are in degrees"
     )
 
     is_corrective: BoolProperty(
         name="Corrective",
-        description="Indicate that this is a corrective action. Corrective actions will activate"
-                    "based on the activation of two other actions (using End Frame if both inputs"
+        description="Indicate that this is a corrective action. Corrective actions will activate "
+                    "based on the activation of two other actions (using End Frame if both inputs "
                     "are at their End Frame, and Start Frame if either is at Start Frame)"
     )
 
