@@ -180,9 +180,13 @@ class BaseRigMixin(RaiseErrorMixin, BoneUtilityMixin, MechanismUtilityMixin):
     class MchBones(TypedBoneDict):
         pass
 
+    # Subclass and use the above CtrlBones and MchBones classes in overrides.
+    # It is necessary to reference them via absolute strings, e.g. 'Rig.CtrlBones',
+    # because when using just CtrlBones the annotation won't work fully in subclasses
+    # of the rig class in PyCharm (no warnings about unknown attribute access).
     bones: ToplevelBones[str | list[str] | BoneDict,
-                         str | list[str] | BoneDict,  # Use CtrlBones in overrides
-                         str | list[str] | BoneDict,  # Use MchBones in overrides
+                         str | list[str] | BoneDict,
+                         str | list[str] | BoneDict,
                          str | list[str] | BoneDict]
 
 

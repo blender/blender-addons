@@ -50,7 +50,12 @@ class Rig(SimpleChainRig):
         stretch: list[str]             # Stretch system
         bend: list[str]                # Bend system
 
-    bones: SimpleChainRig.ToplevelBones[list[str], CtrlBones, MchBones, list[str]]
+    bones: SimpleChainRig.ToplevelBones[
+        list[str],
+        'Rig.CtrlBones',
+        'Rig.MchBones',
+        list[str]
+    ]
 
     ##############################
     # Master Control

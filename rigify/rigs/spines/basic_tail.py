@@ -31,6 +31,22 @@ class Rig(BaseHeadTailRig):
             self.rig_parent_bone = self.connected_tweak
 
     ####################################################
+    # BONES
+
+    class CtrlBones(BaseHeadTailRig.CtrlBones):
+        master: str                    # Master control.
+
+    class MchBones(BaseHeadTailRig.MchBones):
+        rot_tail: str                  # Tail follow system.
+
+    bones: BaseHeadTailRig.ToplevelBones[
+        list[str],
+        'Rig.CtrlBones',
+        'Rig.MchBones',
+        list[str]
+    ]
+
+    ####################################################
     # Master control
 
     @stage.generate_bones
