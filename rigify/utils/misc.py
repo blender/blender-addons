@@ -11,6 +11,7 @@ from rna_prop_ui import rna_idprop_value_to_python
 
 
 T = typing.TypeVar('T')
+AnyVector = Vector | typing.Sequence[float]
 
 ##############################################
 # Math
@@ -71,7 +72,7 @@ matrix_from_axis_roll = bpy.types.Bone.MatrixFromAxisRoll
 axis_roll_from_matrix = bpy.types.Bone.AxisRollFromMatrix
 
 
-def matrix_from_axis_pair(y_axis: Vector, other_axis: Vector, axis_name: str):
+def matrix_from_axis_pair(y_axis: AnyVector, other_axis: AnyVector, axis_name: str):
     assert axis_name in 'xz'
 
     y_axis = Vector(y_axis).normalized()
@@ -176,7 +177,7 @@ def force_lazy(value: OptionalLazy[T]) -> T:
         return value
 
 
-class LazyRef:
+class LazyRef(typing.Generic[T]):
     """Hashable lazy reference. When called, evaluates (foo, 'a', 'b'...) as foo('a','b')
     if foo is callable. Otherwise, the remaining arguments are used as attribute names or
     keys, like foo.a.b or foo.a[b] etc."""
@@ -200,7 +201,7 @@ class LazyRef:
         return (hash(self.first) if self.first_hashable
                 else hash(id(self.first))) ^ hash(self.args)
 
-    def __call__(self):
+    def __call__(self) -> T:
         first = self.first
         if callable(first):
             return first(*self.args)
@@ -282,7 +283,6 @@ class TypedObject(bpy.types.Object, typing.Generic[T]):
 
 ArmatureObject = TypedObject[bpy.types.Armature]
 MeshObject = TypedObject[bpy.types.Mesh]
-AnyVector = Vector | typing.Sequence[float]
 
 
 def verify_armature_obj(obj: bpy.types.Object) -> ArmatureObject:
