@@ -3563,8 +3563,8 @@ def load_web3d(
                 # Assign anim curves
                 node = defDict[key]
                 if node.blendData is None:  # Add an object if we need one for animation
-                    node.blendData = node.blendObject = bpy.data.objects.new('AnimOb', None)  # , name)
-                    bpycollection.objects.link(node.blendObject)
+                    bpyob = node.blendData = node.blendObject = bpy.data.objects.new('AnimOb', None)  # , name)
+                    bpycollection.objects.link(bpyob)
                     bpyob.select_set(True)
 
                 if node.blendData.animation_data is None:
