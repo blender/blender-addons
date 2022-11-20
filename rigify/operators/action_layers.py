@@ -15,13 +15,11 @@ from ..utils.action_layers import ActionSlotBase
 
 
 def get_action_slots(arm: Armature) -> Sequence['ActionSlot']:
-    # noinspection PyUnresolvedReferences
-    return arm.rigify_action_slots
+    return arm.rigify_action_slots  # noqa
 
 
 def get_action_slots_active(arm: Armature) -> tuple[Sequence['ActionSlot'], int]:
-    # noinspection PyUnresolvedReferences
-    return arm.rigify_action_slots, arm.rigify_active_action_slot
+    return arm.rigify_action_slots, arm.rigify_active_action_slot  # noqa
 
 
 def poll_trigger_action(_self, action):
@@ -176,10 +174,11 @@ def find_duplicate_slot(metarig_data: Armature, action_slot: ActionSlot) -> Opti
 
     return None
 
+
 # =============================================
 # Operators
 
-
+# noinspection PyPep8Naming
 class RIGIFY_OT_action_create(Operator):
     """Create new Action"""
     # This is needed because bpy.ops.action.new() has a poll function that blocks
@@ -199,6 +198,7 @@ class RIGIFY_OT_action_create(Operator):
         return {'FINISHED'}
 
 
+# noinspection PyPep8Naming
 class RIGIFY_OT_jump_to_action_slot(Operator):
     """Set Active Action Slot Index"""
 
@@ -217,6 +217,7 @@ class RIGIFY_OT_jump_to_action_slot(Operator):
 # =============================================
 # UI Panel
 
+# noinspection PyPep8Naming
 class RIGIFY_UL_action_slots(UIList):
     def draw_item(self, context: Context, layout: UILayout, data: Armature,
                   action_slot: ActionSlot, icon, active_data, active_propname: str,
@@ -310,6 +311,7 @@ class RIGIFY_UL_action_slots(UIList):
             layout.label(text="", icon_value=icon)
 
 
+# noinspection PyPep8Naming
 class DATA_PT_rigify_actions(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'

@@ -6,11 +6,10 @@ import importlib.util
 import re
 
 from itertools import count
-from typing import TYPE_CHECKING, Any, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Optional, Sequence, Mapping
 from bpy.types import bpy_struct, Constraint, Object, PoseBone, Bone, Armature
 
-# noinspection PyUnresolvedReferences
-from bpy.types import bpy_prop_array
+from bpy.types import bpy_prop_array  # noqa
 
 from .misc import ArmatureObject
 
@@ -48,23 +47,24 @@ outdated_types = {"pitchipoy.limbs.super_limb": "limbs.super_limb",
 
 
 def get_rigify_type(pose_bone: PoseBone) -> str:
-    # noinspection PyUnresolvedReferences
-    return pose_bone.rigify_type.replace(" ", "")
+    rigify_type = pose_bone.rigify_type  # noqa
+    return rigify_type.replace(" ", "")
 
 
 def get_rigify_params(pose_bone: PoseBone) -> Any:
-    # noinspection PyUnresolvedReferences
-    return pose_bone.rigify_parameters
+    return pose_bone.rigify_parameters  # noqa
 
 
-def get_rigify_colors(arm: Armature) -> Sequence['RigifyColorSet']:
-    # noinspection PyUnresolvedReferences
-    return arm.rigify_colors
+def get_rigify_colors(arm: Armature) -> Sequence['RigifyColorSet'] | Mapping[str, 'RigifyColorSet']:
+    return arm.rigify_colors  # noqa
 
 
 def get_rigify_layers(arm: Armature) -> Sequence['RigifyArmatureLayer']:
-    # noinspection PyUnresolvedReferences
-    return arm.rigify_layers
+    return arm.rigify_layers  # noqa
+
+
+def get_rigify_target_rig(arm: Armature) -> Optional[ArmatureObject]:
+    return arm.rigify_target_rig  # noqa
 
 
 def is_rig_base_bone(obj: Object, name):
@@ -207,10 +207,8 @@ def _get_property_value(obj, name: str):
 def _generate_properties(lines, prefix, obj: bpy_struct, base_class: type, *,
                          defaults: dict[str, Any] = {},
                          objects: dict[Any, str] = {}):
-    # noinspection PyUnresolvedReferences
-    obj_rna: bpy.types.Struct = type(obj).bl_rna
-    # noinspection PyUnresolvedReferences
-    base_rna: bpy.types.Struct = base_class.bl_rna
+    obj_rna: bpy.types.Struct = type(obj).bl_rna  # noqa
+    base_rna: bpy.types.Struct = base_class.bl_rna  # noqa
 
     block_props = set(prop.identifier for prop in base_rna.properties) - set(defaults.keys())
 

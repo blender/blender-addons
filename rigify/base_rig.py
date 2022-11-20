@@ -327,9 +327,10 @@ class RigComponent(LazyRigComponent):
 # Rig Stage Decorators
 ##############################################
 
-# Generate @stage.<...> decorators for all valid stages.
+# noinspection PyPep8Naming
 @GenerateCallbackHost.stage_decorator_container
 class stage:
+    """Contains @stage.<...> decorators for all valid stages."""
     # Declare stages for auto-completion - doesn't affect execution.
     initialize: Callable
     prepare_bones: Callable

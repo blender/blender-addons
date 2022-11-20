@@ -287,11 +287,9 @@ MeshObject = TypedObject[bpy.types.Mesh]
 
 def verify_armature_obj(obj: bpy.types.Object) -> ArmatureObject:
     assert obj and obj.type == 'ARMATURE'
-    # noinspection PyTypeChecker
-    return obj
+    return obj  # noqa
 
 
 def verify_mesh_obj(obj: bpy.types.Object) -> MeshObject:
     assert obj and obj.type == 'MESH'
-    # noinspection PyTypeChecker
-    return obj
+    return obj  # noqa
