@@ -274,6 +274,49 @@ def select_object(context: bpy.types.Context, obj: bpy.types.Object, deselect_al
 
 
 ##############################################
+# Text
+##############################################
+
+def wrap_list_to_lines(prefix: str, delimiters: tuple[str, str] | str,
+                       items: typing.Iterable[str], *,
+                       limit=90, indent=4) -> list[str]:
+    """
+    Generate a string representation of a list of items, wrapping lines if necessary.
+
+    Args:
+        prefix:       Text of the first line before the list.
+        delimiters:   Start and end of list delimiters.
+        items:        List items, already converted to strings.
+        limit:        Maximum line length.
+        indent:       Wrapped line indent relative to prefix.
+    """
+    start, end = delimiters
+    items = list(items)
+    simple_line = prefix + start + ', '.join(items) + end
+
+    if not items or len(simple_line) <= limit:
+        return [simple_line]
+
+    prefix_indent = prefix[0: len(prefix) - len(prefix.lstrip())]
+    inner_indent = prefix_indent + ' ' * indent
+
+    result = []
+    line = prefix + start
+
+    for item in items:
+        item_repr = item + ','
+
+        if not result or len(line) + len(item_repr) + 1 > limit:
+            result.append(line)
+            line = inner_indent + item_repr
+        else:
+            line += ' ' + item_repr
+
+    result.append(line[:-1] + end)
+    return result
+
+
+##############################################
 # Typing
 ##############################################
 
