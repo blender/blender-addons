@@ -8,7 +8,7 @@ from bpy.props import (
     StringProperty
 )
 
-from typing import Sequence, TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Callable
 from mathutils import Color
 
 from .utils.errors import MetarigError
@@ -17,7 +17,7 @@ from .utils.rig import write_metarig, get_rigify_type, get_rigify_target_rig, ge
 from .utils.widgets import write_widget
 from .utils.naming import unique_name
 from .utils.rig import upgrade_metarig_types, outdated_types
-from .utils.misc import verify_armature_obj, ArmatureObject
+from .utils.misc import verify_armature_obj, ArmatureObject, IdPropSequence
 
 from .rigs.utils import get_limb_generated_names
 
@@ -34,14 +34,34 @@ from . import rot_mode
 from . import feature_set_list
 
 if TYPE_CHECKING:
-    from . import RigifyName, RigifyColorSet
+    from . import RigifyName, RigifySelectionColors
 
 
-def get_rigify_types(id_store: bpy.types.WindowManager) -> Sequence['RigifyName']:
+def get_rigify_types(id_store: bpy.types.WindowManager) -> IdPropSequence['RigifyName']:
     return id_store.rigify_types  # noqa
 
 
-def build_type_list(context, rigify_types: Any):
+def get_transfer_only_selected(id_store: bpy.types.WindowManager) -> bool:
+    return id_store.rigify_transfer_only_selected  # noqa
+
+
+def get_selection_colors(armature: bpy.types.Armature) -> 'RigifySelectionColors':
+    return armature.rigify_selection_colors  # noqa
+
+
+def get_colors_lock(armature: bpy.types.Armature) -> bool:
+    return armature.rigify_colors_lock  # noqa
+
+
+def get_colors_index(armature: bpy.types.Armature) -> int:
+    return armature.rigify_colors_index  # noqa
+
+
+def get_theme_to_add(armature: bpy.types.Armature) -> str:
+    return armature.rigify_theme_to_add  # noqa
+
+
+def build_type_list(context, rigify_types: IdPropSequence['RigifyName']):
     rigify_types.clear()
 
     for r in sorted(rig_lists.rigs):
@@ -328,7 +348,7 @@ class DATA_OT_rigify_add_bone_groups(bpy.types.Operator):
             if g in rigify_colors:
                 continue
 
-            color: 'RigifyColorSet' = rigify_colors.add()  # noqa
+            color = rigify_colors.add()
             color.name = g
 
             color.select = Color((0.3140000104904175, 0.7839999794960022, 1.0))
@@ -361,7 +381,7 @@ class DATA_OT_rigify_use_standard_colors(bpy.types.Operator):
         return context.object and context.object.type == 'ARMATURE'
 
     def execute(self, context):
-        obj = context.object
+        obj = verify_armature_obj(context.object)
         armature = obj.data
         if not hasattr(armature, 'rigify_colors'):
             return {'FINISHED'}
@@ -369,7 +389,7 @@ class DATA_OT_rigify_use_standard_colors(bpy.types.Operator):
         current_theme = bpy.context.preferences.themes.items()[0][0]
         theme = bpy.context.preferences.themes[current_theme]
 
-        selection_colors = armature.rigify_selection_colors  # noqa
+        selection_colors = get_selection_colors(armature)
         selection_colors.select = theme.view_3d.bone_pose
         selection_colors.active = theme.view_3d.bone_pose_active
 
@@ -400,7 +420,7 @@ class DATA_OT_rigify_apply_selection_colors(bpy.types.Operator):
         # theme = bpy.context.preferences.themes[current_theme]
 
         rigify_colors = get_rigify_colors(armature)
-        selection_colors = armature.rigify_selection_colors  # noqa
+        selection_colors = get_selection_colors(armature)
 
         for col in rigify_colors:
             col.select = selection_colors.select
@@ -483,7 +503,7 @@ class DATA_OT_rigify_bone_group_add_theme(bpy.types.Operator):
             if self.theme in rigify_colors.keys():
                 return {'FINISHED'}
 
-            rigify_colors.add()  # noqa
+            rigify_colors.add()
             rigify_colors[-1].name = self.theme
 
             color_id = int(self.theme[-2:]) - 1
@@ -512,7 +532,7 @@ class DATA_OT_rigify_bone_group_remove(bpy.types.Operator):
         obj = verify_armature_obj(context.object)
 
         rigify_colors = get_rigify_colors(obj.data)
-        rigify_colors.remove(self.idx)  # noqa
+        rigify_colors.remove(self.idx)
 
         # set layers references to 0
         rigify_layers = get_rigify_layers(obj.data)
@@ -540,7 +560,7 @@ class DATA_OT_rigify_bone_group_remove_all(bpy.types.Operator):
 
         rigify_colors = get_rigify_colors(obj.data)
         while len(rigify_colors) > 0:
-            rigify_colors.remove(0)  # noqa
+            rigify_colors.remove(0)
 
         # set layers references to 0
         for layer in get_rigify_layers(obj.data):
@@ -566,8 +586,7 @@ class DATA_UL_rigify_bone_groups(bpy.types.UIList):
         row2.prop(item, "active", text='')
         # row2.enabled = not item.standard_colors_lock
         arm = verify_armature_obj(context.object).data
-        is_locked = arm.rigify_colors_lock  # noqa
-        row2.enabled = not is_locked
+        row2.enabled = not get_colors_lock(arm)
 
 
 # noinspection PyPep8Naming
@@ -598,10 +617,10 @@ class DATA_PT_rigify_bone_groups(bpy.types.Panel):
     def draw(self, context):
         obj = verify_armature_obj(context.object)
         armature = obj.data
-        idx = armature.rigify_colors_index  # noqa
-        selection_colors = armature.rigify_selection_colors  # noqa
-        is_locked = armature.rigify_colors_lock  # noqa
-        theme = armature.rigify_theme_to_add  # noqa
+        idx = get_colors_index(armature)
+        selection_colors = get_selection_colors(armature)
+        is_locked = get_colors_lock(armature)
+        theme = get_theme_to_add(armature)
 
         layout = self.layout
         row = layout.row()
@@ -745,7 +764,7 @@ class VIEW3D_PT_rigify_animation_tools(bpy.types.Panel):
         if obj is not None:
             row = self.layout.row()
 
-            only_selected = id_store.rigify_transfer_only_selected  # noqa
+            only_selected = get_transfer_only_selected(id_store)
 
             if only_selected:
                 icon = 'OUTLINER_DATA_ARMATURE'
@@ -814,7 +833,7 @@ class LayerInit(bpy.types.Operator):
         arm = obj.data
         rigify_layers = get_rigify_layers(arm)
         for i in range(1 + len(rigify_layers), 30):
-            rigify_layers.add()  # noqa
+            rigify_layers.add()
         rigify_layers[28].name = 'Root'
         rigify_layers[28].row = 14
         return {'FINISHED'}
@@ -990,6 +1009,9 @@ class VIEW3D_MT_rigify(bpy.types.Menu):
     bl_label = "Rigify"
     bl_idname = "VIEW3D_MT_rigify"
 
+    append: Callable
+    remove: Callable
+
     def draw(self, context):
         layout = self.layout
         obj = verify_armature_obj(context.object)
@@ -1060,7 +1082,7 @@ def fk_to_ik(rig: ArmatureObject, window='ALL'):
     else:
         frames = [scn.frame_current]
 
-    only_selected = id_store.rigify_transfer_only_selected  # noqa
+    only_selected = get_transfer_only_selected(id_store)
 
     if not only_selected:
         pose_bones = rig.pose.bones
@@ -1139,7 +1161,7 @@ def ik_to_fk(rig: ArmatureObject, window='ALL'):
     else:
         frames = [scn.frame_current]
 
-    only_selected = id_store.rigify_transfer_only_selected  # noqa
+    only_selected = get_transfer_only_selected(id_store)
 
     if not only_selected:
         bpy.ops.pose.select_all(action='DESELECT')
@@ -1251,7 +1273,7 @@ def rot_pole_toggle(rig: ArmatureObject, window='ALL', value=False, toggle=False
     else:
         frames = [scn.frame_current]
 
-    only_selected = id_store.rigify_transfer_only_selected  # noqa
+    only_selected = get_transfer_only_selected(id_store)
 
     if not only_selected:
         bpy.ops.pose.select_all(action='DESELECT')

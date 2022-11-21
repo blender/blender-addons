@@ -6,12 +6,12 @@ import importlib.util
 import re
 
 from itertools import count
-from typing import TYPE_CHECKING, Any, Optional, Sequence, Mapping
+from typing import TYPE_CHECKING, Any, Optional
 from bpy.types import bpy_struct, Constraint, Object, PoseBone, Bone, Armature
 
 from bpy.types import bpy_prop_array  # noqa
 
-from .misc import ArmatureObject, wrap_list_to_lines
+from .misc import ArmatureObject, wrap_list_to_lines, IdPropSequence
 
 if TYPE_CHECKING:
     from ..base_rig import BaseRig
@@ -55,16 +55,32 @@ def get_rigify_params(pose_bone: PoseBone) -> Any:
     return pose_bone.rigify_parameters  # noqa
 
 
-def get_rigify_colors(arm: Armature) -> Sequence['RigifyColorSet'] | Mapping[str, 'RigifyColorSet']:
+def get_rigify_colors(arm: Armature) -> IdPropSequence['RigifyColorSet']:
     return arm.rigify_colors  # noqa
 
 
-def get_rigify_layers(arm: Armature) -> Sequence['RigifyArmatureLayer']:
+def get_rigify_layers(arm: Armature) -> IdPropSequence['RigifyArmatureLayer']:
     return arm.rigify_layers  # noqa
 
 
 def get_rigify_target_rig(arm: Armature) -> Optional[ArmatureObject]:
     return arm.rigify_target_rig  # noqa
+
+
+def get_rigify_rig_basename(arm: Armature) -> str:
+    return arm.rigify_rig_basename  # noqa
+
+
+def get_rigify_mirror_widgets(arm: Armature) -> bool:
+    return arm.rigify_mirror_widgets  # noqa
+
+
+def get_rigify_force_widget_update(arm: Armature) -> bool:
+    return arm.rigify_force_widget_update  # noqa
+
+
+def get_rigify_finalize_script(arm: Armature) -> Optional[bpy.types.Text]:
+    return arm.rigify_finalize_script  # noqa
 
 
 def is_rig_base_bone(obj: Object, name):

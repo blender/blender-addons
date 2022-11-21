@@ -263,7 +263,7 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    from bpy.types import VIEW3D_MT_rigify  # noqa
+    from ..ui import VIEW3D_MT_rigify
     VIEW3D_MT_rigify.append(draw_copy_mirror_ops)
 
 
@@ -272,5 +272,5 @@ def unregister():
     for cls in classes:
         unregister_class(cls)
 
-    from bpy.types import VIEW3D_MT_rigify  # noqa
+    from ..ui import VIEW3D_MT_rigify
     VIEW3D_MT_rigify.remove(draw_copy_mirror_ops)

@@ -114,12 +114,11 @@ def get_internal_metarigs():
                  [*base_rigify_path, METARIG_DIR])
 
 
-# noinspection SpellCheckingInspection
-def infinite_defaultdict():
-    return defaultdict(infinite_defaultdict)
+def infinite_default_dict():
+    return defaultdict(infinite_default_dict)
 
 
-metarigs = infinite_defaultdict()
+metarigs = infinite_default_dict()
 metarig_ops = {}
 armature_submenus = []
 menu_funcs = []

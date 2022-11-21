@@ -2,7 +2,7 @@
 
 import bpy
 
-from typing import Tuple, Optional, Sequence
+from typing import Tuple, Optional, Sequence, Any
 
 from bpy.types import PropertyGroup, Action, UIList, UILayout, Context, Panel, Operator, Armature
 from bpy.props import (EnumProperty, IntProperty, BoolProperty, StringProperty, FloatProperty,
@@ -12,6 +12,7 @@ from .generic_ui_list import draw_ui_list
 
 from ..utils.naming import mirror_name
 from ..utils.action_layers import ActionSlotBase
+from ..utils.rig import get_rigify_target_rig
 
 
 def get_action_slots(arm: Armature) -> Sequence['ActionSlot']:
@@ -272,8 +273,7 @@ class RIGIFY_UL_action_slots(UIList):
                     text = action_slot.subtarget
                     icon = 'BONE_DATA'
 
-                    # noinspection PyUnresolvedReferences
-                    target_rig: Object = data.rigify_target_rig
+                    target_rig = get_rigify_target_rig(data)
 
                     if not action_slot.subtarget:
                         row.alert = True
@@ -356,8 +356,7 @@ class DATA_PT_rigify_actions(Panel):
         if active_slot.is_corrective:
             self.draw_ui_corrective(context, active_slot)
         else:
-            # noinspection PyUnresolvedReferences
-            target_rig = armature_id_store.rigify_target_rig
+            target_rig = get_rigify_target_rig(armature_id_store)
             self.draw_slot_ui(layout, active_slot, target_rig)
             self.draw_status(active_slot)
 
@@ -406,8 +405,7 @@ class DATA_PT_rigify_actions(Panel):
         if show:
             col = layout.column(align=True)
             col.enabled = False
-            # noinspection PyUnresolvedReferences
-            target_rig = metarig.data.rigify_target_rig
+            target_rig = get_rigify_target_rig(metarig.data)
             self.draw_slot_ui(col, trigger_slot, target_rig)
             col.separator()
 
@@ -521,7 +519,7 @@ def unregister():
     for cls in classes:
         unregister_class(cls)
 
-    # noinspection PyUnresolvedReferences
-    del bpy.types.Armature.rigify_action_slots
-    # noinspection PyUnresolvedReferences
-    del bpy.types.Armature.rigify_active_action_slot
+    arm_data: Any = bpy.types.Armature
+
+    del arm_data.rigify_action_slots
+    del arm_data.rigify_active_action_slot

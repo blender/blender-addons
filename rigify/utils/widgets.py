@@ -5,15 +5,19 @@ import math
 import inspect
 import functools
 
-from typing import Optional, Callable
-from bpy.types import Mesh, Object, UILayout
+from typing import Optional, Callable, TYPE_CHECKING
+from bpy.types import Mesh, Object, UILayout, WindowManager
 from mathutils import Matrix, Vector, Euler
 from itertools import count
 
 from .errors import MetarigError
 from .collections import ensure_collection
-from .misc import ArmatureObject, MeshObject, AnyVector, verify_mesh_obj
+from .misc import ArmatureObject, MeshObject, AnyVector, verify_mesh_obj, IdPropSequence
 from .naming import change_name_side, get_name_side, Side
+
+if TYPE_CHECKING:
+    from .. import RigifyName
+
 
 WGT_PREFIX = "WGT-"  # Prefix for widget objects
 
@@ -192,12 +196,15 @@ def register_widget(name: str, callback, **default_args):
     _registered_widgets[name] = (callback, valid_args, default_args)
 
 
+def get_rigify_widgets(id_store: WindowManager) -> IdPropSequence['RigifyName']:
+    return id_store.rigify_widgets  # noqa
+
+
 def layout_widget_dropdown(layout: UILayout, props, prop_name: str, **kwargs):
     """Create a UI dropdown to select a widget from the known list."""
 
     id_store = bpy.context.window_manager
-    # noinspection PyUnresolvedReferences
-    rigify_widgets = id_store.rigify_widgets
+    rigify_widgets = get_rigify_widgets(id_store)
 
     rigify_widgets.clear()
 

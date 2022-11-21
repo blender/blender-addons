@@ -5,12 +5,15 @@ import math
 import collections
 import typing
 
+from abc import ABC
 from itertools import tee, chain, islice, repeat, permutations
 from mathutils import Vector, Matrix, Color
 from rna_prop_ui import rna_idprop_value_to_python
 
 
 T = typing.TypeVar('T')
+IdType = typing.TypeVar('IdType', bound=bpy.types.ID)
+
 AnyVector = Vector | typing.Sequence[float]
 
 ##############################################
@@ -108,11 +111,10 @@ def linsrgb_to_srgb(linsrgb: float):
     return scale
 
 
-# noinspection PyUnresolvedReferences,PyTypeChecker
 def gamma_correct(color: Color):
     corrected_color = Color()
-    for i, component in enumerate(color):
-        corrected_color[i] = linsrgb_to_srgb(color[i])
+    for i, component in enumerate(color):               # noqa
+        corrected_color[i] = linsrgb_to_srgb(color[i])  # noqa
     return corrected_color
 
 
@@ -320,8 +322,8 @@ def wrap_list_to_lines(prefix: str, delimiters: tuple[str, str] | str,
 # Typing
 ##############################################
 
-class TypedObject(bpy.types.Object, typing.Generic[T]):
-    data: T
+class TypedObject(bpy.types.Object, typing.Generic[IdType]):
+    data: IdType
 
 
 ArmatureObject = TypedObject[bpy.types.Armature]
@@ -336,3 +338,23 @@ def verify_armature_obj(obj: bpy.types.Object) -> ArmatureObject:
 def verify_mesh_obj(obj: bpy.types.Object) -> MeshObject:
     assert obj and obj.type == 'MESH'
     return obj  # noqa
+
+
+class IdPropSequence(typing.Mapping[str, T], ABC):
+    def __getitem__(self, item: str | int) -> T:
+        pass
+
+    def __setitem__(self, key: str | int, value: T):
+        pass
+
+    def add(self) -> T:
+        pass
+
+    def clear(self):
+        pass
+
+    def move(self, from_idx: int, to_idx: int):
+        pass
+
+    def remove(self, item: int):
+        pass

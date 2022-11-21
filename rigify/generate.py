@@ -15,7 +15,9 @@ from .utils.mechanism import refresh_all_drivers
 from .utils.misc import gamma_correct, select_object, ArmatureObject, verify_armature_obj
 from .utils.collections import (ensure_collection, list_layer_collections,
                                 filter_layer_collections_by_object)
-from .utils.rig import get_rigify_type, get_rigify_layers
+from .utils.rig import get_rigify_type, get_rigify_layers, get_rigify_target_rig,\
+    get_rigify_rig_basename, get_rigify_force_widget_update, get_rigify_finalize_script,\
+    get_rigify_mirror_widgets
 from .utils.action_layers import ActionLayerBuilder
 
 from . import base_generate
@@ -68,11 +70,10 @@ class Generator(base_generate.BaseGenerator):
         print("Fetch rig.")
         meta_data = self.metarig.data
 
-        target_rig: ArmatureObject = meta_data.rigify_target_rig
+        target_rig = get_rigify_target_rig(meta_data)
 
         if not target_rig:
-            # noinspection PyUnresolvedReferences
-            rig_basename = meta_data.rigify_rig_basename
+            rig_basename = get_rigify_rig_basename(meta_data)
 
             if rig_basename:
                 rig_new_name = rig_basename
@@ -159,16 +160,14 @@ class Generator(base_generate.BaseGenerator):
 
         self.metarig.data.rigify_widgets_collection = self.widget_collection
 
-        # noinspection PyUnresolvedReferences
-        self.use_mirror_widgets = self.metarig.data.rigify_mirror_widgets
+        self.use_mirror_widgets = get_rigify_mirror_widgets(self.metarig.data)
 
         # Build tables for existing widgets
         self.old_widget_table = {}
         self.new_widget_table = {}
         self.widget_mirror_mesh = {}
 
-        # noinspection PyUnresolvedReferences
-        if self.metarig.data.rigify_force_widget_update:
+        if get_rigify_force_widget_update(self.metarig.data):
             # Remove widgets if force update is set
             for obj in list(self.widget_collection.objects):
                 bpy.data.objects.remove(obj)
@@ -588,8 +587,7 @@ class Generator(base_generate.BaseGenerator):
         ###########################################
         # Execute the finalize script
 
-        # noinspection PyUnresolvedReferences
-        finalize_script = metarig.data.rigify_finalize_script
+        finalize_script = get_rigify_finalize_script(metarig.data)
 
         if finalize_script:
             bpy.ops.object.mode_set(mode='OBJECT')
@@ -637,8 +635,7 @@ def create_selection_set_for_rig_layer(rig: ArmatureObject, set_name: str, layer
 
     The set will contain all bones on the rig layer with the given index.
     """
-    # noinspection PyUnresolvedReferences
-    sel_set = rig.selection_sets.add()
+    sel_set = rig.selection_sets.add()  # noqa
     sel_set.name = set_name
 
     for b in rig.pose.bones:
@@ -660,8 +657,7 @@ def create_selection_sets(obj: ArmatureObject, metarig: ArmatureObject):
             and 'bone_selection_sets' not in bpy.context.preferences.addons:
         return
 
-    # noinspection PyUnresolvedReferences
-    obj.selection_sets.clear()
+    obj.selection_sets.clear()  # noqa
 
     rigify_layers = get_rigify_layers(metarig.data)
 

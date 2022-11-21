@@ -1,11 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# noinspection PyUnresolvedReferences
-import bpy
-# noinspection PyUnresolvedReferences
-import math
-# noinspection PyUnresolvedReferences
-from mathutils import Matrix, Vector
+import bpy  # noqa
+import math  # noqa
+from mathutils import Matrix, Vector  # noqa
 
 from typing import TYPE_CHECKING, Callable, Any, Collection, Iterator, Optional, Sequence
 from bpy.types import Action, bpy_struct, FCurve

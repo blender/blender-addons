@@ -1187,7 +1187,6 @@ class ScriptGenerator(base_generate.GeneratorPlugin):
         rigify_layers = get_rigify_layers(metarig.data)
 
         for i in range(1 + len(rigify_layers), 29):
-            # noinspection PyUnresolvedReferences
             rigify_layers.add()
 
         # Create list of layer name/row pairs
