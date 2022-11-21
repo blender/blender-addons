@@ -2738,7 +2738,7 @@ def appearance_CreateDefaultMaterial():
     bpymat_wrap = node_shader_utils.PrincipledBSDFWrapper(bpymat, is_readonly=False)
 
     bpymat_wrap.roughness = 0.8
-    bpymat_wrap.base_color = (0.8, 0.8, 0.8, 1.0)
+    bpymat_wrap.base_color = (0.8, 0.8, 0.8)
     #bpymat.mirror_color = (0, 0, 0)
     #bpymat.emit = 0
 
