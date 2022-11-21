@@ -6,6 +6,7 @@ import traceback
 from string import capwords
 from collections import defaultdict
 from types import ModuleType
+from typing import Iterable
 
 import bpy
 
@@ -27,10 +28,9 @@ class ArmatureSubMenu(bpy.types.Menu):
             layout.operator(op, icon='OUTLINER_OB_ARMATURE', text=text)
 
 
-# noinspection PyDefaultArgument
 def get_metarigs(metarig_table: dict[str, ModuleType | dict],
                  base_dir: str, base_path: list[str], *,
-                 path: list[str] = [], nested=False):
+                 path: Iterable[str] = (), nested=False):
     """ Searches for metarig modules, and returns a list of the
         imported modules.
     """
@@ -124,8 +124,10 @@ armature_submenus = []
 menu_funcs = []
 
 
-# noinspection PyDefaultArgument
-def create_metarig_ops(dic=metarigs):
+def create_metarig_ops(dic: dict | None = None):
+    if dic is None:
+        dic = metarigs
+
     """Create metarig add Operators"""
     for metarig_category in dic:
         if metarig_category == "external":
@@ -153,8 +155,10 @@ def create_menu_funcs():
         menu_funcs += [make_metarig_menu_func(mop.bl_idname, text)]
 
 
-# noinspection PyDefaultArgument,BlIdLowercase
-def create_armature_submenus(dic=metarigs):
+# noinspection BlIdLowercase
+def create_armature_submenus(dic: dict | None = None):
+    if dic is None:
+        dic = metarigs
     global menu_funcs
     metarig_categories = list(dic.keys())
     metarig_categories.sort()

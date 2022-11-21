@@ -3,7 +3,7 @@
 import bpy
 import json
 
-from typing import Optional, NamedTuple
+from typing import Optional, NamedTuple, Sequence
 from bpy.types import PoseBone, EditBone
 
 from ...utils.animation import add_generic_snap_fk_to_ik, add_fk_ik_snap_buttons
@@ -1152,12 +1152,11 @@ class POSE_OT_rigify_limb_ik2fk_bake(RigifyLimbIk2FkBase, RigifyBakeKeyframesMix
 ''']
 
 
-# noinspection PyDefaultArgument
 def add_limb_snap_ik_to_fk(panel: 'PanelLayout', *,
                            master: Optional[str] = None,
-                           fk_bones: list[str] = [],
-                           ik_bones: list[str] = [], tail_bones: list[str] = [],
-                           ik_ctrl_bones: list[str] = [], ik_extra_ctrls: list[str] = [],
+                           fk_bones: Sequence[str] = (),
+                           ik_bones: Sequence[str] = (), tail_bones: Sequence[str] = (),
+                           ik_ctrl_bones: Sequence[str] = (), ik_extra_ctrls: Sequence[str] = (),
                            rig_name=''):
     panel.use_bake_settings()
     panel.script.add_utilities(SCRIPT_UTILITIES_OP_SNAP_IK_FK)
@@ -1177,7 +1176,7 @@ def add_limb_snap_ik_to_fk(panel: 'PanelLayout', *,
     add_fk_ik_snap_buttons(
         panel, 'pose.rigify_limb_ik2fk_{rig_id}', 'pose.rigify_limb_ik2fk_bake_{rig_id}',
         label='IK->FK', rig_name=rig_name, properties=op_props,
-        clear_bones=ik_ctrl_bones + tail_bones + ik_extra_ctrls,
+        clear_bones=[*ik_ctrl_bones, *tail_bones, *ik_extra_ctrls],
     )
 
 
@@ -1261,11 +1260,10 @@ class POSE_OT_rigify_limb_toggle_pole_bake(RigifyLimbTogglePoleBase, RigifyBakeK
 ''']
 
 
-# noinspection PyDefaultArgument
 def add_limb_toggle_pole(panel: 'PanelLayout', *,
                          master: Optional[str] = None,
-                         ik_bones: list[str] = [], ik_ctrl_bones: list[str] = [],
-                         ik_extra_ctrls: list[str] = []):
+                         ik_bones: Sequence[str] = (), ik_ctrl_bones: Sequence[str] = (),
+                         ik_extra_ctrls: Sequence[str] = ()):
     panel.use_bake_settings()
     panel.script.add_utilities(SCRIPT_UTILITIES_OP_TOGGLE_POLE)
     panel.script.register_classes(SCRIPT_REGISTER_OP_TOGGLE_POLE)

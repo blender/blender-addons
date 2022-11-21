@@ -305,13 +305,12 @@ connect_ends_map = {
 }
 
 
-# noinspection PyDefaultArgument
 def set_rig(
     obj, name_map, bone, rig=None,
     connect_ends=None, priority=0, middle=0, sharpen=None,
     falloff=None, spherical=None, falloff_length=False, scale=False,
     glue_copy=None, glue_reparent=False,
-    params={}, **_kwargs
+    params=None, **_kwargs
 ):
     bone = name_map.get(bone, bone)
     if rig is not None:
@@ -354,8 +353,9 @@ def set_rig(
             pbone.rigify_parameters.skin_glue_add_constraint = 'COPY_LOCATION_OWNER'
             pbone.rigify_parameters.skin_glue_add_constraint_influence = glue_copy
 
-        for k, v in params.items():
-            setattr(pbone.rigify_parameters, k, v)
+        if params:
+            for k, v in params.items():
+                setattr(pbone.rigify_parameters, k, v)
 
 
 def update_face_rig(obj):

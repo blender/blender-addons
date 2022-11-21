@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from typing import TYPE_CHECKING, List, Sequence
+from typing import TYPE_CHECKING, List, Sequence, Optional
 
 import bpy
 from bpy.props import StringProperty
@@ -95,8 +95,8 @@ def get_info_dict(feature_set: str):
     return {}
 
 
-# noinspection PyDefaultArgument
-def call_function_safe(module_name: str, func_name: str, args=[], kwargs={}):
+def call_function_safe(module_name: str, func_name: str,
+                       args: Optional[list] = None, kwargs: Optional[dict] = None):
     module = get_module_safe(module_name)
 
     if module:
@@ -105,7 +105,7 @@ def call_function_safe(module_name: str, func_name: str, args=[], kwargs={}):
         if callable(func):
             # noinspection PyBroadException
             try:
-                return func(*args, **kwargs)
+                return func(*(args or []), **(kwargs or {}))
             except Exception:
                 print(f"Rigify Error: Could not call function '{func_name}' of feature set "
                       f"'{module_name}': exception occurred.\n")

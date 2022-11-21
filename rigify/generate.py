@@ -4,6 +4,8 @@ import bpy
 import re
 import time
 
+from typing import Optional
+
 from .utils.errors import MetarigError
 from .utils.bones import new_bone
 from .utils.layers import ORG_LAYER, MCH_LAYER, DEF_LAYER, ROOT_LAYER
@@ -668,12 +670,12 @@ def create_selection_sets(obj: ArmatureObject, metarig: ArmatureObject):
         create_selection_set_for_rig_layer(obj, layer.name, i)
 
 
-# noinspection PyDefaultArgument
-def create_bone_groups(obj, metarig, priorities={}):
+def create_bone_groups(obj, metarig, priorities: Optional[dict[str, dict[int, float]]] = None):
     bpy.ops.object.mode_set(mode='OBJECT')
     pb = obj.pose.bones
     layers = metarig.data.rigify_layers
     groups = metarig.data.rigify_colors
+    priorities = priorities or {}
     dummy = {}
 
     # Create BGs

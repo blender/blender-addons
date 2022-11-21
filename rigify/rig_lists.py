@@ -4,16 +4,16 @@ import os
 import traceback
 import importlib
 import typing
-from typing import Optional
+
+from typing import Optional, Iterable
 
 from .utils.rig import RIG_DIR
 
 from . import feature_set_list
 
 
-# noinspection PyDefaultArgument
 def get_rigs(base_dir: str, base_path: list[str], *,
-             path: list[str] = [],
+             path: Iterable[str] = (),
              feature_set=feature_set_list.DEFAULT_NAME):
     """ Recursively searches for rig types, and returns a list.
 

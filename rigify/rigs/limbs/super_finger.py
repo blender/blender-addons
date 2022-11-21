@@ -3,7 +3,7 @@
 import bpy
 import json
 
-from typing import Optional
+from typing import Optional, Sequence
 from itertools import count
 
 from ...rig_ui_template import PanelLayout
@@ -589,10 +589,9 @@ class POSE_OT_rigify_finger_fk2ik_bake(RigifyFingerFk2IkBase, RigifyBakeKeyframe
 ''']
 
 
-# noinspection PyDefaultArgument
 def add_finger_snap_fk_to_ik(
         panel: 'PanelLayout', *, master: Optional[str] = None,
-        fk_bones: list[str] = [], ik_bones: list[str] = [],
+        fk_bones: Sequence[str] = (), ik_bones: Sequence[str] = (),
         ik_control: Optional[str] = None,
         ik_constraint_bone: Optional[str] = None,
         axis='+X', rig_name='', compact: Optional[bool] = None):

@@ -232,13 +232,13 @@ def _format_property_value(prefix: str, value: Any, *, limit=90, indent=4) -> li
     return [prefix + repr(value)]
 
 
-# noinspection PyDefaultArgument
 def _generate_properties(lines, prefix, obj: bpy_struct, base_class: type, *,
-                         defaults: dict[str, Any] = {},
-                         objects: dict[Any, str] = {}):
+                         defaults: Optional[dict[str, Any]] = None,
+                         objects: Optional[dict[Any, str]] = None):
     obj_rna: bpy.types.Struct = type(obj).bl_rna  # noqa
     base_rna: bpy.types.Struct = base_class.bl_rna  # noqa
 
+    defaults = defaults or {}
     block_props = set(prop.identifier for prop in base_rna.properties) - set(defaults.keys())
 
     for prop in obj_rna.properties:
@@ -250,7 +250,7 @@ def _generate_properties(lines, prefix, obj: bpy_struct, base_class: type, *,
                     continue
 
             if isinstance(cur_value, bpy_struct):
-                if cur_value in objects:
+                if objects and cur_value in objects:
                     lines.append('%s.%s = %s' % (prefix, prop.identifier, objects[cur_value]))
             else:
                 lines += _format_property_value('%s.%s = ' % (prefix, prop.identifier), cur_value)

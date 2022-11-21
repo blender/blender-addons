@@ -849,8 +849,9 @@ class POSE_OT_rigify_clear_keyframes(bpy.types.Operator):
 ''']
 
 
-# noinspection PyDefaultArgument,PyUnusedLocal
-def add_clear_keyframes_button(panel: 'PanelLayout', *, bones: list[str] = [], label='', text=''):
+# noinspection PyUnusedLocal
+def add_clear_keyframes_button(panel: 'PanelLayout', *,
+                               bones: Sequence[str] = (), label='', text=''):
     panel.use_bake_settings()
     panel.script.add_utilities(SCRIPT_UTILITIES_OP_CLEAR_KEYS)
     panel.script.register_classes(SCRIPT_REGISTER_OP_CLEAR_KEYS)
@@ -946,10 +947,9 @@ def add_fk_ik_snap_buttons(panel: 'PanelLayout', op_single: str, op_bake: str, *
         add_clear_keyframes_button(row, bones=clear_bones, text='Clear')
 
 
-# noinspection PyDefaultArgument
 def add_generic_snap(panel: 'PanelLayout', *,
-                     output_bones: list[str] = [], input_bones: list[str] = [],
-                     input_ctrl_bones: list[str] = [], label='Snap',
+                     output_bones: Sequence[str] = (), input_bones: Sequence[str] = (),
+                     input_ctrl_bones: Sequence[str] = (), label='Snap',
                      rig_name='', undo_copy_scale=False, compact: Optional[bool] = None,
                      clear=True, locks: Optional[Sequence[bool]] = None,
                      tooltip: Optional[str] = None):
@@ -978,10 +978,9 @@ def add_generic_snap(panel: 'PanelLayout', *,
     )
 
 
-# noinspection PyDefaultArgument
 def add_generic_snap_fk_to_ik(panel: 'PanelLayout', *,
-                              fk_bones: list[str] = [], ik_bones: list[str] = [],
-                              ik_ctrl_bones: list[str] = [], label='FK->IK',
+                              fk_bones: Sequence[str] = (), ik_bones: Sequence[str] = (),
+                              ik_ctrl_bones: Sequence[str] = (), label='FK->IK',
                               rig_name='', undo_copy_scale=False,
                               compact: Optional[bool] = None, clear=True):
     add_generic_snap(
