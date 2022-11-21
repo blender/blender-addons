@@ -97,8 +97,7 @@ class BaseSkinNode(BaseMergeNode, MechanismUtilityMixin, BoneUtilityMixin):
     @property
     def control_bone(self):
         """The generated control bone."""
-        # noinspection PyProtectedMember
-        return self.merged_master._control_bone
+        return self.merged_master.control_bone
 
     @property
     def reparent_bone(self):
@@ -202,6 +201,10 @@ class ControlBoneNode(MainMergeNode, BaseSkinNode):
     @property
     def control_node(self) -> 'ControlBoneNode':
         return self
+
+    @property
+    def control_bone(self):
+        return self.merged_master._control_bone
 
     def get_merged_siblings(self) -> list['ControlBoneNode']:
         return super().get_merged_siblings()

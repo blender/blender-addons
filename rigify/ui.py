@@ -249,7 +249,6 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
             return False
         return context.object.type == 'ARMATURE' and context.active_object.data.get("rig_id") is None
 
-    # noinspection SpellCheckingInspection
     def draw(self, context):
         layout = self.layout
         obj = verify_armature_obj(context.object)
@@ -599,7 +598,7 @@ class DATA_MT_rigify_bone_groups_context_menu(bpy.types.Menu):
         layout.operator('armature.rigify_bone_group_remove_all')
 
 
-# noinspection PyPep8Naming,SpellCheckingInspection
+# noinspection PyPep8Naming
 class DATA_PT_rigify_bone_groups(bpy.types.Panel):
     bl_label = "Bone Groups"
     bl_space_type = 'PROPERTIES'
@@ -738,10 +737,10 @@ class VIEW3D_PT_tools_rigify_dev(bpy.types.Panel):
                 r.operator("mesh.rigify_encode_mesh_widget", text="Encode Mesh Widget to Python")
 
 
-# noinspection PyPep8Naming,SpellCheckingInspection
+# noinspection PyPep8Naming
 class VIEW3D_PT_rigify_animation_tools(bpy.types.Panel):
     bl_label = "Rigify Animation Tools"
-    bl_context = "posemode"
+    bl_context = "posemode"  # noqa
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Rigify"
@@ -1004,7 +1003,7 @@ class EncodeMetarigSample(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# noinspection PyPep8Naming,BlIdLowercase
+# noinspection PyPep8Naming
 class VIEW3D_MT_rigify(bpy.types.Menu):
     bl_label = "Rigify"
     bl_idname = "VIEW3D_MT_rigify"
@@ -1065,7 +1064,6 @@ def draw_mesh_edit_menu(self, _context: bpy.types.Context):
     self.layout.separator()
 
 
-# noinspection SpellCheckingInspection
 def fk_to_ik(rig: ArmatureObject, window='ALL'):
     scn = bpy.context.scene
     id_store = bpy.context.window_manager
@@ -1124,6 +1122,7 @@ def fk_to_ik(rig: ArmatureObject, window='ALL'):
                     rig.pose.bones[controls[5]].bone.select = True
                     rig.pose.bones[pole].bone.select = True
                     rig.pose.bones[parent].bone.select = True
+                    # noinspection SpellCheckingInspection
                     kwargs = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
                               'mfoot_fk': controls[7], 'thigh_ik': controls[0], 'shin_ik': ik_ctrl[1],
                               'foot_ik': controls[6], 'pole': pole, 'footroll': controls[5], 'mfoot_ik': ik_ctrl[2],
@@ -1144,7 +1143,6 @@ def fk_to_ik(rig: ArmatureObject, window='ALL'):
                 break
 
 
-# noinspection SpellCheckingInspection
 def ik_to_fk(rig: ArmatureObject, window='ALL'):
     scn = bpy.context.scene
     id_store = bpy.context.window_manager
@@ -1200,6 +1198,7 @@ def ik_to_fk(rig: ArmatureObject, window='ALL'):
                     rig.pose.bones[controls[1]].bone.select = True
                     rig.pose.bones[controls[2]].bone.select = True
                     rig.pose.bones[controls[3]].bone.select = True
+                    # noinspection SpellCheckingInspection
                     kwargs = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
                               'mfoot_fk': controls[7], 'thigh_ik': controls[0], 'shin_ik': ik_ctrl[1],
                               'foot_ik': ik_ctrl[2], 'mfoot_ik': ik_ctrl[2]}
@@ -1254,7 +1253,6 @@ def clear_animation(act, anim_type, names):
     # updateView3D()
 
 
-# noinspection SpellCheckingInspection
 def rot_pole_toggle(rig: ArmatureObject, window='ALL', value=False, toggle=False, bake=False):
     scn = bpy.context.scene
     id_store = bpy.context.window_manager
@@ -1326,9 +1324,11 @@ def rot_pole_toggle(rig: ArmatureObject, window='ALL', value=False, toggle=False
                     rig.pose.bones[parent].bone.select = not new_pole_vector_value
                     rig.pose.bones[pole].bone.select = new_pole_vector_value
 
+                    # noinspection SpellCheckingInspection
                     kwargs1 = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
                                'mfoot_fk': controls[7], 'thigh_ik': controls[0], 'shin_ik': ik_ctrl[1],
                                'foot_ik': ik_ctrl[2], 'mfoot_ik': ik_ctrl[2]}
+                    # noinspection SpellCheckingInspection
                     kwargs2 = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
                                'mfoot_fk': controls[7], 'thigh_ik': controls[0], 'shin_ik': ik_ctrl[1],
                                'foot_ik': controls[6], 'pole': pole, 'footroll': controls[5], 'mfoot_ik': ik_ctrl[2],

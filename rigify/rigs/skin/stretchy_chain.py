@@ -270,7 +270,6 @@ class Rig(BasicChainRig):
         bone = self.get_bone(mch)
         bone.rotation_mode = 'YXZ'
 
-        # noinspection SpellCheckingInspection
         self.make_driver(
             bone, 'rotation_euler', index=1,
             expression=f'lerp({expr1},{expr2},{clamp(factor)})',
@@ -364,7 +363,6 @@ class Rig(BasicChainRig):
             row2 = row.row(align=True)
             row2.active = i != 1 or params.skin_chain_pivot_pos > 0
             row2.prop(params, "skin_chain_falloff", text="", index=i)
-            # noinspection SpellCheckingInspection
             row2.prop(params, "skin_chain_falloff_spherical", text="", icon='SPHERECURVE', index=i)
 
         col.prop(params, "skin_chain_falloff_length")

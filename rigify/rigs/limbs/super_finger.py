@@ -357,7 +357,6 @@ class Rig(SimpleChainRig):
             panel = self.script.panel_with_selected_check(self, self.bones.ctrl.flatten())
             panel.custom_prop(master, 'finger_curve', text="Curvature", slider=True)
 
-    # noinspection SpellCheckingInspection
     def rig_deform_bone(self, i: int, deform: str, org: str):
         master = self.bones.ctrl.master
         bone = self.get_bone(deform)
@@ -433,7 +432,6 @@ class Rig(SimpleChainRig):
 
 SCRIPT_REGISTER_OP_SNAP_FK_IK = ['POSE_OT_rigify_finger_fk2ik', 'POSE_OT_rigify_finger_fk2ik_bake']
 
-# noinspection SpellCheckingInspection
 SCRIPT_UTILITIES_OP_SNAP_FK_IK = ['''
 ########################
 ## Limb Snap IK to FK ##

@@ -285,7 +285,6 @@ def write_metarig_widgets(obj: Object):
     return widget_map, code
 
 
-# noinspection SpellCheckingInspection
 def write_metarig(obj: ArmatureObject, layers=False, func_name="create",
                   groups=False, widgets=False):
     """

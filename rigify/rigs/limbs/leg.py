@@ -12,7 +12,7 @@ from ...utils.naming import make_derived_name
 from ...utils.misc import matrix_from_axis_roll, matrix_from_axis_pair
 from ...utils.widgets import adjust_widget_transform_mesh
 
-from ..widgets import create_foot_widget, create_ballsocket_widget
+from ..widgets import create_foot_widget, create_ball_socket_widget
 
 from ...base_rig import stage
 
@@ -183,7 +183,7 @@ class Rig(BaseLimbRig):
     @stage.generate_widgets
     def make_ik_spin_control_widget(self):
         if self.pivot_type == 'ANKLE_TOE':
-            obj = create_ballsocket_widget(self.obj, self.bones.ctrl.ik_spin, size=0.75)
+            obj = create_ball_socket_widget(self.obj, self.bones.ctrl.ik_spin, size=0.75)
             rot_fix = Matrix.Rotation(math.pi/2, 4, self.main_axis.upper())
             adjust_widget_transform_mesh(obj, rot_fix, local=True)
 
@@ -210,7 +210,7 @@ class Rig(BaseLimbRig):
 
     @stage.generate_widgets
     def generate_heel_control_widget(self):
-        create_ballsocket_widget(self.obj, self.bones.ctrl.heel)
+        create_ball_socket_widget(self.obj, self.bones.ctrl.heel)
 
     ####################################################
     # IK toe control

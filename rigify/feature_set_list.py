@@ -258,7 +258,6 @@ class DATA_OT_rigify_remove_feature_set(bpy.types.Operator):
     def invoke(self, context, event):
         return context.window_manager.invoke_confirm(self, event)
 
-    # noinspection GrazieInspection
     def execute(self, context):
         from . import RigifyPreferences
         addon_prefs = RigifyPreferences.get_instance()
@@ -266,7 +265,7 @@ class DATA_OT_rigify_remove_feature_set(bpy.types.Operator):
         active_idx = addon_prefs.active_feature_set_index
         active_fs: 'RigifyFeatureSets' = feature_set_list[active_idx]
 
-        # Call the unregister callback of the set being removed.
+        # Call the 'unregister' callback of the set being removed.
         if active_fs.enabled:
             call_register_function(active_fs.module_name, do_register=False)
 

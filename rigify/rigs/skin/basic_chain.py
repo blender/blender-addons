@@ -412,7 +412,6 @@ class Rig(BaseSkinChainRigWithRotationOption):
         for args in zip(count(0), self.bones.deform, self.bones.org):
             self.rig_deform_bone(*args)
 
-    # noinspection SpellCheckingInspection
     def rig_deform_bone(self, i: int, deform: str, org: str):
         self.make_constraint(deform, 'COPY_TRANSFORMS', org)
 
@@ -462,7 +461,6 @@ class Rig(BaseSkinChainRigWithRotationOption):
         # Create the actual driver
         bias = -1 - init_val
 
-        # noinspection SpellCheckingInspection
         expr = f'{bias}+2*smoothstep(-1,1,acos((a*a+b*b-c*c)/max(2*a*b,1e-10))/{angle_threshold})'
 
         self.make_driver(pbone, field, expression=expr, variables=var_map)

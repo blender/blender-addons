@@ -159,7 +159,6 @@ class BaseSpineRig(TweakChainRig):
 
     @stage.configure_bones
     def configure_bbone_chain(self):
-        # noinspection SpellCheckingInspection
         self.get_bone(self.bones.deform[0]).bone.bbone_easein = 0.0
 
     ####################################################

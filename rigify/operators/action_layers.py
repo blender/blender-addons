@@ -296,7 +296,6 @@ class RIGIFY_UL_action_slots(UIList):
 
                     row.label(text=text, icon=icon)
 
-                # noinspection SpellCheckingInspection
                 icon = 'CHECKBOX_HLT' if action_slot.enabled else 'CHECKBOX_DEHLT'
                 row.enabled = action_slot.enabled
 

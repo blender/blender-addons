@@ -18,9 +18,9 @@ from ...utils.components import CustomPivotControl
 from ...base_rig import stage, BaseRig
 
 from ...utils.widgets_basic import create_circle_widget, create_sphere_widget, create_line_widget, create_limb_widget
-from ..widgets import create_gear_widget, create_ikarrow_widget
+from ..widgets import create_gear_widget, create_ik_arrow_widget
 
-from ...rig_ui_template import UTILITIES_FUNC_COMMON_IKFK, PanelLayout
+from ...rig_ui_template import UTILITIES_FUNC_COMMON_IK_FK, PanelLayout
 
 from math import pi
 from itertools import count
@@ -147,7 +147,6 @@ class BaseLimbRig(BaseRig):
     class OrgBones(TypedBoneDict):
         main: list[str]
 
-    # noinspection SpellCheckingInspection
     class CtrlBones(BaseRig.CtrlBones):
         master: str                    # Main property control.
         fk: list[str]                  # FK control chain.
@@ -507,7 +506,7 @@ class BaseLimbRig(BaseRig):
         else:
             roll = pi/2
 
-        create_ikarrow_widget(self.obj, ctrl, roll=roll)
+        create_ik_arrow_widget(self.obj, ctrl, roll=roll)
 
     def make_ik_pole_widget(self, ctrl: str):
         create_sphere_widget(self.obj, ctrl)
@@ -677,7 +676,6 @@ class BaseLimbRig(BaseRig):
         self.make_constraint(mch_target, 'COPY_LOCATION', input_bone, head_tail=head_tail)
 
         # Limit distance from the base of the limb
-        # noinspection SpellCheckingInspection
         con = self.make_constraint(
             mch_target, 'LIMIT_DISTANCE', base_bone,
             limit_mode='LIMITDIST_INSIDE', distance=len_full*bias,
@@ -907,7 +905,6 @@ class BaseLimbRig(BaseRig):
         else:
             self.make_constraint(deform, 'COPY_TRANSFORMS', entry.org)
 
-    # noinspection SpellCheckingInspection
     def rig_deform_easing(self, _i: int, deform: str, tweak: str, next_tweak: str):
         pbone = self.get_bone(deform)
 
@@ -1017,8 +1014,7 @@ class BaseLimbRig(BaseRig):
 
 SCRIPT_REGISTER_OP_SNAP_IK_FK = ['POSE_OT_rigify_limb_ik2fk', 'POSE_OT_rigify_limb_ik2fk_bake']
 
-# noinspection SpellCheckingInspection
-SCRIPT_UTILITIES_OP_SNAP_IK_FK = UTILITIES_FUNC_COMMON_IKFK + ['''
+SCRIPT_UTILITIES_OP_SNAP_IK_FK = UTILITIES_FUNC_COMMON_IK_FK + ['''
 ########################
 ## Limb Snap IK to FK ##
 ########################
@@ -1092,10 +1088,10 @@ class RigifyLimbIk2FkBase:
         context.view_layer.update()
 
         # Set the end control position
-        endmat = convert_pose_matrix_via_pose_delta(matrices[-1], ik_bones[-1], ctrl_bones[-1])
+        end_mat = convert_pose_matrix_via_pose_delta(matrices[-1], ik_bones[-1], ctrl_bones[-1])
 
         set_transform_from_matrix(
-            obj, self.ctrl_bone_list[-1], endmat, keyflags=self.keyflags,
+            obj, self.ctrl_bone_list[-1], end_mat, keyflags=self.keyflags,
             undo_copy_scale=True,
         )
 
@@ -1186,7 +1182,6 @@ def add_limb_snap_ik_to_fk(panel: 'PanelLayout', *,
 
 SCRIPT_REGISTER_OP_TOGGLE_POLE = ['POSE_OT_rigify_limb_toggle_pole', 'POSE_OT_rigify_limb_toggle_pole_bake']
 
-# noinspection SpellCheckingInspection
 SCRIPT_UTILITIES_OP_TOGGLE_POLE = SCRIPT_UTILITIES_OP_SNAP_IK_FK + ['''
 ####################
 ## Toggle IK Pole ##

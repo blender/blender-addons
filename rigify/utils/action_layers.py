@@ -295,14 +295,16 @@ class ActionLayer(RigComponent):
             raise MetarigError(
                 f"Control bone '{control_name}' for action '{self.slot.action.name}' not found")
 
-        # noinspection SpellCheckingInspection
+        channel = self.slot.transform_channel\
+            .replace("LOCATION", "LOC").replace("ROTATION", "ROT")
+
         self.make_driver(
             obj, prop,
             expression=self.slot.get_factor_expression('var', side=self.side),
             variables=[
                 driver_var_transform(
                     self.obj, control_name,
-                    type=self.slot.transform_channel.replace("ATION", ""),
+                    type=channel,
                     space=self.slot.target_space,
                     rotation_mode='SWING_TWIST_Y',
                 )

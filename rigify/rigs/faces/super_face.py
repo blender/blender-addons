@@ -25,7 +25,7 @@ if is_selected(all_controls):
 """
 
 
-# noinspection PyPep8Naming,SpellCheckingInspection
+# noinspection PyPep8Naming
 class Rig:
 
     def __init__(self, obj, bone_name, params):
@@ -700,7 +700,7 @@ class Rig:
             const.subtarget = subtarget
             const.influence = influence
 
-        elif constraint_type == 'tweak_copyloc':
+        elif constraint_type == 'tweak_copy_loc':
 
             const = owner_pb.constraints.new('COPY_LOCATION')
             const.target = self.obj
@@ -726,7 +726,7 @@ class Rig:
             const.target_space = 'LOCAL'
             const.owner_space = 'LOCAL'
 
-        elif constraint_type == 'tweak_copyloc_inv':
+        elif constraint_type == 'tweak_copy_loc_inv':
 
             const = owner_pb.constraints.new('COPY_LOCATION')
             const.target = self.obj
@@ -852,7 +852,7 @@ class Rig:
         # Tweak bones constraints
 
         # copy location constraints for tweak bones of both sides
-        tweak_copyloc_L = {
+        tweak_copy_loc_L = {
             'brow.T.L.002'  : [['brow.T.L.001', 'brow.T.L.003'   ], [0.5, 0.5  ]],  # noqa: E202,E203
             'ear.L.003'     : [['ear.L.004', 'ear.L.002'         ], [0.5, 0.5  ]],  # noqa: E202,E203
             'brow.B.L.001'  : [['brow.B.L.002'                   ], [0.6       ]],  # noqa: E202,E203
@@ -873,18 +873,18 @@ class Rig:
             'lip.B.L.001'   : [['lips.L', 'lip.B'                ], [0.25, 0.5 ]]   # noqa: E202,E203
             }
 
-        for owner in list(tweak_copyloc_L.keys()):
+        for owner in list(tweak_copy_loc_L.keys()):
 
-            targets, influences = tweak_copyloc_L[owner]
+            targets, influences = tweak_copy_loc_L[owner]
             for target, influence in zip(targets, influences):
 
                 # Left side constraints
-                self.make_constraints('tweak_copyloc', owner, target, influence)
+                self.make_constraints('tweak_copy_loc', owner, target, influence)
 
                 # create constraints for the right side too
                 ownerR = owner.replace('.L', '.R')
                 targetR = target.replace('.L', '.R')
-                self.make_constraints('tweak_copyloc', ownerR, targetR, influence)
+                self.make_constraints('tweak_copy_loc', ownerR, targetR, influence)
 
         # copy rotation & scale constraints for tweak bones of both sides
         tweak_copy_rot_scl_L = {
@@ -911,7 +911,7 @@ class Rig:
         for owner in list(tweak_nose.keys()):
             target = tweak_nose[owner][0]
             influence = tweak_nose[owner][1]
-            self.make_constraints('tweak_copyloc_inv', owner, target, influence)
+            self.make_constraints('tweak_copy_loc_inv', owner, target, influence)
 
         # MCH tongue constraints
         divider = len(all_bones['mch']['tongue']) + 1
@@ -979,7 +979,7 @@ class Rig:
 
         def_names = self.create_deformation()
         ctrls, tweak_unique = self.all_controls()
-        mchs = self.create_mch(
+        mch = self.create_mch(
             ctrls['ctrls']['jaw'][0],
             ctrls['ctrls']['tongue'][0]
         )
@@ -988,7 +988,7 @@ class Rig:
             'deform': def_names,
             'ctrls': ctrls['ctrls'],
             'tweaks': ctrls['tweaks'],
-            'mch': mchs
+            'mch': mch
             }, tweak_unique
 
     def generate(self):

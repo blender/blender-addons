@@ -11,7 +11,7 @@ from .utils.bones import new_bone
 from .utils.layers import ORG_LAYER, MCH_LAYER, DEF_LAYER, ROOT_LAYER
 from .utils.naming import (ORG_PREFIX, MCH_PREFIX, DEF_PREFIX, ROOT_NAME, make_original_name,
                            change_name_side, get_name_side, Side)
-from .utils.widgets import WGT_PREFIX
+from .utils.widgets import WGT_PREFIX, WGT_GROUP_PREFIX
 from .utils.widgets_special import create_root_widget
 from .utils.mechanism import refresh_all_drivers
 from .utils.misc import gamma_correct, select_object, ArmatureObject, verify_armature_obj
@@ -127,8 +127,7 @@ class Generator(base_generate.BaseGenerator):
         """For backwards comp, matching by name to find a legacy collection.
         (For before there was a Widget Collection PointerProperty)
         """
-        # noinspection SpellCheckingInspection
-        widgets_group_name = "WGTS_" + self.obj.name
+        widgets_group_name = WGT_GROUP_PREFIX + self.obj.name
         old_collection = bpy.data.collections.get(widgets_group_name)
 
         if old_collection and old_collection.library:
@@ -155,8 +154,7 @@ class Generator(base_generate.BaseGenerator):
         if not self.widget_collection:
             self.widget_collection = self.__find_legacy_collection()
         if not self.widget_collection:
-            # noinspection SpellCheckingInspection
-            widgets_group_name = "WGTS_" + self.obj.name.replace("RIG-", "")
+            widgets_group_name = WGT_GROUP_PREFIX + self.obj.name.replace("RIG-", "")
             self.widget_collection = ensure_collection(
                 self.context, widgets_group_name, hidden=True)
 

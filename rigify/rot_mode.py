@@ -57,7 +57,6 @@ def get_or_create_fcurve(action, data_path, array_index=-1, group=None):
     return fc
 
 
-# noinspection SpellCheckingInspection
 def add_keyframe_quat(action, quat, frame, bone_prefix, group):
     for i in range(len(quat)):
         fc = get_or_create_fcurve(action, bone_prefix + "rotation_quaternion", i, group)
@@ -93,7 +92,6 @@ def group_qe(_obj, action, bone, bone_prefix, order):
     group = action.groups[bone.name]
 
     for fr in frames:
-        # noinspection SpellCheckingInspection
         quat = bone.rotation_quaternion.copy()
         for fc in action.fcurves:
             if fc.data_path == data_path:
@@ -116,7 +114,6 @@ def group_eq(_obj, action, bone, bone_prefix, order):
         for fc in action.fcurves:
             if fc.data_path == data_path:
                 euler[fc.array_index] = fc.evaluate(fr)
-        # noinspection SpellCheckingInspection
         quat = euler.to_quaternion()
 
         add_keyframe_quat(action, quat, fr, bone_prefix, group)

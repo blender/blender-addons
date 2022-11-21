@@ -390,8 +390,7 @@ class ControlBoneParentOffset(ControlBoneParentLayer):
         self.reuse_mch = False
 
         if self.copy_local or self.add_local or self.limit_distance:
-            # noinspection SpellCheckingInspection
-            mch_name = make_derived_name(self.node.name, 'mch', '_poffset')
+            mch_name = make_derived_name(self.node.name, 'mch', '_offset')
 
             if self.add_local:
                 # Generate a bone for every distinct orientation used for the drivers

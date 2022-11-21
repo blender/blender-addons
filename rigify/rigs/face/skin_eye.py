@@ -199,7 +199,6 @@ class Rig(BaseSkinRig):
 
         # If Limit Distance on the control can be disabled, add another one to the mch
         if self.params.eyelid_detach_option:
-            # noinspection SpellCheckingInspection
             parent.add_limit_distance(
                 self.bones.org,
                 distance=(node.point - self.center).length,
@@ -215,7 +214,6 @@ class Rig(BaseSkinRig):
     def extend_control_node_rig(self, node: ControlBoneNode):
         if self.is_eye_control_node(node):
             # Add Limit Distance to enforce following the surface of the eye to the control
-            # noinspection SpellCheckingInspection
             con = self.make_constraint(
                 node.control_bone, 'LIMIT_DISTANCE', self.bones.org,
                 distance=(node.point - self.center).length,

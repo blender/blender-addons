@@ -155,7 +155,6 @@ def create_menu_funcs():
         menu_funcs += [make_metarig_menu_func(mop.bl_idname, text)]
 
 
-# noinspection BlIdLowercase
 def create_armature_submenus(dic: dict | None = None):
     if dic is None:
         dic = metarigs

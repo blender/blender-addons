@@ -234,7 +234,7 @@ def _add_driver_variable(drv: Driver, var_name: str, var_info, target_id: Option
                 setattr(var, p, force_lazy(v))
 
 
-# noinspection PyIncorrectDocstring,PyShadowingBuiltins
+# noinspection PyShadowingBuiltins
 def make_driver(owner: bpy_struct, prop: str, *, index=-1, type='SUM',
                 expression: Optional[str] = None,
                 variables: Iterable | dict = (),
@@ -244,8 +244,11 @@ def make_driver(owner: bpy_struct, prop: str, *, index=-1, type='SUM',
     Creates and initializes a driver for the 'prop' property of owner.
 
     Arguments:
+      owner           : object to add the driver to
+      prop            : property of the object to add the driver to
       index           : item index for vector properties
-      type, expression: mutually exclusive options to set core driver mode.
+      type            : built-in driver math operation (incompatible with expression)
+      expression      : custom driver expression
       variables       : either a list or dictionary of variable specifications.
       polynomial      : coefficients of the POLYNOMIAL driver modifier
       target_id       : specifies the target ID of variables implicitly

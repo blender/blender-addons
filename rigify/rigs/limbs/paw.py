@@ -7,7 +7,7 @@ from ...utils.bones import align_bone_to_axis, flip_bone
 from ...utils.naming import make_derived_name
 from ...utils.widgets_basic import create_circle_widget, create_limb_widget
 
-from ..widgets import create_foot_widget, create_ballsocket_widget
+from ..widgets import create_foot_widget, create_ball_socket_widget
 
 from ...base_rig import stage
 
@@ -141,7 +141,7 @@ class Rig(BaseLimbRig):
 
     @stage.generate_widgets
     def generate_heel_control_widget(self):
-        create_ballsocket_widget(self.obj, self.bones.ctrl.heel)
+        create_ball_socket_widget(self.obj, self.bones.ctrl.heel)
 
     ####################################################
     # Second Heel control
@@ -169,7 +169,7 @@ class Rig(BaseLimbRig):
     @stage.generate_widgets
     def generate_heel2_control_widget(self):
         if self.use_heel2:
-            create_ballsocket_widget(self.obj, self.bones.ctrl.heel2)
+            create_ball_socket_widget(self.obj, self.bones.ctrl.heel2)
 
     ####################################################
     # FK control chain

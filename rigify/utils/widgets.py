@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 
 WGT_PREFIX = "WGT-"  # Prefix for widget objects
+WGT_GROUP_PREFIX = "WGTS_"  # noqa; Prefix for the widget collection
 
 
 ##############################################
@@ -74,8 +75,7 @@ def create_widget(rig: ArmatureObject, bone_name: str,
     if generator:
         collection = generator.widget_collection
     else:
-        # noinspection SpellCheckingInspection
-        collection = ensure_collection(bpy.context, 'WGTS_' + rig.name, hidden=True)
+        collection = ensure_collection(bpy.context, WGT_GROUP_PREFIX + rig.name, hidden=True)
 
     use_mirror = generator and generator.use_mirror_widgets
     bone_mid_name = change_name_side(bone_name, Side.MIDDLE) if use_mirror else bone_name

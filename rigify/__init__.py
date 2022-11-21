@@ -152,7 +152,7 @@ class RigifyFeatureSets(bpy.types.PropertyGroup):
     )
 
 
-# noinspection PyPep8Naming, SpellCheckingInspection
+# noinspection PyPep8Naming
 class RIGIFY_UL_FeatureSets(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, _index=0, _flag=0):
         # rigify_prefs: RigifyPreferences = data
@@ -409,12 +409,11 @@ def format_property_spec(spec):
 
 
 class RigifyParameterValidator(object):
-    # noinspection GrazieInspection
     """
     A wrapper around RigifyParameters that verifies properties
     defined from rigs for incompatible redefinitions using a table.
 
-    Relies on the implementation details of bpy.props return values:
+    Relies on the implementation details of bpy.props.* return values:
     specifically, they just return a tuple containing the real define
     function, and a dictionary with parameters. This allows comparing
     parameters before the property is actually defined.
@@ -464,7 +463,6 @@ class RigifyParameterValidator(object):
         self.__prop_table[name] = (self.__rig_name, new_def)
 
 
-# noinspection SpellCheckingInspection
 class RigifyArmatureLayer(bpy.types.PropertyGroup):
     def get_group(self):
         if 'group_prop' in self.keys():
@@ -483,6 +481,7 @@ class RigifyArmatureLayer(bpy.types.PropertyGroup):
     name: StringProperty(name="Layer Name", default=" ")
     row: IntProperty(name="Layer Row", default=1, min=1, max=32,
                      description='UI row for this layer')
+    # noinspection SpellCheckingInspection
     selset: BoolProperty(name="Selection Set", default=False,
                          description='Add Selection Set for this layer')
     group: IntProperty(name="Bone Group", default=0, min=0, max=32,

@@ -147,7 +147,6 @@ def draw_ui_list(
         col.separator()
 
     if menu_class_name != '':
-        # noinspection SpellCheckingInspection
         col.menu(menu_class_name, icon='DOWNARROW_HLT', text="")
         col.separator()
 
