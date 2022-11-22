@@ -1329,7 +1329,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     # must be after edge, face loading.
     ok_smooth = blen_read_geom_layer_smooth(fbx_obj, mesh)
 
-    ok_crease = blen_read_geom_layer_edge_crease(fbx_obj, mesh)
+    blen_read_geom_layer_edge_crease(fbx_obj, mesh)
 
     ok_normals = False
     if settings.use_custom_normals:
@@ -1363,9 +1363,6 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
 
     if not ok_smooth:
         mesh.polygons.foreach_set("use_smooth", [True] * len(mesh.polygons))
-
-    if ok_crease:
-        mesh.use_customdata_edge_crease = True
 
     if settings.use_custom_props:
         blen_read_custom_properties(fbx_obj, mesh, settings)
