@@ -5,6 +5,7 @@
 from math import radians, ceil
 
 import bpy
+from bpy.app.translations import pgettext_tip as tip_
 from mathutils import Vector, Euler, Matrix
 
 
@@ -101,7 +102,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
 
     # Separate into a list of lists, each line a list of words.
     file_lines = file.readlines()
-    # Non standard carrage returns?
+    # Non standard carriage returns?
     if len(file_lines) == 1:
         file_lines = file_lines[0].split('\r')
 
@@ -714,7 +715,7 @@ def load(
         )
 
     else:
-        report({'ERROR'}, "Invalid target %r (must be 'ARMATURE' or 'OBJECT')" % target)
+        report({'ERROR'}, tip_("Invalid target %r (must be 'ARMATURE' or 'OBJECT')") % target)
         return {'CANCELLED'}
 
     print('Done in %.4f\n' % (time.time() - t1))
@@ -742,8 +743,8 @@ def _update_scene_fps(context, report, bvh_frame_time):
 
     if scene.render.fps != new_fps or scene.render.fps_base != 1.0:
         print("\tupdating scene FPS (was %f) to BVH FPS (%f)" % (scene_fps, new_fps))
-    scene.render.fps = new_fps
-    scene.render.fps_base = 1.0
+    scene.render.fps = int(round(new_fps))
+    scene.render.fps_base = scene.render.fps / new_fps
 
 
 def _update_scene_duration(

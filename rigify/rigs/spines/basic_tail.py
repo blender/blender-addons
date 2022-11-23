@@ -11,12 +11,14 @@ from ...utils.misc import map_list
 
 from ...base_rig import stage
 
-from ..widgets import create_ballsocket_widget
+from ..widgets import create_ball_socket_widget
 
 from .spine_rigs import BaseHeadTailRig
 
 
 class Rig(BaseHeadTailRig):
+    copy_rotation_axes: tuple[bool, bool, bool]
+
     def initialize(self):
         super().initialize()
 
@@ -27,6 +29,22 @@ class Rig(BaseHeadTailRig):
 
         if self.connected_tweak and self.use_connect_reverse:
             self.rig_parent_bone = self.connected_tweak
+
+    ####################################################
+    # BONES
+
+    class CtrlBones(BaseHeadTailRig.CtrlBones):
+        master: str                    # Master control.
+
+    class MchBones(BaseHeadTailRig.MchBones):
+        rot_tail: str                  # Tail follow system.
+
+    bones: BaseHeadTailRig.ToplevelBones[
+        list[str],
+        'Rig.CtrlBones',
+        'Rig.MchBones',
+        list[str]
+    ]
 
     ####################################################
     # Master control
@@ -50,7 +68,7 @@ class Rig(BaseHeadTailRig):
     def make_master_control_widget(self):
         bone = self.bones.ctrl.master
         set_bone_widget_transform(self.obj, bone, self.bones.ctrl.tweak[-1])
-        create_ballsocket_widget(self.obj, bone, size=0.7)
+        create_ball_socket_widget(self.obj, bone, size=0.7)
 
     ####################################################
     # Control bones
@@ -66,7 +84,7 @@ class Rig(BaseHeadTailRig):
         for args in zip(count(0), ctrls, [self.bones.ctrl.master] + ctrls):
             self.rig_control_bone(*args)
 
-    def rig_control_bone(self, i, ctrl, prev_ctrl):
+    def rig_control_bone(self, _i: int, ctrl: str, prev_ctrl: str):
         self.make_constraint(
             ctrl, 'COPY_ROTATION', prev_ctrl,
             use_xyz=self.copy_rotation_axes,
@@ -74,7 +92,7 @@ class Rig(BaseHeadTailRig):
         )
 
     # Widgets
-    def make_control_widget(self, i, ctrl):
+    def make_control_widget(self, i: int, ctrl: str):
         create_circle_widget(self.obj, ctrl, radius=0.5, head_tail=0.75)
 
     ####################################################
@@ -96,7 +114,7 @@ class Rig(BaseHeadTailRig):
         orgs = self.bones.org
         self.bones.ctrl.tweak = map_list(self.make_tweak_bone, count(0), orgs[0:1] + orgs)
 
-    def make_tweak_bone(self, i, org):
+    def make_tweak_bone(self, i: int, org: str):
         if i == 0:
             if self.check_connect_tweak(org):
                 return self.connected_tweak
@@ -121,12 +139,11 @@ class Rig(BaseHeadTailRig):
         else:
             self.get_bone(self.bones.deform[-1]).bone.bbone_easeout = 0.0
 
-
     ####################################################
     # SETTINGS
 
     @classmethod
-    def add_parameters(self, params):
+    def add_parameters(cls, params):
         """ Add the parameters of this rig type to the
             RigifyParameters PropertyGroup
         """
@@ -139,9 +156,8 @@ class Rig(BaseHeadTailRig):
             default=tuple([i == 0 for i in range(0, 3)])
             )
 
-
     @classmethod
-    def parameters_ui(self, layout, params):
+    def parameters_ui(cls, layout, params):
         """ Create the ui for the rig parameters.
         """
 
@@ -195,7 +211,10 @@ def create_sample(obj, *, parent=None):
     except AttributeError:
         pass
     try:
-        pbone.rigify_parameters.tweak_layers = [False, False, False, False, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
+        pbone.rigify_parameters.tweak_layers = [
+            False, False, False, False, True, False, False, False, False, False, False, False,
+            False, False, False, False, False, False, False, False, False, False, False, False,
+            False, False, False, False, False, False, False, False]
     except AttributeError:
         pass
     pbone = obj.pose.bones[bones['tail.001']]

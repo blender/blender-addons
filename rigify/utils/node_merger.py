@@ -1,15 +1,14 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
 import collections
-import heapq
-import operator
 
+from typing import Any, Sequence, Optional
 from mathutils import Vector
 from mathutils.kdtree import KDTree
 
 from .errors import MetarigError
-from ..base_rig import stage, GenerateCallbackHost
+from .misc import ArmatureObject
+from ..base_rig import BaseRig, GenerateCallbackHost
 from ..base_generate import GeneratorPlugin
 
 
@@ -31,7 +30,16 @@ class NodeMerger(GeneratorPlugin):
 
     epsilon = 1e-5
 
-    def __init__(self, generator, domain):
+    nodes: list['BaseMergeNode']
+    final_nodes: list['BaseMergeNode']
+    groups: list['MergeGroup']
+
+    def __init__(self, generator, domain: Any):
+        """
+        Construct a new merger instance.
+
+        @param domain: An arbitrary identifier to allow multiple independent merging domains.
+        """
         super().__init__(generator)
 
         assert domain is not None
@@ -43,7 +51,10 @@ class NodeMerger(GeneratorPlugin):
         self.groups = []
         self.frozen = False
 
-    def register_node(self, node):
+    def register_node(self, node: 'BaseMergeNode'):
+        """
+        Add a new node to generation, before merging is frozen.
+        """
         assert not self.frozen
         node.generator_plugin = self
         self.nodes.append(node)
@@ -74,7 +85,7 @@ class NodeMerger(GeneratorPlugin):
                 added = set()
                 for j in pending:
                     point = nodes[j].point
-                    eps = max(1, point.length) * self.epsilon
+                    eps = max(1.0, point.length) * self.epsilon
                     for co, idx, dist in tree.find_range(point, eps):
                         added.add(idx)
                 pending = added.difference(merge_set)
@@ -124,17 +135,19 @@ class MergeGroup(object):
     The master nodes of the chosen clusters, plus query nodes, become 'final'.
     """
 
-    def __init__(self, nodes):
+    main_nodes: list['MainMergeNode']    # All main nodes in the group.
+    query_nodes: list['QueryMergeNode']  # All query nodes in the group.
+    final_nodes: list['MainMergeNode']   # All main nodes not merged into any other node.
+
+    def __init__(self, nodes: list['BaseMergeNode']):
         self.nodes = nodes
 
         for node in nodes:
+            assert isinstance(node, (MainMergeNode, QueryMergeNode))
             node.group = self
 
-        def is_main(node):
-            return isinstance(node, MainMergeNode)
-
-        self.main_nodes = [n for n in nodes if is_main(n)]
-        self.query_nodes = [n for n in nodes if not is_main(n)]
+        self.main_nodes = [n for n in nodes if isinstance(n, MainMergeNode)]
+        self.query_nodes = [n for n in nodes if isinstance(n, QueryMergeNode)]
 
     def build(self, final_nodes):
         main_nodes = self.main_nodes
@@ -162,7 +175,7 @@ class MergeGroup(object):
         pending = set(main_nodes)
 
         while pending:
-            # Find largest group
+            # Find the largest group
             nodes = [n for n in main_nodes if n in pending]
             max_len = max(len(merge_table[n]) for n in nodes)
 
@@ -181,7 +194,7 @@ class MergeGroup(object):
                 max_weight = max(wn[1] for wn in weighted_nodes)
                 nodes = [wn[0] for wn in weighted_nodes if wn[1] == max_weight]
 
-            # Final tie breaker is the name
+            # Final tiebreaker is the name
             best = min(nodes, key=lambda n: n.name)
             child_set = merge_table[best]
 
@@ -213,13 +226,22 @@ class MergeGroup(object):
 
 
 class BaseMergeNode(GenerateCallbackHost):
-    """Base class of mergeable nodes."""
+    """Base class of merge-able nodes."""
 
-    merge_domain = None
+    rig: BaseRig
+    obj: ArmatureObject
+    name: str
+    point: Vector
+
+    merge_domain: Any = None
     merger = NodeMerger
     group_class = MergeGroup
 
-    def __init__(self, rig, name, point, *, domain=None):
+    generator_plugin: NodeMerger
+    group: MergeGroup
+
+    def __init__(self, rig: BaseRig, name: str, point: Vector | Sequence[float], *,
+                 domain: Any = None):
         self.rig = rig
         self.obj = rig.obj
         self.name = name
@@ -228,23 +250,32 @@ class BaseMergeNode(GenerateCallbackHost):
         merger = self.merger(rig.generator, domain or self.merge_domain)
         merger.register_node(self)
 
-    def register_new_bone(self, new_name, old_name=None):
+    def register_new_bone(self, new_name: str, old_name: Optional[str] = None):
         self.generator_plugin.register_new_bone(new_name, old_name)
 
-    def can_merge_into(self, other):
-        raise NotImplementedError()
+    def can_merge_into(self, other: 'MainMergeNode') -> bool:
+        """Checks if this main or query node can merge into the specified master node."""
+        raise NotImplementedError
 
-    def get_merge_priority(self, other):
-        "Rank candidates to merge into."
+    def get_merge_priority(self, other: 'MainMergeNode') -> float:
+        """Rank potential candidates to merge into."""
         return 0
+
+    def merge_done(self):
+        """Called after all merging operations are complete."""
+        pass
 
 
 class MainMergeNode(BaseMergeNode):
     """
-    Base class of standard mergeable nodes. Each node can either be
+    Base class of standard merge-able nodes. Each node can either be
     a master of its cluster or a merged child node. Children become
     sub-objects of their master to receive callbacks in defined order.
     """
+
+    merged_master: 'MainMergeNode'          # Master of this merge cluster; may be self.
+    merged_into: Optional['MainMergeNode']  # Master of this cluster if not self.
+    merged: list['MainMergeNode']           # List of nodes merged into this one.
 
     def __init__(self, rig, name, point, *, domain=None):
         super().__init__(rig, name, point, domain=domain)
@@ -253,27 +284,35 @@ class MainMergeNode(BaseMergeNode):
         self.merged = []
 
     def get_merged_siblings(self):
+        """Retrieve the list of all nodes merged together with this one,
+         starting with the master node."""
         master = self.merged_master
         return [master, *master.merged]
 
-    def is_better_cluster(self, other):
-        "Compare with the other node to choose between cluster masters."
+    def is_better_cluster(self, other: 'MainMergeNode'):
+        """Compare with the other node to choose between cluster masters."""
         return False
 
-    def can_merge_from(self, other):
+    # noinspection PyMethodMayBeStatic
+    def can_merge_from(self, _other: 'MainMergeNode'):
+        """Checks if the other node can be merged into this one."""
         return True
 
-    def can_merge_into(self, other):
+    def can_merge_into(self, other: 'MainMergeNode'):
+        """Checks if this node can merge into the specified master."""
         return other.can_merge_from(self)
 
-    def merge_into(self, other):
+    def merge_into(self, other: 'MainMergeNode'):
+        """Called when it's decided to merge this node into a different master node."""
         self.merged_into = other
 
-    def merge_from(self, other):
+    def merge_from(self, other: 'MainMergeNode'):
+        """Called when it's decided to merge a different node into this master node."""
         self.merged.append(other)
 
     @property
     def is_master_node(self):
+        """Returns if this node is a master of a merge cluster."""
         return not self.merged_into
 
     def merge_done(self):
@@ -284,11 +323,14 @@ class MainMergeNode(BaseMergeNode):
             child.merge_done()
 
 
+# noinspection PyAbstractClass
 class QueryMergeNode(BaseMergeNode):
     """Base class for special nodes used only to query which nodes are at a certain location."""
 
     is_master_node = False
     require_match = True
+
+    matched_nodes: list['MainMergeNode']  # Master nodes this query matched with.
 
     def merge_done(self):
         self.matched_nodes = [

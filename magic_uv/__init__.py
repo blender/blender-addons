@@ -2,8 +2,8 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "6.6"
-__date__ = "22 Apr 2022"
+__version__ = "6.7"
+__date__ = "22 Sep 2022"
 
 
 bl_info = {
@@ -12,8 +12,8 @@ bl_info = {
               "Keith (Wahooney) Boshoff, McBuff, MaxRobinot, "
               "Alexander Milovsky, Dusan Stevanovic, MatthiasThDs, "
               "theCryingMan, PratikBorhade302",
-    "version": (6, 6, 0),
-    "blender": (2, 80, 0),
+    "version": (6, 7, 0),
+    "blender": (3, 4, 0),
     "location": "See Add-ons Preferences",
     "description": "UV Toolset. See Add-ons Preferences for details",
     "warning": "",

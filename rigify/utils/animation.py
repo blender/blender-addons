@@ -1,18 +1,24 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import bpy
+import bpy  # noqa
+import math  # noqa
+from mathutils import Matrix, Vector  # noqa
 
-import math
+from typing import TYPE_CHECKING, Callable, Any, Collection, Iterator, Optional, Sequence
+from bpy.types import Action, bpy_struct, FCurve
+
 import json
 
-from mathutils import Matrix, Vector
+if TYPE_CHECKING:
+    from ..rig_ui_template import PanelLayout
+
 
 rig_id = None
 
-#=============================================
-# Keyframing functions
-#=============================================
 
+##############################################
+# Keyframing functions
+##############################################
 
 def get_keyed_frames_in_range(context, rig):
     action = find_action(rig)
@@ -34,11 +40,11 @@ def bones_in_frame(f, rig, *args):
     """
 
     if rig.animation_data and rig.animation_data.action:
-        fcus = rig.animation_data.action.fcurves
+        fcurves = rig.animation_data.action.fcurves
     else:
         return False
 
-    for fc in fcus:
+    for fc in fcurves:
         animated_frames = [kp.co[0] for kp in fc.keyframe_points]
         for bone in args:
             if bone in fc.data_path.split('"') and f in animated_frames:
@@ -68,6 +74,7 @@ def overwrite_prop_animation(rig, bone, prop_name, value, frames):
         if kp.co[0] in frames:
             kp.co[1] = value
 
+
 ################################################################
 # Utilities for inserting keyframes and/or setting transforms ##
 ################################################################
@@ -91,10 +98,10 @@ def get_keying_flags(context):
         flags.add('INSERTKEY_CYCLE_AWARE')
     return flags
 
-def get_autokey_flags(context, ignore_keyset=False):
+def get_autokey_flags(context, ignore_keyingset=False):
     "Retrieve the Auto Keyframe flags, or None if disabled."
     ts = context.scene.tool_settings
-    if ts.use_keyframe_insert_auto and (ignore_keyset or not ts.use_keyframe_insert_keyingset):
+    if ts.use_keyframe_insert_auto and (ignore_keyingset or not ts.use_keyframe_insert_keyingset):
         flags = get_keying_flags(context)
         if context.preferences.edit.use_keyframe_insert_available:
             flags.add('INSERTKEY_AVAILABLE')
@@ -111,14 +118,15 @@ def add_flags_if_set(base, new_flags):
     else:
         return base | new_flags
 
-def get_4d_rotlock(bone):
+def get_4d_rot_lock(bone):
     "Retrieve the lock status for 4D rotation."
     if bone.lock_rotations_4d:
         return [bone.lock_rotation_w, *bone.lock_rotation]
     else:
         return [all(bone.lock_rotation)] * 4
 
-def keyframe_transform_properties(obj, bone_name, keyflags, *, ignore_locks=False, no_loc=False, no_rot=False, no_scale=False):
+def keyframe_transform_properties(obj, bone_name, keyflags, *,
+                                  ignore_locks=False, no_loc=False, no_rot=False, no_scale=False):
     "Keyframe transformation properties, taking flags and mode into account, and avoiding keying locked channels."
     bone = obj.pose.bones[bone_name]
 
@@ -136,9 +144,9 @@ def keyframe_transform_properties(obj, bone_name, keyflags, *, ignore_locks=Fals
 
     if not no_rot:
         if bone.rotation_mode == 'QUATERNION':
-            keyframe_channels('rotation_quaternion', get_4d_rotlock(bone))
+            keyframe_channels('rotation_quaternion', get_4d_rot_lock(bone))
         elif bone.rotation_mode == 'AXIS_ANGLE':
-            keyframe_channels('rotation_axis_angle', get_4d_rotlock(bone))
+            keyframe_channels('rotation_axis_angle', get_4d_rot_lock(bone))
         else:
             keyframe_channels('rotation_euler', bone.lock_rotation)
 
@@ -155,7 +163,8 @@ def get_constraint_target_matrix(con):
         if target.type == 'ARMATURE' and con.subtarget:
             if con.subtarget in target.pose.bones:
                 bone = target.pose.bones[con.subtarget]
-                return target.convert_space(pose_bone=bone, matrix=bone.matrix, from_space='POSE', to_space=con.target_space)
+                return target.convert_space(
+                    pose_bone=bone, matrix=bone.matrix, from_space='POSE', to_space=con.target_space)
         else:
             return target.convert_space(matrix=target.matrix_world, from_space='WORLD', to_space=con.target_space)
     return Matrix.Identity(4)
@@ -224,8 +233,10 @@ def get_transform_matrix(obj, bone_name, *, space='POSE', with_constraints=True)
 def get_chain_transform_matrices(obj, bone_names, **options):
     return [get_transform_matrix(obj, name, **options) for name in bone_names]
 
-def set_transform_from_matrix(obj, bone_name, matrix, *, space='POSE', undo_copy_scale=False, ignore_locks=False, no_loc=False, no_rot=False, no_scale=False, keyflags=None):
-    "Apply the matrix to the transformation of the bone, taking locked channels, mode and certain constraints into account, and optionally keyframe it."
+def set_transform_from_matrix(obj, bone_name, matrix, *, space='POSE', undo_copy_scale=False,
+                              ignore_locks=False, no_loc=False, no_rot=False, no_scale=False, keyflags=None):
+    """Apply the matrix to the transformation of the bone, taking locked channels, mode and certain
+    constraints into account, and optionally keyframe it."""
     bone = obj.pose.bones[bone_name]
 
     def restore_channels(prop, old_vec, locks, extra_lock):
@@ -261,12 +272,12 @@ def set_transform_from_matrix(obj, bone_name, matrix, *, space='POSE', undo_copy
     restore_channels('location', old_loc, bone.lock_location, no_loc or bone.bone.use_connect)
 
     if bone.rotation_mode == 'QUATERNION':
-        restore_channels('rotation_quaternion', old_rot_quat, get_4d_rotlock(bone), no_rot)
+        restore_channels('rotation_quaternion', old_rot_quat, get_4d_rot_lock(bone), no_rot)
         bone.rotation_axis_angle = old_rot_axis
         bone.rotation_euler = old_rot_euler
     elif bone.rotation_mode == 'AXIS_ANGLE':
         bone.rotation_quaternion = old_rot_quat
-        restore_channels('rotation_axis_angle', old_rot_axis, get_4d_rotlock(bone), no_rot)
+        restore_channels('rotation_axis_angle', old_rot_axis, get_4d_rot_lock(bone), no_rot)
         bone.rotation_euler = old_rot_euler
     else:
         bone.rotation_quaternion = old_rot_quat
@@ -402,7 +413,7 @@ class FCurveTable(object):
         return self.curve_map.get(ptr.path_from_id(prop_path))
 
     def list_all_prop_curves(self, ptr_set, path_set):
-        "Iterates over all FCurves matching the given object(s) and properti(es)."
+        "Iterates over all FCurves matching the given object(s) and properties."
         if isinstance(ptr_set, bpy.types.bpy_struct):
             ptr_set = [ptr_set]
         for ptr in ptr_set:
@@ -433,6 +444,24 @@ class DriverCurveTable(FCurveTable):
             self.index_curves(self.anim_data.drivers)
 ''']
 
+AnyCurveSet = None | FCurve | dict | Collection
+flatten_curve_set: Callable[[AnyCurveSet], Iterator[FCurve]]
+flatten_curve_key_set: Callable[..., set[float]]
+get_curve_frame_set: Callable[..., set[float]]
+set_curve_key_interpolation: Callable[..., None]
+delete_curve_keys_in_range: Callable[..., None]
+nla_tweak_to_scene: Callable
+find_action: Callable[[bpy_struct], Action]
+clean_action_empty_curves: Callable[[bpy_struct], None]
+TRANSFORM_PROPS_LOCATION: frozenset[str]
+TRANSFORM_PROPS_ROTATION = frozenset[str]
+TRANSFORM_PROPS_SCALE = frozenset[str]
+TRANSFORM_PROPS_ALL = frozenset[str]
+transform_props_with_locks: Callable[[bool, bool, bool], set[str]]
+FCurveTable: Any
+ActionCurveTable: Any
+DriverCurveTable: Any
+
 exec(SCRIPT_UTILITIES_CURVES[-1])
 
 ################################################
@@ -441,7 +470,9 @@ exec(SCRIPT_UTILITIES_CURVES[-1])
 
 _SCRIPT_REGISTER_WM_PROPS = '''
 bpy.types.WindowManager.rigify_transfer_use_all_keys = bpy.props.BoolProperty(
-    name="Bake All Keyed Frames", description="Bake on every frame that has a key for any of the bones, as opposed to just the relevant ones", default=False
+    name="Bake All Keyed Frames",
+    description="Bake on every frame that has a key for any of the bones, as opposed to just the relevant ones",
+    default=False
 )
 bpy.types.WindowManager.rigify_transfer_use_frame_range = bpy.props.BoolProperty(
     name="Limit Frame Range", description="Only bake keyframes in a certain frame range", default=False
@@ -496,6 +527,8 @@ class RIGIFY_OT_get_frame_range(bpy.types.Operator):
         row.prop(id_store, 'rigify_transfer_end_frame')
         row.operator(self.bl_idname, icon='TIME', text='')
 '''
+
+RIGIFY_OT_get_frame_range: Any
 
 exec(_SCRIPT_UTILITIES_BAKE_OPS)
 
@@ -729,7 +762,7 @@ class RigifySingleUpdateMixin(RigifyOperatorMixinBase):
     def execute(self, context):
         self.init_execute(context)
         obj = context.active_object
-        self.keyflags = get_autokey_flags(context, ignore_keyset=True)
+        self.keyflags = get_autokey_flags(context, ignore_keyingset=True)
         self.keyflags_switch = add_flags_if_set(self.keyflags, {'INSERTKEY_AVAILABLE'})
 
         try:
@@ -755,6 +788,10 @@ class RigifySingleUpdateMixin(RigifyOperatorMixinBase):
         else:
             return self.execute(context)
 ''']
+
+RigifyOperatorMixinBase: Any
+RigifyBakeKeyframesMixin: Any
+RigifySingleUpdateMixin: Any
 
 exec(SCRIPT_UTILITIES_BAKE[-1])
 
@@ -806,14 +843,17 @@ class POSE_OT_rigify_clear_keyframes(bpy.types.Operator):
         return {'FINISHED'}
 ''']
 
-def add_clear_keyframes_button(panel, *, bones=[], label='', text=''):
+
+def add_clear_keyframes_button(panel: 'PanelLayout', *,
+                               bones: Sequence[str] = (), text=''):
     panel.use_bake_settings()
     panel.script.add_utilities(SCRIPT_UTILITIES_OP_CLEAR_KEYS)
     panel.script.register_classes(SCRIPT_REGISTER_OP_CLEAR_KEYS)
 
-    op_props = { 'bones': json.dumps(bones) }
+    op_props = {'bones': json.dumps(bones)}
 
-    panel.operator('pose.rigify_clear_keyframes_{rig_id}', text=text, icon='CANCEL', properties=op_props)
+    panel.operator('pose.rigify_clear_keyframes_{rig_id}', text=text, icon='CANCEL',
+                   properties=op_props)
 
 
 ###################################
@@ -875,11 +915,15 @@ class POSE_OT_rigify_generic_snap_bake(RigifyGenericSnapBase, RigifyBakeKeyframe
         return self.bake_get_all_bone_curves(self.output_bone_list, props)
 ''']
 
-def add_fk_ik_snap_buttons(panel, op_single, op_bake, *, label=None, rig_name='', properties=None, clear_bones=None, compact=None):
+
+def add_fk_ik_snap_buttons(panel: 'PanelLayout', op_single: str, op_bake: str, *,
+                           label, rig_name='', properties: dict[str, Any],
+                           clear_bones: Optional[list[str]] = None,
+                           compact: Optional[bool] = None):
     assert label and properties
 
     if rig_name:
-        label += ' (%s)' % (rig_name)
+        label += ' (%s)' % rig_name
 
     if compact or not clear_bones:
         row = panel.row(align=True)
@@ -895,7 +939,13 @@ def add_fk_ik_snap_buttons(panel, op_single, op_bake, *, label=None, rig_name=''
         row.operator(op_bake, text='Action', icon='ACTION_TWEAK', properties=properties)
         add_clear_keyframes_button(row, bones=clear_bones, text='Clear')
 
-def add_generic_snap(panel, *, output_bones=[], input_bones=[], input_ctrl_bones=[], label='Snap', rig_name='', undo_copy_scale=False, compact=None, clear=True, locks=None, tooltip=None):
+
+def add_generic_snap(panel: 'PanelLayout', *,
+                     output_bones: Sequence[str] = (), input_bones: Sequence[str] = (),
+                     input_ctrl_bones: Sequence[str] = (), label='Snap',
+                     rig_name='', undo_copy_scale=False, compact: Optional[bool] = None,
+                     clear=True, locks: Optional[Sequence[bool]] = None,
+                     tooltip: Optional[str] = None):
     panel.use_bake_settings()
     panel.script.add_utilities(SCRIPT_UTILITIES_OP_SNAP)
     panel.script.register_classes(SCRIPT_REGISTER_OP_SNAP)
@@ -920,11 +970,17 @@ def add_generic_snap(panel, *, output_bones=[], input_bones=[], input_ctrl_bones
         label=label, rig_name=rig_name, properties=op_props, clear_bones=clear_bones, compact=compact,
     )
 
-def add_generic_snap_fk_to_ik(panel, *, fk_bones=[], ik_bones=[], ik_ctrl_bones=[], label='FK->IK', rig_name='', undo_copy_scale=False, compact=None, clear=True):
+
+def add_generic_snap_fk_to_ik(panel: 'PanelLayout', *,
+                              fk_bones: Sequence[str] = (), ik_bones: Sequence[str] = (),
+                              ik_ctrl_bones: Sequence[str] = (), label='FK->IK',
+                              rig_name='', undo_copy_scale=False,
+                              compact: Optional[bool] = None, clear=True):
     add_generic_snap(
         panel, output_bones=fk_bones, input_bones=ik_bones, input_ctrl_bones=ik_ctrl_bones,
         label=label, rig_name=rig_name, undo_copy_scale=undo_copy_scale, compact=compact, clear=clear
     )
+
 
 ###############################
 # Module register/unregister ##
@@ -936,6 +992,7 @@ def register():
     exec(_SCRIPT_REGISTER_WM_PROPS)
 
     register_class(RIGIFY_OT_get_frame_range)
+
 
 def unregister():
     from bpy.utils import unregister_class

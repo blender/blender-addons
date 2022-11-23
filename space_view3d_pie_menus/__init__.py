@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Contributed to by meta-androcto, pitiwazou, chromoly, italic
+# Contributed to by meta-androcto, pitiwazou, chromoly, italic, kc98
 
 import bpy
 from bpy.props import (
@@ -16,14 +16,14 @@ from bpy.types import (
 bl_info = {
     "name": "3D Viewport Pie Menus",
     "author": "meta-androcto",
-    "version": (1, 2, 9),
+    "version": (1, 3, 0),
     "blender": (2, 80, 0),
     "description": "Pie Menu Activation",
     "location": "Addons Preferences",
     "warning": "",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/interface/viewport_pies.html",
     "category": "Interface"
-    }
+}
 
 sub_modules_names = (
     "pie_modes_menu",
@@ -41,7 +41,7 @@ sub_modules_names = (
     "pie_editor_switch_menu",
     "pie_defaults_menu",
     "pie_proportional_menu",
-    )
+)
 
 
 sub_modules = [__import__(__package__ + "." + submod, {}, {}, submod) for submod in sub_modules_names]
@@ -76,6 +76,7 @@ def get_addon_preferences(name=''):
         return getattr(addon_prefs, name, None)
     else:
         return addon_prefs
+
 
 def create_property(cls, name, prop):
     if not hasattr(cls, '__annotations__'):
