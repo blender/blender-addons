@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-actionconfig_version = (3, 2, 8)
+actionconfig_version = (3, 5, 2)
 actionconfig_data = \
 [("blender_default",
   {"items":
@@ -32,7 +32,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("teleport", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'wm.xr_navigation_teleport', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("teleport", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'wm.xr_navigation_teleport', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("interpolation", 0.9),
        ("color", (0.0, 1.0, 1.0, 1.0)),
@@ -51,7 +51,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("nav_grab", {"type": 'FLOAT', "user_paths": ['/user/hand/left', '/user/hand/right'], "op": 'wm.xr_navigation_grab', "op_mode": 'MODAL', "bimanual": 'True', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("nav_grab", {"type": 'FLOAT', "user_paths": ['/user/hand/left', '/user/hand/right'], "op": 'wm.xr_navigation_grab', "op_mode": 'MODAL', "bimanual": 'True', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("lock_rotation", True),
        ],
@@ -69,7 +69,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_forward", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_forward", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'VIEWER_FORWARD'),
        ("lock_location_z", True),
@@ -87,7 +87,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_back", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_back", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'VIEWER_BACK'),
        ("lock_location_z", True),
@@ -105,7 +105,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_left", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_left", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'VIEWER_LEFT'),
        ("lock_location_z", True),
@@ -123,7 +123,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_right", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_right", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'VIEWER_RIGHT'),
        ("lock_location_z", True),
@@ -141,7 +141,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_up", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_up", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'UP'),
        ("speed_min", 0.014),
@@ -160,7 +160,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_down", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_down", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'DOWN'),
        ("speed_min", 0.014),
@@ -179,7 +179,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_turnleft", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_turnleft", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'TURNLEFT'),
        ("speed_min", 0.01),
@@ -198,7 +198,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_turnright", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_turnright", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'TURNRIGHT'),
        ("speed_min", 0.01),
@@ -217,7 +217,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("nav_reset", {"type": 'FLOAT', "user_paths": ['/user/hand/left', '/user/hand/right'], "op": 'wm.xr_navigation_reset', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'},
+    ("nav_reset", {"type": 'FLOAT', "user_paths": ['/user/hand/left', '/user/hand/right'], "op": 'wm.xr_navigation_reset', "op_mode": 'PRESS', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("location", False),
        ("rotation", False),
@@ -236,7 +236,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("select", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'wm.xr_select_raycast', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'}, None,
+    ("select", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'wm.xr_select_raycast', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'}, None,
      {"bindings":
       [("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_paths": ['/input/trigger/value'], "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_paths": ['/input/trigger/value'], "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
@@ -250,7 +250,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("transform", {"type": 'FLOAT', "user_paths": ['/user/hand/left', '/user/hand/right'], "op": 'wm.xr_transform_grab', "op_mode": 'MODAL', "bimanual": 'True', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'}, None,
+    ("transform", {"type": 'FLOAT', "user_paths": ['/user/hand/left', '/user/hand/right'], "op": 'wm.xr_transform_grab', "op_mode": 'MODAL', "bimanual": 'True', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'}, None,
      {"bindings":
       [("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_paths": ['/input/back/click', '/input/back/click'], "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_paths": ['/input/a/click', '/input/a/click'], "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
@@ -263,7 +263,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("undo", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'ed.undo', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'}, None,
+    ("undo", {"type": 'FLOAT', "user_paths": ['/user/hand/left'], "op": 'ed.undo', "op_mode": 'PRESS', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'}, None,
      {"bindings":
       [("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_paths": ['/input/volume_down/click'], "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_paths": ['/input/b/click'], "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
@@ -275,7 +275,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("redo", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'ed.redo', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'}, None,
+    ("redo", {"type": 'FLOAT', "user_paths": ['/user/hand/right'], "op": 'ed.redo', "op_mode": 'PRESS', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": 'haptic', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'}, None,
      {"bindings":
       [("huawei", {"profile": '/interaction_profiles/huawei/controller', "component_paths": ['/input/volume_up/click'], "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ("index", {"profile": '/interaction_profiles/valve/index_controller', "component_paths": ['/input/b/click'], "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
@@ -306,7 +306,7 @@ actionconfig_data = \
   ),
  ("blender_default_gamepad",
   {"items":
-   [("teleport", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_teleport', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+   [("teleport", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_teleport', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("interpolation", 0.9),
        ("from_viewer", True),
@@ -318,13 +318,13 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'}, None,
+    ("fly", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'}, None,
      {"bindings":
       [("gamepad", {"profile": '/interaction_profiles/microsoft/xbox_controller', "component_paths": ['/input/a/click'], "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ],
       },
      ),
-    ("fly_forward", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_forward", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'VIEWER_FORWARD'),
        ("lock_location_z", True),
@@ -335,7 +335,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_back", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_back", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'VIEWER_BACK'),
        ("lock_location_z", True),
@@ -346,7 +346,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_left", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_left", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'VIEWER_LEFT'),
        ("lock_location_z", True),
@@ -357,7 +357,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_right", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_right", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'VIEWER_RIGHT'),
        ("lock_location_z", True),
@@ -368,7 +368,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_up", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_up", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'UP'),
        ("speed_min", 0.014),
@@ -380,7 +380,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_down", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_down", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'DOWN'),
        ("speed_min", 0.014),
@@ -392,7 +392,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_turnleft", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_turnleft", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'TURNLEFT'),
        ("speed_min", 0.01),
@@ -404,7 +404,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("fly_turnright", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("fly_turnright", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_fly', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("mode", 'TURNRIGHT'),
        ("speed_min", 0.01),
@@ -416,7 +416,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("nav_reset", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_reset', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic_right', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'},
+    ("nav_reset", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_navigation_reset', "op_mode": 'PRESS', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": 'haptic_right', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("location", False),
        ("rotation", False),
@@ -428,7 +428,7 @@ actionconfig_data = \
        ],
       },
      ),
-    ("select", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_select_raycast', "op_mode": 'MODAL', "bimanual": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
+    ("select", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'wm.xr_select_raycast', "op_mode": 'MODAL', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": '', "haptic_match_user_paths": 'False', "haptic_duration": '0.0', "haptic_frequency": '0.0', "haptic_amplitude": '0.0', "haptic_mode": 'PRESS'},
      {"op_properties":
       [("from_viewer", True),
        ],
@@ -438,13 +438,13 @@ actionconfig_data = \
        ],
       },
      ),
-    ("undo", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'ed.undo', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic_left', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'}, None,
+    ("undo", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'ed.undo', "op_mode": 'PRESS', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": 'haptic_left', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'}, None,
      {"bindings":
       [("gamepad", {"profile": '/interaction_profiles/microsoft/xbox_controller', "component_paths": ['/input/x/click'], "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ],
       },
      ),
-    ("redo", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'ed.redo', "op_mode": 'PRESS', "bimanual": 'False', "haptic_name": 'haptic_right', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'}, None,
+    ("redo", {"type": 'FLOAT', "user_paths": ['/user/gamepad'], "op": 'ed.redo', "op_mode": 'PRESS', "bimanual": 'False', "simulate_mouse": 'False', "haptic_name": 'haptic_right', "haptic_match_user_paths": 'True', "haptic_duration": '0.30000001192092896', "haptic_frequency": '3000.0', "haptic_amplitude": '0.5', "haptic_mode": 'PRESS'}, None,
      {"bindings":
       [("gamepad", {"profile": '/interaction_profiles/microsoft/xbox_controller', "component_paths": ['/input/b/click'], "threshold": '0.30000001192092896', "axis_region": 'ANY'}),
        ],

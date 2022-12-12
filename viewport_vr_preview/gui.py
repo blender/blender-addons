@@ -89,6 +89,9 @@ class VIEW3D_PT_vr_session_view(Panel):
         col.prop(session_settings, "controller_draw_style", text="Controller Style")
 
         col = layout.column(align=True)
+        col.prop(session_settings, "projection_eye", text="Projection Eye")
+
+        col = layout.column(align=True)
         col.prop(session_settings, "clip_start", text="Clip Start")
         col.prop(session_settings, "clip_end", text="End")
 
@@ -403,6 +406,19 @@ class VIEW3D_PT_vr_actions_actions(VRActionsPanel, Panel):
                     col.prop(ami, "op", text="Operator")
                     col.prop(ami, "op_mode", text="Operator Mode")
                     col.prop(ami, "bimanual", text="Bimanual")
+                    col.prop(ami, "simulate_mouse", text="Simulate Mouse")
+                    if ami.simulate_mouse:
+                        col.separator()
+                        if ami.op_mode == 'PRESS' or ami.op_mode == 'MODAL':
+                            col.prop(ami.simulate, "press_type", text="Press Type")
+                            col.prop(ami.simulate, "press_value", text="Press Value")
+                        if ami.op_mode == 'MODAL':
+                            col.prop(ami.simulate, "hold_type", text="Hold Type")
+                            col.prop(ami.simulate, "hold_value", text="Hold Value")
+                        if ami.op_mode == 'RELEASE' or ami.op_mode == 'MODAL':
+                            col.prop(ami.simulate, "release_type", text="Release Type")
+                            col.prop(ami.simulate, "release_value", text="Release Value")
+                        col.separator()
                     # Properties.
                     vr_draw_ami(ami, col, 1)
                 elif ami.type == 'POSE':

@@ -52,6 +52,17 @@ def ami_args_as_data(ami):
         s.append(f"\"op\": '{ami.op}'")
         s.append(f"\"op_mode\": '{ami.op_mode}'")
         s.append(f"\"bimanual\": '{ami.bimanual}'")
+        s.append(f"\"simulate_mouse\": '{ami.simulate_mouse}'")
+        if ami.simulate_mouse:
+            if ami.op_mode == 'PRESS' or ami.op_mode == 'MODAL':
+                s.append(f"\"simulate_press_type\": '{ami.simulate.press_type}'")
+                s.append(f"\"simulate_press_value\": '{ami.simulate.press_value}'")
+            if ami.op_mode == 'MODAL':
+                s.append(f"\"simulate_hold_type\": '{ami.simulate.hold_type}'")
+                s.append(f"\"simulate_hold_value\": '{ami.simulate.hold_value}'")
+            if ami.op_mode == 'RELEASE' or ami.op_mode == 'MODAL':
+                s.append(f"\"simulate_release_type\": '{ami.simulate.release_type}'")
+                s.append(f"\"simulate_release_value\": '{ami.simulate.release_value}'")
         s.append(f"\"haptic_name\": '{ami.haptic_name}'")
         s.append(f"\"haptic_match_user_paths\": '{ami.haptic_match_user_paths}'")
         s.append(f"\"haptic_duration\": '{ami.haptic_duration}'")
@@ -76,6 +87,17 @@ def ami_data_from_args(ami, args):
         ami.op = args["op"]
         ami.op_mode = args["op_mode"]
         ami.bimanual = True if (args["bimanual"] == 'True') else False
+        ami.simulate_mouse = True if (args["simulate_mouse"] == 'True') else False
+        if ami.simulate_mouse:
+            if ami.op_mode == 'PRESS' or ami.op_mode == 'MODAL':
+                ami.simulate.press_type = args["simulate_press_type"]
+                ami.simulate.press_value = args["simulate_press_value"]
+            if ami.op_mode == 'MODAL':
+                ami.simulate.hold_type = args["simulate_hold_type"]
+                ami.simulate.hold_value = args["simulate_hold_value"]
+            if ami.op_mode == 'RELEASE' or ami.op_mode == 'MODAL':
+                ami.simulate.release_type = args["simulate_release_type"]
+                ami.simulate.release_value = args["simulate_release_value"]
         ami.haptic_name = args["haptic_name"]
         ami.haptic_match_user_paths = True if (args["haptic_match_user_paths"] == 'True') else False
         ami.haptic_duration = float(args["haptic_duration"])
