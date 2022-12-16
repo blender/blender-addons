@@ -203,7 +203,7 @@ class ASSET_OT_assign_action(Operator):
 
 class POSELIB_OT_copy_as_asset(PoseAssetCreator, Operator):
     bl_idname = "poselib.copy_as_asset"
-    bl_label = "Copy Pose As Asset"
+    bl_label = "Copy Pose as Asset"
     bl_description = "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
     bl_options = {"REGISTER"}
 
@@ -255,7 +255,7 @@ class POSELIB_OT_copy_as_asset(PoseAssetCreator, Operator):
 
 class POSELIB_OT_paste_asset(Operator):
     bl_idname = "poselib.paste_asset"
-    bl_label = "Paste As New Asset"
+    bl_label = "Paste as New Asset"
     bl_description = "Paste the Asset that was previously copied using Copy As Asset"
     bl_options = {"REGISTER", "UNDO"}
 
