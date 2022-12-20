@@ -27,7 +27,7 @@ class SnapWidgetCommon(SnapUtilities, bpy.types.Gizmo):
                 cls.snap_to_update = depsgraph.id_type_updated('MESH') or depsgraph.id_type_updated('OBJECT')
 
     def draw_point_and_elem(self):
-        if self.bm:
+        if self.bm and self.geom:
             if self.bm.is_valid and self.geom.is_valid:
                 self.draw_cache.draw_elem(self.snap_obj, self.bm, self.geom)
             else:
