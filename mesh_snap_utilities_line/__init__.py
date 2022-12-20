@@ -50,8 +50,8 @@ def tool_line():
         layout.prop(addon_prefs, "create_face")
         if context.mode == 'EDIT_MESH':
             layout.prop(addon_prefs, "outer_verts")
-        #props = tool.operator_properties("mesh.snap_utilities_line")
-        #layout.prop(props, "radius")
+        # props = tool.operator_properties("mesh.snap_utilities_line")
+        # layout.prop(props, "radius")
 
     icons_dir = os.path.join(os.path.dirname(__file__), "icons")
 
@@ -118,7 +118,7 @@ def register_keymaps():
     keyconfig_init_from_data(
         kc_addonconf, keys.generate_snap_utilities_keymaps())
 
-    #snap_modalkeymap = kc_addonconf.keymaps.find(keys.km_snap_utilities_modal_keymap)
+    # snap_modalkeymap = kc_addonconf.keymaps.find(keys.km_snap_utilities_modal_keymap)
     # snap_modalkeymap.assign("MESH_OT_snap_utilities_line")
 
 
