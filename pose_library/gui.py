@@ -120,7 +120,7 @@ class DOPESHEET_PT_asset_panel(PoseLibraryPanel, Panel):
     bl_space_type = "DOPESHEET_EDITOR"
     bl_region_type = "UI"
     bl_label = "Create Pose Asset"
-    bl_category = "Pose Library"
+    bl_category = "Action"
 
     def draw(self, context: Context) -> None:
         layout = self.layout
