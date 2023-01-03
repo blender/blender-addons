@@ -54,8 +54,6 @@ class VIEW3D_PT_pose_library(PoseLibraryPanel, Panel):
                 drag_operator="poselib.blend_pose_asset",
             )
             drag_op_props.release_confirm = True
-            drag_op_props.flipped = wm.poselib_flipped
-            activate_op_props.flipped = wm.poselib_flipped
 
 
 def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
@@ -81,7 +79,6 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
         return
 
     layout = self.layout
-    wm = context.window_manager
 
     layout.separator()
 
@@ -91,15 +88,12 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
     old_op_ctx = layout.operator_context
     layout.operator_context = 'INVOKE_DEFAULT'
     props = layout.operator("poselib.blend_pose_asset", text="Blend Pose")
-    props.flipped = wm.poselib_flipped
     layout.operator_context = old_op_ctx
 
     layout.separator()
     props = layout.operator("poselib.pose_asset_select_bones", text="Select Pose Bones")
-    props.flipped = wm.poselib_flipped
     props.select = True
     props = layout.operator("poselib.pose_asset_select_bones", text="Deselect Pose Bones")
-    props.flipped = wm.poselib_flipped
     props.select = False
 
     if not is_pose_asset_view():
