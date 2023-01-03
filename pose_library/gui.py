@@ -19,14 +19,11 @@ from bpy.types import (
 class PoseLibraryPanel:
     @classmethod
     def pose_library_panel_poll(cls, context: Context) -> bool:
-        return bool(
-            context.object
-            and context.object.mode == 'POSE'
-        )
+        return bool(context.object and context.object.mode == 'POSE')
 
     @classmethod
     def poll(cls, context: Context) -> bool:
-        return cls.pose_library_panel_poll(context);
+        return cls.pose_library_panel_poll(context)
 
 
 class VIEW3D_PT_pose_library(PoseLibraryPanel, Panel):
@@ -104,7 +101,6 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
     if is_pose_asset_view():
         layout.operator("asset.open_containing_blend_file")
 
-
         props.select = False
 
 
@@ -137,6 +133,7 @@ class ASSETBROWSER_MT_asset(Menu):
     @classmethod
     def poll(cls, context):
         from bpy_extras.asset_utils import SpaceAssetInfo
+
         return SpaceAssetInfo.is_asset_browser_poll(context)
 
     def draw(self, context: Context) -> None:
@@ -150,6 +147,7 @@ class ASSETBROWSER_MT_asset(Menu):
 ### Messagebus subscription to monitor asset library changes.
 _msgbus_owner = object()
 
+
 def _on_asset_library_changed() -> None:
     """Update areas when a different asset library is selected."""
     refresh_area_types = {'DOPESHEET_EDITOR', 'VIEW_3D'}
@@ -160,6 +158,7 @@ def _on_asset_library_changed() -> None:
 
             area.tag_redraw()
 
+
 def register_message_bus() -> None:
     bpy.msgbus.subscribe_rna(
         key=(bpy.types.FileAssetSelectParams, "asset_library_ref"),
@@ -169,13 +168,16 @@ def register_message_bus() -> None:
         options={'PERSISTENT'},
     )
 
+
 def unregister_message_bus() -> None:
     bpy.msgbus.clear_by_owner(_msgbus_owner)
+
 
 @bpy.app.handlers.persistent
 def _on_blendfile_load_pre(none, other_none) -> None:
     # The parameters are required, but both are None.
     unregister_message_bus()
+
 
 @bpy.app.handlers.persistent
 def _on_blendfile_load_post(none, other_none) -> None:
@@ -198,7 +200,7 @@ def register() -> None:
     WorkSpace.active_pose_asset_index = bpy.props.IntProperty(
         name="Active Pose Asset",
         # TODO explain which list the index belongs to, or how it can be used to get the pose.
-        description="Per workspace index of the active pose asset"
+        description="Per workspace index of the active pose asset",
     )
     # Register for window-manager. This is a global property that shouldn't be
     # written to files.
