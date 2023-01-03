@@ -15,8 +15,6 @@ from bpy.types import (
     WorkSpace,
 )
 
-from bpy_extras import asset_utils
-
 
 class PoseLibraryPanel:
     @classmethod
