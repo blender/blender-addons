@@ -72,8 +72,10 @@ else:
         shader.uniform_float("u_Resolution", (bpy.context.region.width,
                                               bpy.context.region.height))
         shader.uniform_float("u_Color", color)
+        width = gpu.state.line_width_get()
         gpu.state.line_width_set(2.0)
         batch.draw(shader)
+        gpu.state.line_width_set(width)
 
 
     _north_handle = None
