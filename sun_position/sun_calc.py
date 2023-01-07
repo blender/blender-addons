@@ -9,14 +9,10 @@ import datetime
 from .geo import parse_position
 
 
-############################################################################
-#
-# SunClass is used for storing intermediate sun calculations.
-#
-############################################################################
-
 class SunClass:
-
+    """
+    SunClass is used for storing intermediate sun calculations.
+    """
     class TazEl:
         time = 0.0
         azimuth = 0.0
@@ -81,16 +77,11 @@ def sun_handler(scene):
     move_sun(bpy.context)
 
 
-############################################################################
-#
-# move_sun() will cycle through all the selected objects
-# and call set_sun_position and set_sun_rotations
-# to place them in the sky.
-#
-############################################################################
-
-
 def move_sun(context):
+    """
+    Cycle through all the selected objects and call set_sun_position and
+    set_sun_rotations to place them in the sky
+    """
     addon_prefs = context.preferences.addons[__package__].preferences
     sun_props = context.scene.sun_pos_properties
 
@@ -265,29 +256,23 @@ def format_lat_long(lat_long, is_latitude):
     return hh + "° " + mm + "' " + ss + '"' + coord_tag
 
 
-
-
-############################################################################
-#
-# Calculate the actual position of the sun based on input parameters.
-#
-# The sun positioning algorithms below are based on the National Oceanic
-# and Atmospheric Administration's (NOAA) Solar Position Calculator
-# which rely on calculations of Jean Meeus' book "Astronomical Algorithms."
-# Use of NOAA data and products are in the public domain and may be used
-# freely by the public as outlined in their policies at
-#               www.nws.noaa.gov/disclaimer.php
-#
-# The calculations of this script can be verified with those of NOAA's
-# using the Azimuth and Solar Elevation displayed in the SunPos_Panel.
-# NOAA's web site is:
-#               http://www.esrl.noaa.gov/gmd/grad/solcalc
-############################################################################
-
-
 def get_sun_position(local_time, latitude, longitude, north_offset,
                    utc_zone, month, day, year, distance):
+    """
+    Calculate the actual position of the sun based on input parameters.
 
+    The sun positioning algorithms below are based on the National Oceanic
+    and Atmospheric Administration's (NOAA) Solar Position Calculator
+    which rely on calculations of Jean Meeus' book "Astronomical Algorithms."
+    Use of NOAA data and products are in the public domain and may be used
+    freely by the public as outlined in their policies at
+                www.nws.noaa.gov/disclaimer.php
+
+    The calculations of this script can be verified with those of NOAA's
+    using the Azimuth and Solar Elevation displayed in the SunPos_Panel.
+    NOAA's web site is:
+                http://www.esrl.noaa.gov/gmd/grad/solcalc
+    """
     addon_prefs = bpy.context.preferences.addons[__package__].preferences
     sun_props = bpy.context.scene.sun_pos_properties
 
@@ -381,9 +366,7 @@ def set_sun_position(obj, distance):
     locY = math.sin(sun.theta) * math.cos(sun.phi) * distance
     locZ = math.cos(sun.theta) * distance
 
-    #----------------------------------------------
     # Update selected object in viewport
-    #----------------------------------------------
     obj.location = locX, locY, locZ
 
 
@@ -475,13 +458,12 @@ def calc_sunrise_sunset(rise):
         sun.sunset.azimuth = sun.azimuth
         sun.sunset.elevation = sun.elevation
 
-##########################################################################
-## Get the elapsed julian time since 1/1/2000 12:00 gmt
-## Y2k epoch (1/1/2000 12:00 gmt) is Julian day 2451545.0
-##########################################################################
-
 
 def julian_time_from_y2k(utc_time, year, month, day):
+    """
+    Get the elapsed julian time since 1/1/2000 12:00 gmt
+    Y2k epoch (1/1/2000 12:00 gmt) is Julian day 2451545.0
+    """
     century = 36525.0  # Days in Julian Century
     epoch = 2451545.0  # Julian Day for 1/1/2000 12:00 gmt
     jd = get_julian_day(year, month, day)
