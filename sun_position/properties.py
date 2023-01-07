@@ -6,7 +6,7 @@ from bpy.props import (StringProperty, EnumProperty, IntProperty,
                        FloatProperty, BoolProperty, PointerProperty)
 
 from .sun_calc import sun_update, parse_coordinates
-from .north import north_update
+from .draw import north_update
 
 from math import pi
 from datetime import datetime
