@@ -2,32 +2,30 @@
 
 import bpy
 from bpy.app.handlers import persistent
-from mathutils import Euler
+from mathutils import Euler, Vector
 import math
 from math import degrees, radians, pi
 import datetime
 from .geo import parse_position
 
 
-class SunClass:
+class SunInfo:
     """
-    SunClass is used for storing intermediate sun calculations.
+    Store intermediate sun calculations
     """
-    class TazEl:
+    class TAzEl:
         time = 0.0
         azimuth = 0.0
         elevation = 0.0
 
     class CLAMP:
-        elevation = 0.0
         azimuth = 0.0
+        elevation = 0.0
         az_start_sun = 0.0
         az_start_env = 0.0
 
-    sunrise = TazEl()
-    sunset = TazEl()
-    solar_noon = TazEl()
-    rise_set_ok = False
+    sunrise = TAzEl()
+    sunset = TAzEl()
 
     bind = CLAMP()
     bind_to_sun = False
@@ -47,13 +45,13 @@ class SunClass:
     sun_distance = 0.0
     use_daylight_savings = False
 
-
-sun = SunClass()
+sun = SunInfo()
 
 
 def sun_update(self, context):
     update_time(context)
     move_sun(context)
+
 
 def parse_coordinates(self, context):
     error_message = "ERROR: Could not parse coordinates"
@@ -71,15 +69,10 @@ def parse_coordinates(self, context):
     if sun_props.co_parser not in {'', error_message}:
         sun_props.co_parser = ''
 
-@persistent
-def sun_handler(scene):
-    update_time(bpy.context)
-    move_sun(bpy.context)
-
 
 def move_sun(context):
     """
-    Cycle through all the selected objects and call set_sun_position and
+    Cycle through all the selected objects and call set_sun_location and
     set_sun_rotations to place them in the sky
     """
     addon_prefs = context.preferences.addons[__package__].preferences
@@ -101,11 +94,12 @@ def move_sun(context):
             env_tex.texture_mapping.rotation.z = az
 
         if sun_props.sun_object:
-            sun.theta = math.pi / 2 - sun_props.hdr_elevation
-            sun.phi = -sun_props.hdr_azimuth
+            theta = math.pi / 2 - sun_props.hdr_elevation
+            phi = -sun_props.hdr_azimuth
 
             obj = sun_props.sun_object
-            set_sun_position(obj, sun_props.sun_distance)
+            obj.location = get_sun_vector(theta, phi) * sun_props.sun_distance
+
             rotation_euler = Euler((sun_props.hdr_elevation - pi/2,
                                     0, -sun_props.hdr_azimuth))
 
@@ -124,28 +118,28 @@ def move_sun(context):
         calc_sunrise_sunset(rise=True)
         calc_sunrise_sunset(rise=False)
 
-    get_sun_position(local_time, sun_props.latitude, sun_props.longitude,
-            north_offset, zone, sun_props.month, sun_props.day, sun_props.year,
-            sun_props.sun_distance)
+    az_north, theta, phi, azimuth, elevation = get_sun_coordinates(
+        local_time, sun_props.latitude, sun_props.longitude,
+        north_offset, zone, sun_props.month, sun_props.day, sun_props.year,
+        sun_props.sun_distance)
+    sun.azimuth = azimuth
+    sun.elevation = elevation
 
     if sun_props.sky_texture:
         sky_node = bpy.context.scene.world.node_tree.nodes.get(sun_props.sky_texture)
         if sky_node is not None and sky_node.type == "TEX_SKY":
-            locX = math.sin(sun.phi) * math.sin(-sun.theta)
-            locY = math.sin(sun.theta) * math.cos(sun.phi)
-            locZ = math.cos(sun.theta)
             sky_node.texture_mapping.rotation.z = 0.0
-            sky_node.sun_direction = locX, locY, locZ
-            sky_node.sun_elevation = math.radians(sun.elevation)
-            sky_node.sun_rotation = math.radians(sun.az_north)
+            sky_node.sun_direction = get_sun_vector(theta, phi)
+            sky_node.sun_elevation = math.radians(elevation)
+            sky_node.sun_rotation = math.radians(az_north)
 
     # Sun object
     if (sun_props.sun_object is not None
             and sun_props.sun_object.name in context.view_layer.objects):
         obj = sun_props.sun_object
-        set_sun_position(obj, sun_props.sun_distance)
-        rotation_euler = Euler((math.radians(sun.elevation - 90), 0,
-                                math.radians(-sun.az_north)))
+        obj.location = get_sun_vector(theta, phi) * sun_props.sun_distance
+        rotation_euler = Euler((math.radians(elevation - 90), 0,
+                                math.radians(-az_north)))
         set_sun_rotations(obj, rotation_euler)
 
     # Sun collection
@@ -161,15 +155,16 @@ def move_sun(context):
                 time_increment = sun_props.time_spread
 
             for obj in sun_objects:
-                get_sun_position(local_time, sun_props.latitude,
-                                 sun_props.longitude, north_offset, zone,
-                                 sun_props.month, sun_props.day,
-                                 sun_props.year, sun_props.sun_distance)
-                set_sun_position(obj, sun_props.sun_distance)
+                az_north, theta, phi, azimuth, elevation = get_sun_coordinates(
+                    local_time, sun_props.latitude,
+                    sun_props.longitude, north_offset, zone,
+                    sun_props.month, sun_props.day,
+                    sun_props.year, sun_props.sun_distance)
+                obj.location = get_sun_vector(theta, phi) * sun_props.sun_distance
                 local_time -= time_increment
                 obj.rotation_euler = (
-                    (math.radians(sun.elevation - 90), 0,
-                     math.radians(-sun.az_north)))
+                    (math.radians(elevation - 90), 0,
+                     math.radians(-az_north)))
         else:
             # Analemma
             day_increment = 365 / object_count
@@ -177,41 +172,59 @@ def move_sun(context):
             for obj in sun_objects:
                 dt = (datetime.date(sun_props.year, 1, 1) +
                       datetime.timedelta(day - 1))
-                get_sun_position(local_time, sun_props.latitude,
-                                 sun_props.longitude, north_offset, zone,
-                                 dt.month, dt.day, sun_props.year,
-                                 sun_props.sun_distance)
-                set_sun_position(obj, sun_props.sun_distance)
+                az_north, theta, phi, azimuth, elevation = get_sun_coordinates(
+                    local_time, sun_props.latitude,
+                    sun_props.longitude, north_offset, zone,
+                    dt.month, dt.day, sun_props.year,
+                    sun_props.sun_distance)
+                obj.location = get_sun_vector(theta, phi) * sun_props.sun_distance
                 day -= day_increment
                 obj.rotation_euler = (
-                    (math.radians(sun.elevation - 90), 0,
-                     math.radians(-sun.az_north)))
+                    (math.radians(elevation - 90), 0,
+                     math.radians(-az_north)))
+
+
+def day_of_year_to_month_day(year, day_of_year):
+    dt = (datetime.date(year, 1, 1) + datetime.timedelta(day_of_year - 1))
+    return dt.day, dt.month
+
+def month_day_to_day_of_year(year, month, day):
+    dt = datetime.date(year, month, day)
+    return dt.timetuple().tm_yday
+
 
 def update_time(context):
     sun_props = context.scene.sun_pos_properties
 
     if sun_props.use_day_of_year:
-        dt = (datetime.date(sun_props.year, 1, 1) +
-              datetime.timedelta(sun_props.day_of_year - 1))
-        sun.day = dt.day
-        sun.month = dt.month
+        day, month = day_of_year_to_month_day(sun_props.year,
+                                              sun_props.day_of_year)
+        sun.day = day
+        sun.month = month
         sun.day_of_year = sun_props.day_of_year
-        if sun_props.day != dt.day:
-            sun_props.day = dt.day
-        if sun_props.month != dt.month:
-            sun_props.month = dt.month
+        if sun_props.day != day:
+            sun_props.day = day
+        if sun_props.month != month:
+            sun_props.month = month
     else:
-        dt = datetime.date(sun_props.year, sun_props.month, sun_props.day)
-        day_of_year = dt.timetuple().tm_yday
-        if sun_props.day_of_year != day_of_year:
-            sun_props.day_of_year = day_of_year
+        day_of_year = month_day_to_day_of_year(
+            sun_props.year, sun_props.month, sun_props.day)
         sun.day = sun_props.day
         sun.month = sun_props.month
         sun.day_of_year = day_of_year
+        if sun_props.day_of_year != day_of_year:
+            sun_props.day_of_year = day_of_year
+
     sun.year = sun_props.year
     sun.longitude = sun_props.longitude
     sun.latitude = sun_props.latitude
     sun.UTC_zone = sun_props.UTC_zone
+
+
+@persistent
+def sun_handler(scene):
+    update_time(bpy.context)
+    move_sun(bpy.context)
 
 
 def format_time(the_time, daylight_savings, longitude, UTC_zone=None):
@@ -256,8 +269,8 @@ def format_lat_long(lat_long, is_latitude):
     return hh + "° " + mm + "' " + ss + '"' + coord_tag
 
 
-def get_sun_position(local_time, latitude, longitude, north_offset,
-                   utc_zone, month, day, year, distance):
+def get_sun_coordinates(local_time, latitude, longitude, north_offset,
+                        utc_zone, month, day, year, distance):
     """
     Calculate the actual position of the sun based on input parameters.
 
@@ -276,10 +289,10 @@ def get_sun_position(local_time, latitude, longitude, north_offset,
     addon_prefs = bpy.context.preferences.addons[__package__].preferences
     sun_props = bpy.context.scene.sun_pos_properties
 
-    longitude *= -1                 # for internal calculations
-    utc_time = local_time + utc_zone   # Set Greenwich Meridian Time
+    longitude *= -1                   # for internal calculations
+    utc_time = local_time + utc_zone  # Set Greenwich Meridian Time
 
-    if latitude > 89.93:            # Latitude 90 and -90 gives
+    if latitude > 89.93:           # Latitude 90 and -90 gives
         latitude = radians(89.93)  # erroneous results so nudge it
     elif latitude < -89.93:
         latitude = radians(-89.93)
@@ -353,28 +366,30 @@ def get_sun_position(local_time, latitude, longitude, north_offset,
     solar_azimuth = azimuth
     solar_azimuth += north_offset
 
-    sun.az_north = solar_azimuth
+    az_north = solar_azimuth
+    theta = math.pi / 2 - radians(solar_elevation)
+    phi = radians(solar_azimuth) * -1
+    azimuth = azimuth
+    elevation = solar_elevation
 
-    sun.theta = math.pi / 2 - radians(solar_elevation)
-    sun.phi = radians(solar_azimuth) * -1
-    sun.azimuth = azimuth
-    sun.elevation = solar_elevation
+    return az_north, theta, phi, azimuth, elevation
 
 
-def set_sun_position(obj, distance):
-    locX = math.sin(sun.phi) * math.sin(-sun.theta) * distance
-    locY = math.sin(sun.theta) * math.cos(sun.phi) * distance
-    locZ = math.cos(sun.theta) * distance
-
-    # Update selected object in viewport
-    obj.location = locX, locY, locZ
+def get_sun_vector(theta, phi):
+    """
+    Convert the sun coordinates to cartesian
+    """
+    loc_x = math.sin(phi) * math.sin(-theta)
+    loc_y = math.sin(theta) * math.cos(phi)
+    loc_z = math.cos(theta)
+    return Vector((loc_x, loc_y, loc_z))
 
 
 def set_sun_rotations(obj, rotation_euler):
     rotation_quaternion = rotation_euler.to_quaternion()
     obj.rotation_quaternion = rotation_quaternion
 
-    if obj.rotation_mode in {'XZY', 'YXZ', 'YZX', 'ZXY','ZYX'}:
+    if obj.rotation_mode in {'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX'}:
         obj.rotation_euler = rotation_quaternion.to_euler(obj.rotation_mode)
     else:
         obj.rotation_euler = rotation_euler
@@ -416,16 +431,16 @@ def calc_hour_angle_sunrise(lat, solar_dec):
     return HA
 
 
-def calc_solar_noon(jd, longitude, timezone, dst):
-    t = calc_time_julian_cent(jd - longitude / 360.0)
-    eq_time = calc_equation_of_time(t)
-    noon_offset = 720.0 - (longitude * 4.0) - eq_time
-    newt = calc_time_julian_cent(jd + noon_offset / 1440.0)
-    eq_time = calc_equation_of_time(newt)
+# def calc_solar_noon(jd, longitude, timezone, dst):
+#     t = calc_time_julian_cent(jd - longitude / 360.0)
+#     eq_time = calc_equation_of_time(t)
+#     noon_offset = 720.0 - (longitude * 4.0) - eq_time
+#     newt = calc_time_julian_cent(jd + noon_offset / 1440.0)
+#     eq_time = calc_equation_of_time(newt)
 
-    nv = 780.0 if dst else 720.0
-    noon_local = (nv- (longitude * 4.0) - eq_time + (timezone * 60.0)) % 1440
-    sun.solar_noon.time = noon_local / 60.0
+#     nv = 780.0 if dst else 720.0
+#     noon_local = (nv- (longitude * 4.0) - eq_time + (timezone * 60.0)) % 1440
+#     sun.solar_noon.time = noon_local / 60.0
 
 
 def calc_sunrise_sunset(rise):
@@ -434,29 +449,25 @@ def calc_sunrise_sunset(rise):
     jd = get_julian_day(sun.year, sun.month, sun.day)
     time_UTC = calc_sunrise_set_UTC(rise, jd, sun.latitude, sun.longitude)
     new_time_UTC = calc_sunrise_set_UTC(rise, jd + time_UTC / 1440.0,
-                     sun.latitude, sun.longitude)
+                                        sun.latitude, sun.longitude)
     time_local = new_time_UTC + (-zone * 60.0)
     tl = time_local / 60.0
-    get_sun_position(tl, sun.latitude, sun.longitude, 0.0,
-            zone, sun.month, sun.day, sun.year,
-            sun.sun_distance)
+    az_north, theta, phi, azimuth, elevation = get_sun_coordinates(
+        tl, sun.latitude, sun.longitude, 0.0,
+        zone, sun.month, sun.day, sun.year,
+        sun.sun_distance)
     if sun.use_daylight_savings:
         time_local += 60.0
         tl = time_local / 60.0
     tl %= 24.0
     if rise:
         sun.sunrise.time = tl
-        sun.sunrise.azimuth = sun.azimuth
-        sun.sunrise.elevation = sun.elevation
-        calc_solar_noon(jd, sun.longitude, -zone, sun.use_daylight_savings)
-        get_sun_position(sun.solar_noon.time, sun.latitude, sun.longitude,
-            0.0, zone, sun.month, sun.day, sun.year,
-            sun.sun_distance)
-        sun.solar_noon.elevation = sun.elevation
+        sun.sunrise.azimuth = azimuth
+        sun.sunrise.elevation = elevation
     else:
         sun.sunset.time = tl
-        sun.sunset.azimuth = sun.azimuth
-        sun.sunset.elevation = sun.elevation
+        sun.sunset.azimuth = azimuth
+        sun.sunset.elevation = elevation
 
 
 def julian_time_from_y2k(utc_time, year, month, day):
@@ -477,7 +488,7 @@ def get_julian_day(year, month, day):
     A = math.floor(year / 100)
     B = 2 - A + math.floor(A / 4.0)
     jd = (math.floor((365.25 * (year + 4716.0))) +
-         math.floor(30.6001 * (month + 1)) + day + B - 1524.5)
+          math.floor(30.6001 * (month + 1)) + day + B - 1524.5)
     return jd
 
 
@@ -515,7 +526,7 @@ def obliquity_correction(t):
 
 def obliquity_of_ecliptic(t):
     return ((23.0 + 26.0 / 60 + (21.4480 - 46.8150) / 3600 * t -
-            (0.00059 / 3600) * t ** 2 + (0.001813 / 3600) * t ** 3))
+             (0.00059 / 3600) * t**2 + (0.001813 / 3600) * t**3))
 
 
 def true_longitude_of_sun(t):
@@ -535,13 +546,13 @@ def apparent_longitude_of_sun(t):
 
 
 def mean_longitude_sun(t):
-    return (280.46646 + 36000.76983 * t + 0.0003032 * t ** 2) % 360
+    return (280.46646 + 36000.76983 * t + 0.0003032 * t**2) % 360
 
 
 def equation_of_sun_center(t):
     m = radians(mean_anomaly_sun(t))
-    c = ((1.914602 - 0.004817 * t - 0.000014 * t ** 2) * math.sin(m) +
-        (0.019993 - 0.000101 * t) * math.sin(m * 2) +
+    c = ((1.914602 - 0.004817 * t - 0.000014 * t**2) * math.sin(m) +
+         (0.019993 - 0.000101 * t) * math.sin(m * 2) +
          0.000289 * math.sin(m * 3))
     return c
 
