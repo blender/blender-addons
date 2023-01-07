@@ -87,4 +87,3 @@ else:
         elif _north_handle is not None:
             bpy.types.SpaceView3D.draw_handler_remove(_north_handle, 'WINDOW')
             _north_handle = None
-        context.area.tag_redraw()
