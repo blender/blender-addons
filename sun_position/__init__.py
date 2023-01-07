@@ -16,7 +16,7 @@
 bl_info = {
     "name": "Sun Position",
     "author": "Michael Martin",
-    "version": (3, 1, 3),
+    "version": (3, 2, 0),
     "blender": (3, 0, 0),
     "location": "World > Sun Position",
     "description": "Show sun position with objects and/or sky texture",
@@ -48,6 +48,8 @@ register_classes, unregister_classes = bpy.utils.register_classes_factory(
 @persistent
 def sun_scene_handler(scene):
     sun_props = bpy.context.scene.sun_pos_properties
+    sun_props.show_surface = sun_props.show_surface
+    sun_props.show_analemmas = sun_props.show_analemmas
     sun_props.show_north = sun_props.show_north
 
 
