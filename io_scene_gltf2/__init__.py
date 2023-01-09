@@ -125,8 +125,8 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
     gltf_export_id: StringProperty(
         name='Identifier',
         description=(
-            'Identifier of caller (in case of addon calling this exporter. '
-            'Can be useful in case of Extension added by other addons'
+            'Identifier of caller (in case of add-on calling this exporter). '
+            'Can be useful in case of Extension added by other add-ons'
         ),
         default=''
     )
