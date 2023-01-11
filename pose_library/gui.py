@@ -50,7 +50,10 @@ class VIEW3D_PT_pose_library(PoseLibraryPanel, Panel):
                 activate_operator="poselib.apply_pose_asset",
                 drag_operator="poselib.blend_pose_asset",
             )
-            drag_op_props.release_confirm = True
+
+            # Make sure operators properties match those used in
+            # `pose_library_list_item_context_menu` so shortcuts show in menus (see T103267).
+            activate_op_props.flipped = False
 
 
 def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
@@ -79,6 +82,7 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
 
     layout.separator()
 
+    # Make sure these operator properties match those used in `VIEW3D_PT_pose_library`.
     layout.operator("poselib.apply_pose_asset", text="Apply Pose").flipped = False
     layout.operator("poselib.apply_pose_asset", text="Apply Pose Flipped").flipped = True
 
