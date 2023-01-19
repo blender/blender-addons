@@ -27,6 +27,7 @@ from bpy.props import (
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
+from .util import match_files_to_socket_names, split_into_components
 from nodeitems_utils import node_categories_iter, NodeItemCustom
 from math import cos, sin, pi, hypot
 from os import path
@@ -679,7 +680,7 @@ def get_output_location(tree):
 class NWPrincipledPreferences(bpy.types.PropertyGroup):
     base_color: StringProperty(
         name='Base Color',
-        default='diffuse diff albedo base col color',
+        default='diffuse diff albedo base col color basecolor',
         description='Naming Components for Base Color maps')
     sss_color: StringProperty(
         name='Subsurface Color',
@@ -2712,25 +2713,6 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
             self.report({'INFO'}, 'Select Principled BSDF')
             return {'CANCELLED'}
 
-        # Helper_functions
-        def split_into__components(fname):
-            # Split filename into components
-            # 'WallTexture_diff_2k.002.jpg' -> ['Wall', 'Texture', 'diff', 'k']
-            # Remove extension
-            fname = path.splitext(fname)[0]
-            # Remove digits
-            fname = ''.join(i for i in fname if not i.isdigit())
-            # Separate CamelCase by space
-            fname = re.sub(r"([a-z])([A-Z])", r"\g<1> \g<2>",fname)
-            # Replace common separators with SPACE
-            separators = ['_', '.', '-', '__', '--', '#']
-            for sep in separators:
-                fname = fname.replace(sep, ' ')
-
-            components = fname.split(' ')
-            components = [c.lower() for c in components]
-            return components
-
         # Filter textures names for texturetypes in filenames
         # [Socket Name, [abbreviations and keyword list], Filename placeholder]
         tags = context.preferences.addons[__name__].preferences.principled_tags
@@ -2752,19 +2734,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
         ['Ambient Occlusion', tags.ambient_occlusion.split(' '), None],
         ]
 
-        # Look through texture_types and set value as filename of first matched file
-        def match_files_to_socket_names():
-            for sname in socketnames:
-                for file in self.files:
-                    fname = file.name
-                    filenamecomponents = split_into__components(fname)
-                    matches = set(sname[1]).intersection(set(filenamecomponents))
-                    # TODO: ignore basename (if texture is named "fancy_metal_nor", it will be detected as metallic map, not normal map)
-                    if matches:
-                        sname[2] = fname
-                        break
-
-        match_files_to_socket_names()
+        match_files_to_socket_names(self.files, socketnames)
         # Remove socketnames without found files
         socketnames = [s for s in socketnames if s[2]
                        and path.exists(self.directory+s[2])]
@@ -2838,7 +2808,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
                 # NORMAL NODES
                 if sname[0] == 'Normal':
                     # Test if new texture node is normal or bump map
-                    fname_components = split_into__components(sname[2])
+                    fname_components = split_into_components(sname[2])
                     match_normal = set(normal_abbr).intersection(set(fname_components))
                     match_bump = set(bump_abbr).intersection(set(fname_components))
                     if match_normal:
@@ -2855,7 +2825,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
 
                 elif sname[0] == 'Roughness':
                     # Test if glossy or roughness map
-                    fname_components = split_into__components(sname[2])
+                    fname_components = split_into_components(sname[2])
                     match_rough = set(rough_abbr).intersection(set(fname_components))
                     match_gloss = set(gloss_abbr).intersection(set(fname_components))
 
