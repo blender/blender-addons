@@ -902,7 +902,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     if scene_data.settings.use_mesh_edges:
         t_le = tuple(e.vertices for e in me.edges if e.is_loose)
         t_pvi.extend(chain(*t_le))
-        t_ls.extend(range(loop_nbr, loop_nbr + len(t_le), 2))
+        t_ls.extend(range(loop_nbr, loop_nbr + len(t_le) * 2, 2))
         del t_le
 
     # Edges...
