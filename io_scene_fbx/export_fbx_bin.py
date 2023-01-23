@@ -2657,8 +2657,13 @@ def fbx_data_from_scene(scene, depsgraph, settings):
             if ob_obj.type not in BLENDER_OBJECT_TYPES_MESHLIKE:
                 continue
             _mesh_key, me, _free = data_meshes[ob_obj]
+            material_indices = mesh_material_indices.setdefault(me, {})
+            if ma in material_indices:
+                # Material has already been found for this mesh.
+                # XXX If a mesh has multiple material slots with the same material, they are combined into one slot.
+                continue
             idx = _objs_indices[ob_obj] = _objs_indices.get(ob_obj, -1) + 1
-            mesh_material_indices.setdefault(me, {})[ma] = idx
+            material_indices[ma] = idx
     del _objs_indices
 
     # Textures
