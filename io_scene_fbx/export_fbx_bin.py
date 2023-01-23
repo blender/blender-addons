@@ -917,7 +917,12 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     edges_map = {}
     edges_nbr = 0
     if t_ls and t_pvi:
-        t_ls = set(t_ls)
+        # t_ls is loop start indices of polygons, but we want to use it to indicate the end loop of each polygon.
+        # The loop end index of a polygon is the loop start index of the next polygon minus one, so the first element of
+        # t_ls will be ignored, and we need to add an extra element at the end to signify the end of the last polygon.
+        # If we were to add another polygon to the mesh, its loop start index would be the next loop index.
+        t_ls = set(t_ls[1:])
+        t_ls.add(loop_nbr)
         todo_edges = [None] * len(me.edges) * 2
         # Sigh, cannot access edge.key through foreach_get... :/
         me.edges.foreach_get("vertices", todo_edges)
