@@ -6,6 +6,7 @@
 import array
 import datetime
 import math
+import numpy as np
 import os
 import time
 
@@ -46,9 +47,9 @@ from .fbx_utils import (
     # Miscellaneous utils.
     PerfMon,
     units_blender_to_fbx_factor, units_convertor, units_convertor_iter,
-    matrix4_to_array, similar_values, similar_values_iter,
+    matrix4_to_array, similar_values, similar_values_iter, astype_view_signedness, fast_first_axis_unique,
     # Mesh transform helpers.
-    vcos_transformed_gen, nors_transformed_gen,
+    vcos_transformed_gen, nors_transformed_gen, vcos_transformed, nors_transformed,
     # UUID from key.
     get_fbx_uuid_from_key,
     # Key generators.
