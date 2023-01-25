@@ -821,6 +821,8 @@ class STORYPENCIL_OT_TabSwitch(Operator):
                 # Get strip under time cursor
                 strip, old_frame = get_sequence_at_frame(
                     scene.frame_current, sequences=sequences)
+                # For meta strips the tab key must be processed by other operator, so
+                # just pass through to the next operator in the stack.
                 if strip is None or strip.type != 'SCENE':
                     if context.active_sequence_strip and context.active_sequence_strip.type == 'META':
                         return {'PASS_THROUGH'}
