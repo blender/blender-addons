@@ -885,9 +885,11 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     elem_data_single_int32(geom, b"GeometryVersion", FBX_GEOMETRY_VERSION)
 
     # Vertex cos.
-    t_co = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.vertices) * 3
+    co_bl_dtype = np.single
+    co_fbx_dtype = np.float64
+    t_co = np.empty(len(me.vertices) * 3, dtype=co_bl_dtype)
     me.vertices.foreach_get("co", t_co)
-    elem_data_single_float64_array(geom, b"Vertices", chain(*vcos_transformed_gen(t_co, geom_mat_co)))
+    elem_data_single_float64_array(geom, b"Vertices", vcos_transformed(t_co, geom_mat_co, co_fbx_dtype))
     del t_co
 
     # Polygon indices.
