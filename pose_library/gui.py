@@ -8,6 +8,7 @@ import bpy
 from bpy.types import (
     AssetHandle,
     Context,
+    Header,
     Menu,
     Panel,
     UIList,
@@ -26,34 +27,38 @@ class PoseLibraryPanel:
         return cls.pose_library_panel_poll(context)
 
 
+class VIEW3D_HT_pose_library_asset_shelf(PoseLibraryPanel, Header):
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "ASSET_SHELF"
+
+    def draw(self, context: Context) -> None:
+        layout = self.layout
+
+        is_poses_only = PoseLibraryPanel.poll(context)
+
+        wm = context.window_manager
+
+        # TODO flipped pose option?
+        # TODO create/copy poses?
+
+        if hasattr(layout, "template_asset_shelf"):
+            filter_id_types = {"filter_action"} if is_poses_only else {"filter_object", "filter_material"}
+            layout.template_asset_shelf(filter_id_types=filter_id_types)
+
+
 class VIEW3D_PT_pose_library(PoseLibraryPanel, Panel):
     bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Animation"
+    bl_region_type = "ASSET_SHELF"
     bl_label = "Pose Library"
 
     def draw(self, context: Context) -> None:
         layout = self.layout
 
-        if hasattr(layout, "template_asset_view"):
-            workspace = context.workspace
-            wm = context.window_manager
-            activate_op_props, drag_op_props = layout.template_asset_view(
-                "pose_assets",
-                workspace,
-                "asset_library_ref",
-                wm,
-                "pose_assets",
-                workspace,
-                "active_pose_asset_index",
-                filter_id_types={"filter_action"},
-                activate_operator="poselib.apply_pose_asset",
-                drag_operator="poselib.blend_pose_asset",
-            )
-
-            # Make sure operators properties match those used in
-            # `pose_library_list_item_context_menu` so shortcuts show in menus (see T103267).
-            activate_op_props.flipped = False
+        row = layout.row(align=True)
+        row.operator("poselib.create_pose_asset").activate_new_action = False
+        if bpy.types.POSELIB_OT_restore_previous_action.poll(context):
+            row.operator("poselib.restore_previous_action", text="", icon='LOOP_BACK')
+        row.operator("poselib.copy_as_asset", icon="COPYDOWN", text="")
 
 
 def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
@@ -193,6 +198,7 @@ classes = (
     DOPESHEET_PT_asset_panel,
     VIEW3D_PT_pose_library,
     ASSETBROWSER_MT_asset,
+    VIEW3D_HT_pose_library_asset_shelf,
 )
 
 _register, _unregister = bpy.utils.register_classes_factory(classes)
