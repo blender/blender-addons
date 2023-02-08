@@ -80,7 +80,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
             name="Apply Transform",
             description="Bake space transform into object data, avoids getting unwanted rotations to objects when "
                         "target space is not aligned with Blender's space "
-                        "(WARNING! experimental option, use at own risks, known broken with armatures/animations)",
+                        "(WARNING! experimental option, use at own risk, known to be broken with armatures/animations)",
             default=False,
             )
 
@@ -434,7 +434,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             name="Apply Transform",
             description="Bake space transform into object data, avoids getting unwanted rotations to objects when "
                         "target space is not aligned with Blender's space "
-                        "(WARNING! experimental option, use at own risks, known broken with armatures/animations)",
+                        "(WARNING! experimental option, use at own risk, known to be broken with armatures/animations)",
             default=False,
             )
 
@@ -549,8 +549,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                    ('LIMBNODE', "LimbNode", "'LimbNode' FBX node, a regular joint between two bones..."),
                   ),
             description="FBX type of node (object) used to represent Blender's armatures "
-                        "(use Null one unless you experience issues with other app, other choices may no import back "
-                        "perfectly in Blender...)",
+                        "(use the Null type unless you experience issues with the other app, "
+                        "as other choices may not import back perfectly into Blender...)",
             default='NULL',
             )
     bake_anim: BoolProperty(
