@@ -11,11 +11,11 @@ if bpy.app.background:  # ignore north line in background mode
     def north_update(self, context):
         pass
 else:
-    shader_info = gpu.types.GPUShaderCreateInfo()
-    shader_interface = gpu.types.GPUStageInterfaceInfo("")
+    shader_interface = gpu.types.GPUStageInterfaceInfo("my_interface")
     shader_interface.flat('VEC2', "v_StartPos")
     shader_interface.smooth('VEC4', "v_VertPos")
 
+    shader_info = gpu.types.GPUShaderCreateInfo()
     shader_info.push_constant('MAT4', "u_ViewProjectionMatrix")
     shader_info.push_constant('VEC4', "u_Color")
     shader_info.push_constant('VEC2', "u_Resolution")
@@ -88,7 +88,6 @@ else:
         gpu.state.line_width_set(2.0)
         batch.draw(shader)
         gpu.state.line_width_set(width)
-
 
     _north_handle = None
 
