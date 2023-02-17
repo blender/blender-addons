@@ -27,8 +27,8 @@ def render_final_resolution_ui(self, context):
     layout.use_property_decorate = False
 
     layout.separator()
-
-    col = layout.column(align=True)
+    box = layout.box()
+    col = box.column(align=True)
     col.active = False
     split = col.split(factor=0.4)
 

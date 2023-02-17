@@ -54,7 +54,7 @@ from amaranth.render import (
     )
 
 from amaranth.animation import (
-    timeline_extra_info,
+    time_extra_info,
     frame_current,
     motion_paths,
     jump_frames,
