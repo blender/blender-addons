@@ -99,11 +99,6 @@ class CYCLES_RENDER_PT_amaranth_samples(bpy.types.Panel):
                                 s.name)
 
 
-classes = (
-    CYCLES_RENDER_PT_amaranth_samples,
-)
-
-
 def init():
     if utils.cycles_exists():
         from cycles import properties as _cycles_props
@@ -124,17 +119,13 @@ def clear():
 def register():
     init()
     if utils.cycles_exists():
-        from bpy.utils import register_class
-
-        for cls in classes:
-            register_class(cls)
+        bpy.utils.register_class(CYCLES_RENDER_PT_amaranth_samples)
 
 
 def unregister():
     if utils.cycles_exists():
-        from bpy.utils import unregister_class
-
-        for cls in classes:
-            unregister_class(cls)
+        panel = CYCLES_RENDER_PT_amaranth_samples
+        if "bl_rna" in panel.__dict__:
+            bpy.utils.unregister_class(panel)
 
     clear()
