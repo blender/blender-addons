@@ -2,12 +2,11 @@
 # Copyright 2018-2021 The glTF-Blender-IO authors.
 
 import bpy
-
-from .gltf2_blender_image import BlenderImage
+from ...io.com.gltf2_io import Sampler
+from ...io.com.gltf2_io_constants import TextureFilter, TextureWrap
+from ...io.imp.gltf2_io_user_extensions import import_user_extensions
 from ..com.gltf2_blender_conversion import texture_transform_gltf_to_blender
-from io_scene_gltf2.io.com.gltf2_io import Sampler
-from io_scene_gltf2.io.com.gltf2_io_constants import TextureFilter, TextureWrap
-from io_scene_gltf2.io.imp.gltf2_io_user_extensions import import_user_extensions
+from .gltf2_blender_image import BlenderImage
 
 def texture(
     mh,
