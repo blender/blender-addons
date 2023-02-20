@@ -1289,7 +1289,6 @@ class NWPreviewNode(Operator, NWBase):
 
     # If false, the operator is not executed if the current node group happens to be a geometry nodes group.
     # This is needed because geometry nodes has its own viewer node that uses the same shortcut as in the compositor.
-    # Geometry Nodes support can be removed here once the viewer node is supported in the viewport.
     run_in_geometry_nodes: BoolProperty(default=True)
 
     def __init__(self):
