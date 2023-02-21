@@ -27,24 +27,21 @@ class PoseLibraryPanel:
         return cls.pose_library_panel_poll(context)
 
 
-class VIEW3D_HT_pose_library_asset_shelf(PoseLibraryPanel, Header):
+class VIEW3D_AST_pose_library(bpy.types.AssetShelf):
     bl_space_type = "VIEW_3D"
-    bl_region_type = "ASSET_SHELF"
 
-    def draw(self, context: Context) -> None:
-        layout = self.layout
+    # TODO flipped pose option?
+    # TODO create/copy poses?
 
-        is_poses_only = PoseLibraryPanel.poll(context)
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        return PoseLibraryPanel.poll(context)
 
-        wm = context.window_manager
-
-        # TODO flipped pose option?
-        # TODO create/copy poses?
-
-        if hasattr(layout, "template_asset_shelf"):
-            filter_id_types = {"filter_action"} if is_poses_only else {"filter_object", "filter_material"}
-            layout.template_asset_shelf(filter_id_types=filter_id_types)
-
+    # XXX temporary design. Should be like this instead:
+    # bl_asset_traits = {'ACTION'}
+    @classmethod
+    def asset_poll__(cls, asset: AssetHandle) -> bool:
+        return asset.file_data.id_type == 'ACTION'
 
 class VIEW3D_PT_pose_library(PoseLibraryPanel, Panel):
     bl_space_type = "VIEW_3D"
@@ -198,7 +195,7 @@ classes = (
     DOPESHEET_PT_asset_panel,
     VIEW3D_PT_pose_library,
     ASSETBROWSER_MT_asset,
-    VIEW3D_HT_pose_library_asset_shelf,
+    VIEW3D_AST_pose_library,
 )
 
 _register, _unregister = bpy.utils.register_classes_factory(classes)
