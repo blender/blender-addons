@@ -2298,7 +2298,7 @@ class NWBatchChangeNodes(Operator, NWBase):
         blend_type = self.blend_type
         operation = self.operation
         for node in context.selected_nodes:
-            if node.type == 'MIX_RGB' or node.bl_idname == 'GeometryNodeAttributeMix':
+            if node.type == 'MIX_RGB' or (node.bl_idname == 'ShaderNodeMix' and node.data_type == 'RGBA'):
                 if not blend_type in [nav[0] for nav in navs]:
                     node.blend_type = blend_type
                 else:
@@ -2317,7 +2317,7 @@ class NWBatchChangeNodes(Operator, NWBase):
                         else:
                             node.blend_type = blend_types[index - 1][0]
 
-            if node.type == 'MATH' or node.bl_idname == 'GeometryNodeAttributeMath':
+            if node.type == 'MATH' or node.bl_idname == 'ShaderNodeMath':
                 if not operation in [nav[0] for nav in navs]:
                     node.operation = operation
                 else:
@@ -2357,7 +2357,7 @@ class NWChangeMixFactor(Operator, NWBase):
         selected = []  # entry = index
         for si, node in enumerate(nodes):
             if node.select:
-                if node.type in {'MIX_RGB', 'MIX_SHADER'}:
+                if node.type in {'MIX_RGB', 'MIX_SHADER'} or node.bl_idname == 'ShaderNodeMix':
                     selected.append(si)
 
         for si in selected:
