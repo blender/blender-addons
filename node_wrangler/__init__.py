@@ -2020,7 +2020,7 @@ class NWMergeNodes(Operator, NWBase):
             mode = 'MIX'
         if (merge_type != 'MATH' and merge_type != 'GEOMETRY') and tree_type == 'GEOMETRY':
             merge_type = 'AUTO'
-        # The MixRGB node and math nodes used for geometry nodes are of type 'ShaderNode'
+        # The Mix node and math nodes used for geometry nodes are of type 'ShaderNode'
         if (merge_type == 'MATH' or merge_type == 'MIX') and tree_type == 'GEOMETRY':
             node_type = 'ShaderNode'
         selected_mix = []  # entry = [index, loc]
@@ -2119,8 +2119,13 @@ class NWMergeNodes(Operator, NWBase):
             was_multi = False
             for i in range(the_range):
                 if nodes_list == selected_mix:
-                    add_type = node_type + 'MixRGB'
+                    mix_name = 'Mix'
+                    if tree_type == 'COMPOSITING':
+                        mix_name = 'MixRGB'
+                    add_type = node_type + mix_name
                     add = nodes.new(add_type)
+                    if tree_type != 'COMPOSITING':
+                        add.data_type = 'RGBA'
                     add.blend_type = mode
                     if mode != 'MIX':
                         add.inputs[0].default_value = 1.0
@@ -2128,8 +2133,11 @@ class NWMergeNodes(Operator, NWBase):
                     add.hide = do_hide
                     if do_hide:
                         loc_y = loc_y - 50
-                    first = 1
-                    second = 2
+                    first = 6
+                    second = 7
+                    if tree_type == 'COMPOSITING':
+                        first = 1
+                        second = 2
                     add.width_hidden = 100.0
                 elif nodes_list == selected_math:
                     add_type = node_type + 'Math'
@@ -2290,7 +2298,7 @@ class NWBatchChangeNodes(Operator, NWBase):
         blend_type = self.blend_type
         operation = self.operation
         for node in context.selected_nodes:
-            if node.type == 'MIX_RGB' or node.bl_idname == 'GeometryNodeAttributeMix':
+            if node.type == 'MIX_RGB' or (node.bl_idname == 'ShaderNodeMix' and node.data_type == 'RGBA'):
                 if not blend_type in [nav[0] for nav in navs]:
                     node.blend_type = blend_type
                 else:
@@ -2309,7 +2317,7 @@ class NWBatchChangeNodes(Operator, NWBase):
                         else:
                             node.blend_type = blend_types[index - 1][0]
 
-            if node.type == 'MATH' or node.bl_idname == 'GeometryNodeAttributeMath':
+            if node.type == 'MATH' or node.bl_idname == 'ShaderNodeMath':
                 if not operation in [nav[0] for nav in navs]:
                     node.operation = operation
                 else:
@@ -2349,7 +2357,7 @@ class NWChangeMixFactor(Operator, NWBase):
         selected = []  # entry = index
         for si, node in enumerate(nodes):
             if node.select:
-                if node.type in {'MIX_RGB', 'MIX_SHADER'}:
+                if node.type in {'MIX_RGB', 'MIX_SHADER'} or node.bl_idname == 'ShaderNodeMix':
                     selected.append(si)
 
         for si in selected:
