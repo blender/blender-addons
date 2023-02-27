@@ -3,7 +3,7 @@
 bl_info = {
     "name": "Skinify Rig",
     "author": "Albert Makac (karab44)",
-    "version": (0, 11, 1),
+    "version": (0, 11, 2),
     "blender": (2, 80, 0),
     "location": "Pose Mode > Sidebar > Create Tab",
     "description": "Creates a mesh object from selected bones",
@@ -414,24 +414,9 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
     skin_modifier = shape_object.modifiers.new("Skin", 'SKIN')
     bpy.ops.mesh.select_all(action='SELECT')
 
-    override = bpy.context.copy()
-    for area in bpy.context.screen.areas:
-        if area.type == 'VIEW_3D':
-            for region in area.regions:
-                if region.type == 'WINDOW':
-                    override['area'] = area
-                    override['region'] = region
-                    override['edit_object'] = bpy.context.edit_object
-                    override['scene'] = bpy.context.scene
-                    override['active_object'] = shape_object
-                    override['object'] = shape_object
-                    override['modifier'] = bpy.context.object.modifiers
-                    break
-
     # calculate optimal thickness for defaults
-    bpy.ops.object.skin_root_mark(override)
+    bpy.ops.object.skin_root_mark()
     bpy.ops.transform.skin_resize(
-        override,
         value=(1 * thickness * (size / 10), 1 * thickness * (size / 10), 1 * thickness * (size / 10)),
         constraint_axis=(False, False, False),
         orient_type='GLOBAL',
@@ -445,10 +430,9 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
     if len(alternate_scale_idx_list) > 0:
         select_vertices(shape_object, alternate_scale_idx_list)
 
-        bpy.ops.object.skin_loose_mark_clear(override, action='MARK')
+        bpy.ops.object.skin_loose_mark_clear(action='MARK')
         # by default set fingers thickness to 25 percent of body thickness
         bpy.ops.transform.skin_resize(
-            override,
             value=(finger_thickness, finger_thickness, finger_thickness),
             constraint_axis=(False, False, False), orient_type='GLOBAL',
             mirror=False,
@@ -478,7 +462,6 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
         select_vertices(shape_object, merge_idx)
         bpy.ops.mesh.merge(type='CENTER')
         bpy.ops.transform.skin_resize(
-            override,
             value=(corrective_thickness, corrective_thickness, corrective_thickness),
             constraint_axis=(False, False, False), orient_type='GLOBAL',
             mirror=False,
@@ -492,7 +475,6 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
         select_vertices(shape_object, merge_idx)
         bpy.ops.mesh.merge(type='CENTER')
         bpy.ops.transform.skin_resize(
-            override,
             value=(corrective_thickness, corrective_thickness, corrective_thickness),
             constraint_axis=(False, False, False), orient_type='GLOBAL',
             mirror=False,
@@ -507,7 +489,6 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
         # change the thickness to make hands look less blocky and more sexy
         corrective_thickness = 0.7
         bpy.ops.transform.skin_resize(
-            override,
             value=(corrective_thickness, corrective_thickness, corrective_thickness),
             constraint_axis=(False, False, False), orient_type='GLOBAL',
             mirror=False,
@@ -524,7 +505,7 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
 
     if len(root_idx) > 0:
         select_vertices(shape_object, root_idx)
-        bpy.ops.object.skin_root_mark(override)
+        bpy.ops.object.skin_root_mark()
     # skin in edit mode
     # add Subsurf modifier
     subsurf_modifier = shape_object.modifiers.new("Subsurf", 'SUBSURF')
@@ -532,11 +513,12 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
     subsurf_modifier.render_levels = sub_level
 
     bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.context.view_layer.update()
 
     # object mode apply all modifiers
     if apply_mod:
-        bpy.ops.object.modifier_apply(override, modifier="Skin")
-        bpy.ops.object.modifier_apply(override, modifier="Subsurf")
+        bpy.ops.object.modifier_apply(modifier=skin_modifier.name)
+        bpy.ops.object.modifier_apply(modifier=subsurf_modifier.name)
 
     return {'FINISHED'}
 
