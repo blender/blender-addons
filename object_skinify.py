@@ -3,7 +3,7 @@
 bl_info = {
     "name": "Skinify Rig",
     "author": "Albert Makac (karab44)",
-    "version": (0, 11, 0),
+    "version": (0, 11, 1),
     "blender": (2, 80, 0),
     "location": "Pose Mode > Sidebar > Create Tab",
     "description": "Creates a mesh object from selected bones",
@@ -411,7 +411,7 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
     bpy.ops.mesh.select_all(action='DESELECT')
 
     # add skin modifier
-    shape_object.modifiers.new("Skin", 'SKIN')
+    skin_modifier = shape_object.modifiers.new("Skin", 'SKIN')
     bpy.ops.mesh.select_all(action='SELECT')
 
     override = bpy.context.copy()
@@ -438,8 +438,8 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
         mirror=False,
         use_proportional_edit=False,
     )
-    shape_object.modifiers["Skin"].use_smooth_shade = True
-    shape_object.modifiers["Skin"].use_x_symmetry = True
+    skin_modifier.use_smooth_shade = True
+    skin_modifier.use_x_symmetry = True
 
     # select finger vertices and calculate optimal thickness for fingers to fix proportions
     if len(alternate_scale_idx_list) > 0:
@@ -527,9 +527,9 @@ def generate_mesh(shape_object, size, thickness=0.8, finger_thickness=0.25, sub_
         bpy.ops.object.skin_root_mark(override)
     # skin in edit mode
     # add Subsurf modifier
-    shape_object.modifiers.new("Subsurf", 'SUBSURF')
-    shape_object.modifiers["Subsurf"].levels = sub_level
-    shape_object.modifiers["Subsurf"].render_levels = sub_level
+    subsurf_modifier = shape_object.modifiers.new("Subsurf", 'SUBSURF')
+    subsurf_modifier.levels = sub_level
+    subsurf_modifier.render_levels = sub_level
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
