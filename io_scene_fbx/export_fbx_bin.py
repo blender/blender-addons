@@ -1286,32 +1286,111 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     #       Textures are now only related to materials, in FBX!
     uvnumber = len(me.uv_layers)
     if uvnumber:
+        luv_bl_dtype = np.single
+        luv_fbx_dtype = np.float64
+        lv_idx_bl_dtype = np.uintc
+        lv_idx_fbx_dtype = np.int32
+
+        t_luv = np.empty(len(me.loops) * 2, dtype=luv_bl_dtype)
+        # Fast view for sort-based uniqueness of pairs.
+        t_luv_fast_pair_view = fast_first_axis_flat(t_luv.reshape(-1, 2))
+        # It must be a view of t_luv otherwise it won't update when t_luv is updated.
+        assert(t_luv_fast_pair_view.base is t_luv)
+
         # Looks like this mapping is also expected to convey UV islands (arg..... :((((( ).
         # So we need to generate unique triplets (uv, vertex_idx) here, not only just based on UV values.
-        def _uvtuples_gen(raw_uvs, raw_lvidxs):
-            return zip(zip(*(iter(raw_uvs),) * 2), raw_lvidxs)
-
-        t_luv = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 2
-        t_lvidx = array.array(data_types.ARRAY_INT32, (0,)) * len(me.loops)
+        t_lvidx = np.empty(len(me.loops), dtype=lv_idx_bl_dtype)
         me.loops.foreach_get("vertex_index", t_lvidx)
+
+        # If we were to create a combined array of (uv, vertex_idx) elements, we could find unique triplets by sorting
+        # that array by first sorting by the vertex_idx column and then sorting by the uv column using a stable sorting
+        # algorithm.
+        # This is exactly what we'll do, but without creating the combined array, because only the uv elements are
+        # included in the export and the vertex_idx column is the same for every uv layer.
+
+        # Because the vertex_idx column is the same for every uv layer, the vertex_idx column can be sorted in advance.
+        # argsort gets the indices that sort the array, which are needed to be able to sort the array of uv pairs in the
+        # same way to create the indices that recreate the full uvs from the unique uvs.
+        # Loops and vertices tend to naturally have a partial ordering, which makes sorting with kind='stable' (radix
+        # sort) faster than the default of kind='quicksort' (introsort) in most cases.
+        perm_vidx = t_lvidx.argsort(kind='stable')
+
+        # Mask and uv indices arrays will be modified and re-used by each uv layer.
+        unique_mask = np.empty(len(me.loops), dtype=np.bool_)
+        unique_mask[:1] = True
+        uv_indices = np.empty(len(me.loops), dtype=lv_idx_fbx_dtype)
+
         for uvindex, uvlayer in enumerate(me.uv_layers):
-            uvlayer.data.foreach_get("uv", t_luv)
             lay_uv = elem_data_single_int32(geom, b"LayerElementUV", uvindex)
             elem_data_single_int32(lay_uv, b"Version", FBX_GEOMETRY_UV_VERSION)
             elem_data_single_string_unicode(lay_uv, b"Name", uvlayer.name)
             elem_data_single_string(lay_uv, b"MappingInformationType", b"ByPolygonVertex")
             elem_data_single_string(lay_uv, b"ReferenceInformationType", b"IndexToDirect")
 
-            uv_ids = tuple(set(_uvtuples_gen(t_luv, t_lvidx)))
-            elem_data_single_float64_array(lay_uv, b"UV", chain(*(uv for uv, vidx in uv_ids)))  # Flatten again...
+            uvlayer.data.foreach_get("uv", t_luv)
 
-            uv2idx = {uv_id: idx for idx, uv_id in enumerate(uv_ids)}
-            elem_data_single_int32_array(lay_uv, b"UVIndex", (uv2idx[uv_id] for uv_id in _uvtuples_gen(t_luv, t_lvidx)))
-            del uv2idx
-            del uv_ids
-        del t_luv
+            # t_luv_fast_pair_view is a view in a dtype that compares elements by individual bytes, but float types have
+            # separate byte representations of positive and negative zero. For uniqueness, these should be considered
+            # the same, so replace all -0.0 with 0.0 in advance.
+            t_luv[t_luv == -0.0] = 0.0
+
+            # These steps to create unique_uv_pairs are the same as how np.unique would find unique values by sorting a
+            # structured array where each element is a triplet of (uv, vertex_idx), except uv and vertex_idx are
+            # separate arrays here and vertex_idx has already been sorted in advance.
+
+            # Sort according to the vertex_idx column, using the precalculated indices that sort it.
+            sorted_t_luv_fast = t_luv_fast_pair_view[perm_vidx]
+
+            # Get the indices that would sort the sorted uv pairs. Stable sorting must be used to maintain the sorting
+            # of the vertex indices.
+            perm_uv_pairs = sorted_t_luv_fast.argsort(kind='stable')
+            # Use the indices to sort both the uv pairs and the vertex_idx columns.
+            perm_combined = perm_vidx[perm_uv_pairs]
+            sorted_vidx = t_lvidx[perm_combined]
+            sorted_t_luv_fast = sorted_t_luv_fast[perm_uv_pairs]
+
+            # Create a mask where either the uv pair doesn't equal the previous value in the array, or the vertex index
+            # doesn't equal the previous value, these will be the unique uv-vidx triplets.
+            # For an imaginary triplet array:
+            # ...
+            # [(0.4, 0.2), 0]
+            # [(0.4, 0.2), 1] -> Unique because vertex index different from previous
+            # [(0.4, 0.2), 2] -> Unique because vertex index different from previous
+            # [(0.7, 0.6), 2] -> Unique because uv different from previous
+            # [(0.7, 0.6), 2]
+            # ...
+            # Output the result into unique_mask.
+            np.logical_or(sorted_t_luv_fast[1:] != sorted_t_luv_fast[:-1], sorted_vidx[1:] != sorted_vidx[:-1],
+                          out=unique_mask[1:])
+
+            # Get each uv pair marked as unique by the unique_mask and then view as the original dtype.
+            unique_uvs = sorted_t_luv_fast[unique_mask].view(luv_bl_dtype)
+
+            # NaN values are considered invalid and indicate a bug somewhere else in Blender or in an addon, we want
+            # these bugs to be reported instead of hiding them by allowing the export to continue.
+            if np.isnan(unique_uvs).any():
+                raise RuntimeError("UV layer %s on %r has invalid UVs containing NaN values" % (uvlayer.name, me))
+
+            # Convert to the type needed for fbx
+            unique_uvs = unique_uvs.astype(luv_fbx_dtype, copy=False)
+
+            # Set the indices of pairs in unique_uvs that reconstruct the pairs in t_luv into uv_indices.
+            # uv_indices will then be the same as an inverse array returned by np.unique with return_inverse=True.
+            uv_indices[perm_combined] = np.cumsum(unique_mask, dtype=uv_indices.dtype) - 1
+
+            elem_data_single_float64_array(lay_uv, b"UV", unique_uvs)
+            elem_data_single_int32_array(lay_uv, b"UVIndex", uv_indices)
+            del unique_uvs
+            del sorted_t_luv_fast
+            del sorted_vidx
+            del perm_uv_pairs
+            del perm_combined
+        del uv_indices
+        del unique_mask
+        del perm_vidx
         del t_lvidx
-        del _uvtuples_gen
+        del t_luv
+        del t_luv_fast_pair_view
 
     # Face's materials.
     me_fbxmaterials_idx = scene_data.mesh_material_indices.get(me)
