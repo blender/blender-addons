@@ -38,7 +38,7 @@ rl_outputs = (
     RL_entry('use_pass_uv', 'UV', 'UV', True, True),
     RL_entry('use_pass_vector', 'Speed', 'Vector', False, True),
     RL_entry('use_pass_z', 'Z', 'Depth', True, True),
-    )
+)
 
 # list of blend types of "Mix" nodes in a form that can be used as 'items' for EnumProperty.
 # used list, not tuple for easy merging with other lists.

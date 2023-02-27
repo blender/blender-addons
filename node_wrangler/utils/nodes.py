@@ -3,6 +3,7 @@
 import bpy
 from math import hypot
 
+
 def force_update(context):
     context.space_data.node_tree.update_tag()
 
@@ -169,7 +170,7 @@ def is_viewer_socket(socket):
 
 
 def get_internal_socket(socket):
-    #get the internal socket from a socket inside or outside the group
+    # get the internal socket from a socket inside or outside the group
     node = socket.node
     if node.type == 'GROUP_OUTPUT':
         source_iterator = node.inputs
@@ -205,7 +206,7 @@ def is_viewer_link(link, output_node):
 
 def get_group_output_node(tree):
     for node in tree.nodes:
-        if node.type == 'GROUP_OUTPUT' and node.is_active_output == True:
+        if node.type == 'GROUP_OUTPUT' and node.is_active_output:
             return node
 
 

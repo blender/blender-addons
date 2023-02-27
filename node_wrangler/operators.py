@@ -94,7 +94,8 @@ class NWLazyMix(Operator, NWBase):
             args = (self, context, 'MIX')
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-            self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_nodeoutline, args, 'WINDOW', 'POST_PIXEL')
+            self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(
+                draw_callback_nodeoutline, args, 'WINDOW', 'POST_PIXEL')
 
             self.mouse_path = []
 
@@ -152,7 +153,7 @@ class NWLazyConnect(Operator, NWBase):
                     original_sel = []
                     original_unsel = []
                     for node in nodes:
-                        if node.select == True:
+                        if node.select:
                             node.select = False
                             original_sel.append(node)
                         else:
@@ -160,7 +161,7 @@ class NWLazyConnect(Operator, NWBase):
                     node1.select = True
                     node2.select = True
 
-                    #link_success = autolink(node1, node2, links)
+                    # link_success = autolink(node1, node2, links)
                     if self.with_menu:
                         if len(node1.outputs) > 1 and node2.inputs:
                             bpy.ops.wm.call_menu("INVOKE_DEFAULT", name=NWConnectionListOutputs.bl_idname)
@@ -199,7 +200,8 @@ class NWLazyConnect(Operator, NWBase):
             args = (self, context, mode)
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-            self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_nodeoutline, args, 'WINDOW', 'POST_PIXEL')
+            self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(
+                draw_callback_nodeoutline, args, 'WINDOW', 'POST_PIXEL')
 
             self.mouse_path = []
 
@@ -216,13 +218,19 @@ class NWDeleteUnused(Operator, NWBase):
     bl_label = 'Delete Unused Nodes'
     bl_options = {'REGISTER', 'UNDO'}
 
-    delete_muted: BoolProperty(name="Delete Muted", description="Delete (but reconnect, like Ctrl-X) all muted nodes", default=True)
-    delete_frames: BoolProperty(name="Delete Empty Frames", description="Delete all frames that have no nodes inside them", default=True)
+    delete_muted: BoolProperty(
+        name="Delete Muted",
+        description="Delete (but reconnect, like Ctrl-X) all muted nodes",
+        default=True)
+    delete_frames: BoolProperty(
+        name="Delete Empty Frames",
+        description="Delete all frames that have no nodes inside them",
+        default=True)
 
     def is_unused_node(self, node):
-        end_types = ['OUTPUT_MATERIAL', 'OUTPUT', 'VIEWER', 'COMPOSITE', \
-                'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LIGHT', \
-                'OUTPUT_WORLD', 'GROUP_INPUT', 'GROUP_OUTPUT', 'FRAME']
+        end_types = ['OUTPUT_MATERIAL', 'OUTPUT', 'VIEWER', 'COMPOSITE',
+                     'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LIGHT',
+                     'OUTPUT_WORLD', 'GROUP_INPUT', 'GROUP_OUTPUT', 'FRAME']
         if node.type in end_types:
             return False
 
@@ -245,7 +253,7 @@ class NWDeleteUnused(Operator, NWBase):
         # Store selection
         selection = []
         for node in nodes:
-            if node.select == True:
+            if node.select:
                 selection.append(node.name)
 
         for node in nodes:
@@ -362,12 +370,14 @@ class NWSwapLinks(Operator, NWBase):
                     try:
                         links.new(n2.outputs[connection[0]], connection[1])
                     except:
-                        self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
+                        self.report({'WARNING'},
+                                    "Some connections have been lost due to differing numbers of output sockets")
                 for connection in n2_outputs:
                     try:
                         links.new(n1.outputs[connection[0]], connection[1])
                     except:
-                        self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
+                        self.report({'WARNING'},
+                                    "Some connections have been lost due to differing numbers of output sockets")
             else:
                 if n1.outputs or n2.outputs:
                     self.report({'WARNING'}, "One of the nodes has no outputs!")
@@ -381,14 +391,14 @@ class NWSwapLinks(Operator, NWBase):
                 return {'FINISHED'}
             if n1.inputs:
                 types = []
-                i=0
+                i = 0
                 for i1 in n1.inputs:
                     if i1.is_linked and not i1.is_multi_input:
                         similar_types = 0
                         for i2 in n1.inputs:
                             if i1.type == i2.type and i2.is_linked and not i2.is_multi_input:
                                 similar_types += 1
-                        types.append ([i1, similar_types, i])
+                        types.append([i1, similar_types, i])
                     i += 1
                 types.sort(key=lambda k: k[1], reverse=True)
 
@@ -409,7 +419,7 @@ class NWSwapLinks(Operator, NWBase):
                             fs = t[0].links[0].from_socket
                             i = t[2]
                             links.remove(t[0].links[0])
-                            if i+1 == len(n1.inputs):
+                            if i + 1 == len(n1.inputs):
                                 i = -1
                             i += 1
                             while n1.inputs[i].is_linked:
@@ -495,24 +505,24 @@ class NWPreviewNode(Operator, NWBase):
         return False
 
     def ensure_viewer_socket(self, node, socket_type, connect_socket=None):
-        #check if a viewer output already exists in a node group otherwise create
+        # check if a viewer output already exists in a node group otherwise create
         if hasattr(node, "node_tree"):
             index = None
             if len(node.node_tree.outputs):
                 free_socket = None
                 for i, socket in enumerate(node.node_tree.outputs):
                     if is_viewer_socket(socket) and is_visible_socket(node.outputs[i]) and socket.type == socket_type:
-                        #if viewer output is already used but leads to the same socket we can still use it
+                        # if viewer output is already used but leads to the same socket we can still use it
                         is_used = self.is_socket_used_other_mats(socket)
                         if is_used:
-                            if connect_socket == None:
+                            if connect_socket is None:
                                 continue
                             groupout = get_group_output_node(node.node_tree)
                             groupout_input = groupout.inputs[i]
                             links = groupout_input.links
                             if connect_socket not in [link.from_socket for link in links]:
                                 continue
-                            index=i
+                            index = i
                             break
                         if not free_socket:
                             free_socket = i
@@ -520,7 +530,7 @@ class NWPreviewNode(Operator, NWBase):
                     index = free_socket
 
             if not index:
-                #create viewer socket
+                # create viewer socket
                 node.node_tree.outputs.new(socket_type, viewer_socket_name)
                 index = len(node.node_tree.outputs) - 1
                 node.node_tree.outputs[index].NWViewerSocket = True
@@ -541,12 +551,12 @@ class NWPreviewNode(Operator, NWBase):
 
     def get_shader_output_node(self, tree):
         for node in tree.nodes:
-            if node.type == self.shader_output_type and node.is_active_output == True:
+            if node.type == self.shader_output_type and node.is_active_output:
                 return node
 
     @classmethod
     def ensure_group_output(cls, tree):
-        #check if a group output node exists otherwise create
+        # check if a group output node exists otherwise create
         groupout = get_group_output_node(tree)
         if not groupout:
             groupout = tree.nodes.new('NodeGroupOutput')
@@ -575,7 +585,7 @@ class NWPreviewNode(Operator, NWBase):
                     socket = next_node.node_tree.outputs[socket_index]
                     if is_viewer_socket(socket) and socket not in sockets:
                         sockets.append(socket)
-                        #continue search inside of node group but restrict socket to where we came from
+                        # continue search inside of node group but restrict socket to where we came from
                         groupout = get_group_output_node(next_node.node_tree)
                         cls.search_sockets(groupout, sockets, index=socket_index)
 
@@ -592,12 +602,12 @@ class NWPreviewNode(Operator, NWBase):
                 cls.scan_nodes(node.node_tree, sockets)
 
     def link_leads_to_used_socket(self, link):
-        #return True if link leads to a socket that is already used in this material
+        # return True if link leads to a socket that is already used in this material
         socket = get_internal_socket(link.to_socket)
         return (socket and self.is_socket_used_active_mat(socket))
 
     def is_socket_used_active_mat(self, socket):
-        #ensure used sockets in active material is calculated and check given socket
+        # ensure used sockets in active material is calculated and check given socket
         if not hasattr(self, "used_viewer_sockets_active_mat"):
             self.used_viewer_sockets_active_mat = []
             materialout = self.get_shader_output_node(bpy.context.space_data.node_tree)
@@ -606,7 +616,7 @@ class NWPreviewNode(Operator, NWBase):
         return socket in self.used_viewer_sockets_active_mat
 
     def is_socket_used_other_mats(self, socket):
-        #ensure used sockets in other materials are calculated and check given socket
+        # ensure used sockets in other materials are calculated and check given socket
         if not hasattr(self, "used_viewer_sockets_other_mats"):
             self.used_viewer_sockets_other_mats = []
             for mat in bpy.data.materials:
@@ -680,7 +690,7 @@ class NWPreviewNode(Operator, NWBase):
                     socket_type = 'GEOMETRY'
                     # Find an input socket of the output of type geometry
                     geometryoutindex = None
-                    for i,inp in enumerate(geometryoutput.inputs):
+                    for i, inp in enumerate(geometryoutput.inputs):
                         if inp.type == socket_type:
                             geometryoutindex = i
                             break
@@ -697,7 +707,8 @@ class NWPreviewNode(Operator, NWBase):
                     link_end = output_socket
                     while tree.nodes.active != active:
                         node = tree.nodes.active
-                        index = self.ensure_viewer_socket(node,'NodeSocketGeometry', connect_socket=active.outputs[out_i] if node.node_tree.nodes.active == active else None)
+                        index = self.ensure_viewer_socket(
+                            node, 'NodeSocketGeometry', connect_socket=active.outputs[out_i] if node.node_tree.nodes.active == active else None)
                         link_start = node.outputs[index]
                         node_socket = node.node_tree.outputs[index]
                         if node_socket in delete_sockets:
@@ -718,7 +729,6 @@ class NWPreviewNode(Operator, NWBase):
                 force_update(context)
                 return {'FINISHED'}
 
-
             # What follows is code for the shader editor
             output_types = [x.nodetype for x in
                             get_nodes_from_category('Output', context)]
@@ -734,7 +744,7 @@ class NWPreviewNode(Operator, NWBase):
                 materialout = None  # placeholder node
                 delete_sockets = []
 
-                #scan through all nodes in tree including nodes inside of groups to find viewer sockets
+                # scan through all nodes in tree including nodes inside of groups to find viewer sockets
                 self.scan_nodes(base_node_tree, delete_sockets)
 
                 materialout = self.get_shader_output_node(base_node_tree)
@@ -773,7 +783,8 @@ class NWPreviewNode(Operator, NWBase):
                     link_end = output_socket
                     while tree.nodes.active != active:
                         node = tree.nodes.active
-                        index = self.ensure_viewer_socket(node, socket_type, connect_socket=active.outputs[out_i] if node.node_tree.nodes.active == active else None)
+                        index = self.ensure_viewer_socket(
+                            node, socket_type, connect_socket=active.outputs[out_i] if node.node_tree.nodes.active == active else None)
                         link_start = node.outputs[index]
                         node_socket = node.node_tree.outputs[index]
                         if node_socket in delete_sockets:
@@ -836,7 +847,7 @@ class NWFrameSelected(Operator, NWBase):
         nodes, links = get_nodes_links(context)
         selected = []
         for node in nodes:
-            if node.select == True:
+            if node.select:
                 selected.append(node)
 
         bpy.ops.node.add_node(type='NodeFrame')
@@ -902,7 +913,7 @@ class NWSwitchNodeType(Operator, NWBase):
 
     to_type: StringProperty(
         name="Switch to type",
-        default = '',
+        default='',
     )
 
     def execute(self, context):
@@ -970,8 +981,10 @@ class NWSwitchNodeType(Operator, NWBase):
                         for the_type in types_order_one:
                             if socket.type == the_type:
                                 # create values for sockets['INPUTS'][the_type] and sockets['OUTPUTS'][the_type]
-                                # entry structure: (index_in_type, socket_index, socket_name, socket_default_value, socket_links)
-                                sockets[in_out_name][the_type].append((len(sockets[in_out_name][the_type]), i, the_name, dval, socket_links))
+                                # entry structure: (index_in_type, socket_index, socket_name,
+                                # socket_default_value, socket_links)
+                                sockets[in_out_name][the_type].append(
+                                    (len(sockets[in_out_name][the_type]), i, the_name, dval, socket_links))
                     # Check which of the types in inputs/outputs is considered to be "main".
                     # Set values of sockets['INPUTS']['MAIN'] and sockets['OUTPUTS']['MAIN']
                     for type_check in types_order_one:
@@ -1090,7 +1103,7 @@ class NWMergeNodes(Operator, NWBase):
     mode: EnumProperty(
         name="mode",
         description="All possible blend types, boolean operations and math operations",
-        items= blend_types + [op for op in geo_combine_operations if op not in blend_types] + [op for op in operations if op not in blend_types],
+        items=blend_types + [op for op in geo_combine_operations if op not in blend_types] + [op for op in operations if op not in blend_types],
     )
     merge_type: EnumProperty(
         name="merge type",
@@ -1112,7 +1125,7 @@ class NWMergeNodes(Operator, NWBase):
     # in selected_nodes, it returns False. The depth is used to prevent
     # getting stuck in a loop because of an already present cycle.
     @staticmethod
-    def link_creates_cycle(link, selected_nodes, depth=0)->bool:
+    def link_creates_cycle(link, selected_nodes, depth=0) -> bool:
         if depth > 255:
             # We're stuck in a cycle, but that cycle was already present,
             # so we return False.
@@ -1126,7 +1139,7 @@ class NWMergeNodes(Operator, NWBase):
         for output in node.outputs:
             if output.is_linked:
                 for olink in output.links:
-                    if NWMergeNodes.link_creates_cycle(olink, selected_nodes, depth+1):
+                    if NWMergeNodes.link_creates_cycle(olink, selected_nodes, depth + 1):
                         return True
         # None of the outputs found a node in selected_nodes, so there is no cycle.
         return False
@@ -1136,14 +1149,14 @@ class NWMergeNodes(Operator, NWBase):
     # be connected. The last one is assumed to be a multi input socket.
     # For convenience the node is returned.
     @staticmethod
-    def merge_with_multi_input(nodes_list, merge_position,do_hide, loc_x, links, nodes, node_name, socket_indices):
+    def merge_with_multi_input(nodes_list, merge_position, do_hide, loc_x, links, nodes, node_name, socket_indices):
         # The y-location of the last node
         loc_y = nodes_list[-1][2]
         if merge_position == 'CENTER':
             # Average the y-location
-            for i in range(len(nodes_list)-1):
+            for i in range(len(nodes_list) - 1):
                 loc_y += nodes_list[i][2]
-            loc_y = loc_y/len(nodes_list)
+            loc_y = loc_y / len(nodes_list)
         new_node = nodes.new(node_name)
         new_node.hide = do_hide
         new_node.location.x = loc_x
@@ -1151,12 +1164,14 @@ class NWMergeNodes(Operator, NWBase):
         selected_nodes = [nodes[node_info[0]] for node_info in nodes_list]
         prev_links = []
         outputs_for_multi_input = []
-        for i,node in enumerate(selected_nodes):
+        for i, node in enumerate(selected_nodes):
             node.select = False
             # Search for the first node which had output links that do not create
             # a cycle, which we can then reconnect afterwards.
             if prev_links == [] and node.outputs[0].is_linked:
-                prev_links = [link for link in node.outputs[0].links if not NWMergeNodes.link_creates_cycle(link, selected_nodes)]
+                prev_links = [
+                    link for link in node.outputs[0].links if not NWMergeNodes.link_creates_cycle(
+                        link, selected_nodes)]
             # Get the index of the socket, the last one is a multi input, and is thus used repeatedly
             # To get the placement to look right we need to reverse the order in which we connect the
             # outputs to the multi input socket.
@@ -1212,9 +1227,9 @@ class NWMergeNodes(Operator, NWBase):
             node_type = 'ShaderNode'
         selected_mix = []  # entry = [index, loc]
         selected_shader = []  # entry = [index, loc]
-        selected_geometry = [] # entry = [index, loc]
+        selected_geometry = []  # entry = [index, loc]
         selected_math = []  # entry = [index, loc]
-        selected_vector = [] # entry = [index, loc]
+        selected_vector = []  # entry = [index, loc]
         selected_z = []  # entry = [index, loc]
         selected_alphaover = []  # entry = [index, loc]
 
@@ -1268,7 +1283,14 @@ class NWMergeNodes(Operator, NWBase):
         if selected_mix and selected_math and merge_type == 'AUTO':
             selected_mix += selected_math
             selected_math = []
-        for nodes_list in [selected_mix, selected_shader, selected_geometry, selected_math, selected_vector, selected_z, selected_alphaover]:
+        for nodes_list in [
+                selected_mix,
+                selected_shader,
+                selected_geometry,
+                selected_math,
+                selected_vector,
+                selected_z,
+                selected_alphaover]:
             if not nodes_list:
                 continue
             count_before = len(nodes)
@@ -1285,8 +1307,9 @@ class NWMergeNodes(Operator, NWBase):
                 else:
                     node_type = 'GeometryNode'
             if merge_position == 'CENTER':
-                loc_y = ((nodes_list[len(nodes_list) - 1][2]) + (nodes_list[len(nodes_list) - 2][2])) / 2  # average yloc of last two nodes (lowest two)
-                if nodes_list[len(nodes_list) - 1][-1] == True:  # if last node is hidden, mix should be shifted up a bit
+                # average yloc of last two nodes (lowest two)
+                loc_y = ((nodes_list[len(nodes_list) - 1][2]) + (nodes_list[len(nodes_list) - 2][2])) / 2
+                if nodes_list[len(nodes_list) - 1][-1]:  # if last node is hidden, mix should be shifted up a bit
                     if do_hide:
                         loc_y += 40
                     else:
@@ -1356,11 +1379,13 @@ class NWMergeNodes(Operator, NWBase):
                 elif nodes_list == selected_geometry:
                     if mode in ('JOIN', 'MIX'):
                         add_type = node_type + 'JoinGeometry'
-                        add = self.merge_with_multi_input(nodes_list, merge_position, do_hide, loc_x, links, nodes, add_type,[0])
+                        add = self.merge_with_multi_input(
+                            nodes_list, merge_position, do_hide, loc_x, links, nodes, add_type, [0])
                     else:
                         add_type = node_type + 'MeshBoolean'
-                        indices = [0,1] if mode == 'DIFFERENCE' else [1]
-                        add = self.merge_with_multi_input(nodes_list, merge_position, do_hide, loc_x, links, nodes, add_type,indices)
+                        indices = [0, 1] if mode == 'DIFFERENCE' else [1]
+                        add = self.merge_with_multi_input(
+                            nodes_list, merge_position, do_hide, loc_x, links, nodes, add_type, indices)
                         add.operation = mode
                     was_multi = True
                     break
@@ -1406,7 +1431,8 @@ class NWMergeNodes(Operator, NWBase):
             # "last" node has been added as first, so its index is count_before.
             last_add = nodes[count_before]
             # Create list of invalid indexes.
-            invalid_nodes = [nodes[n[0]] for n in (selected_mix + selected_math + selected_shader + selected_z + selected_geometry)]
+            invalid_nodes = [nodes[n[0]]
+                             for n in (selected_mix + selected_math + selected_shader + selected_z + selected_geometry)]
 
             # Special case:
             # Two nodes were selected and first selected has no output links, second selected has output links.
@@ -1484,12 +1510,12 @@ class NWBatchChangeNodes(Operator, NWBase):
         operation = self.operation
         for node in context.selected_nodes:
             if node.type == 'MIX_RGB' or (node.bl_idname == 'ShaderNodeMix' and node.data_type == 'RGBA'):
-                if not blend_type in [nav[0] for nav in navs]:
+                if blend_type not in [nav[0] for nav in navs]:
                     node.blend_type = blend_type
                 else:
                     if blend_type == 'NEXT':
                         index = [i for i, entry in enumerate(blend_types) if node.blend_type in entry][0]
-                        #index = blend_types.index(node.blend_type)
+                        # index = blend_types.index(node.blend_type)
                         if index == len(blend_types) - 1:
                             node.blend_type = blend_types[0][0]
                         else:
@@ -1503,12 +1529,12 @@ class NWBatchChangeNodes(Operator, NWBase):
                             node.blend_type = blend_types[index - 1][0]
 
             if node.type == 'MATH' or node.bl_idname == 'ShaderNodeMath':
-                if not operation in [nav[0] for nav in navs]:
+                if operation not in [nav[0] for nav in navs]:
                     node.operation = operation
                 else:
                     if operation == 'NEXT':
                         index = [i for i, entry in enumerate(operations) if node.operation in entry][0]
-                        #index = operations.index(node.operation)
+                        # index = operations.index(node.operation)
                         if index == len(operations) - 1:
                             node.operation = operations[0][0]
                         else:
@@ -1516,7 +1542,7 @@ class NWBatchChangeNodes(Operator, NWBase):
 
                     if operation == 'PREV':
                         index = [i for i, entry in enumerate(operations) if node.operation in entry][0]
-                        #index = operations.index(node.operation)
+                        # index = operations.index(node.operation)
                         if index == 0:
                             node.operation = operations[len(operations) - 1][0]
                         else:
@@ -1599,11 +1625,15 @@ class NWCopySettings(Operator, NWBase):
             # Report nodes that are not valid
             valid_node_names = [n.name for n in valid_nodes]
             not_valid_names = list(set(selected_node_names) - set(valid_node_names))
-            self.report({'INFO'}, "Ignored {} (not of the same type as {})".format(", ".join(not_valid_names), node_active.name))
+            self.report(
+                {'INFO'},
+                "Ignored {} (not of the same type as {})".format(
+                    ", ".join(not_valid_names),
+                    node_active.name))
 
         # Reference original
         orig = node_active
-        #node_selected_names = [n.name for n in node_selected]
+        # node_selected_names = [n.name for n in node_selected]
 
         # Output list
         success_names = []
@@ -1664,7 +1694,11 @@ class NWCopySettings(Operator, NWBase):
 
         orig.select = True
         node_tree.nodes.active = orig
-        self.report({'INFO'}, "Successfully copied attributes from {} to: {}".format(orig.name, ", ".join(success_names)))
+        self.report(
+            {'INFO'},
+            "Successfully copied attributes from {} to: {}".format(
+                orig.name,
+                ", ".join(success_names)))
         return {'FINISHED'}
 
 
@@ -1772,7 +1806,10 @@ class NWAddTextureSetup(Operator, NWBase):
     bl_description = "Add Texture Node Setup to Selected Shaders"
     bl_options = {'REGISTER', 'UNDO'}
 
-    add_mapping: BoolProperty(name="Add Mapping Nodes", description="Create coordinate and mapping nodes for the texture (ignored for selected texture nodes)", default=True)
+    add_mapping: BoolProperty(
+        name="Add Mapping Nodes",
+        description="Create coordinate and mapping nodes for the texture (ignored for selected texture nodes)",
+        default=True)
 
     @classmethod
     def poll(cls, context):
@@ -1913,23 +1950,23 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
         gloss_abbr = tags.gloss.split(' ')
         rough_abbr = tags.rough.split(' ')
         socketnames = [
-        ['Displacement', tags.displacement.split(' '), None],
-        ['Base Color', tags.base_color.split(' '), None],
-        ['Subsurface Color', tags.sss_color.split(' '), None],
-        ['Metallic', tags.metallic.split(' '), None],
-        ['Specular', tags.specular.split(' '), None],
-        ['Roughness', rough_abbr + gloss_abbr, None],
-        ['Normal', normal_abbr + bump_abbr, None],
-        ['Transmission', tags.transmission.split(' '), None],
-        ['Emission', tags.emission.split(' '), None],
-        ['Alpha', tags.alpha.split(' '), None],
-        ['Ambient Occlusion', tags.ambient_occlusion.split(' '), None],
+            ['Displacement', tags.displacement.split(' '), None],
+            ['Base Color', tags.base_color.split(' '), None],
+            ['Subsurface Color', tags.sss_color.split(' '), None],
+            ['Metallic', tags.metallic.split(' '), None],
+            ['Specular', tags.specular.split(' '), None],
+            ['Roughness', rough_abbr + gloss_abbr, None],
+            ['Normal', normal_abbr + bump_abbr, None],
+            ['Transmission', tags.transmission.split(' '), None],
+            ['Emission', tags.emission.split(' '), None],
+            ['Alpha', tags.alpha.split(' '), None],
+            ['Ambient Occlusion', tags.ambient_occlusion.split(' '), None],
         ]
 
         match_files_to_socket_names(self.files, socketnames)
         # Remove socketnames without found files
         socketnames = [s for s in socketnames if s[2]
-                       and path.exists(self.directory+s[2])]
+                       and path.exists(self.directory + s[2])]
         if not socketnames:
             self.report({'INFO'}, 'No matching images found')
             print('No matching images found')
@@ -2076,7 +2113,8 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
             # If more than one texture add reroute node in between
             reroute = nodes.new(type='NodeReroute')
             texture_nodes.append(reroute)
-            tex_coords = Vector((texture_nodes[0].location.x, sum(n.location.y for n in texture_nodes)/len(texture_nodes)))
+            tex_coords = Vector((texture_nodes[0].location.x,
+                                 sum(n.location.y for n in texture_nodes) / len(texture_nodes)))
             reroute.location = tex_coords + Vector((-50, -120))
             for texture_node in texture_nodes:
                 link = links.new(texture_node.inputs[0], reroute.outputs[0])
@@ -2316,7 +2354,8 @@ class NWAlignNodes(Operator, NWBase):
             active_loc = copy(nodes.active.location)  # make a copy, not a reference
 
         # Check if nodes should be laid out horizontally or vertically
-        x_locs = [n.location.x + (n.dimensions.x / 2) for n in selection]  # use dimension to get center of node, not corner
+        # use dimension to get center of node, not corner
+        x_locs = [n.location.x + (n.dimensions.x / 2) for n in selection]
         y_locs = [n.location.y - (n.dimensions.y / 2) for n in selection]
         x_range = max(x_locs) - min(x_locs)
         y_range = max(y_locs) - min(y_locs)
@@ -2351,7 +2390,8 @@ class NWAlignNodes(Operator, NWBase):
             for node in selection:
                 node.location += active_loc_diff
         else:  # Position nodes centered around where they used to be
-            locs = ([n.location.x + (n.dimensions.x / 2) for n in selection]) if horizontal else ([n.location.y - (n.dimensions.y / 2) for n in selection])
+            locs = ([n.location.x + (n.dimensions.x / 2) for n in selection]
+                    ) if horizontal else ([n.location.y - (n.dimensions.y / 2) for n in selection])
             new_mid = (max(locs) + min(locs)) / 2
             for node in selection:
                 if horizontal:
@@ -2437,8 +2477,8 @@ class NWLinkToOutputNode(Operator):
         active = nodes.active
         output_index = None
         tree_type = context.space_data.tree_type
-        shader_outputs = {'OBJECT':    'ShaderNodeOutputMaterial',
-                          'WORLD':     'ShaderNodeOutputWorld',
+        shader_outputs = {'OBJECT': 'ShaderNodeOutputMaterial',
+                          'WORLD': 'ShaderNodeOutputWorld',
                           'LINESTYLE': 'ShaderNodeOutputLineStyle'}
         output_type = {
             'ShaderNodeTree': shader_outputs[context.space_data.shader_type],
@@ -2579,24 +2619,23 @@ class NWAddSequence(Operator, NWBase, ImportHelper):
         if not files[0].name and not filename:
             self.report({'ERROR'}, "No file chosen")
             return {'CANCELLED'}
-        elif files[0].name and (not filename or not path.exists(directory+filename)):
+        elif files[0].name and (not filename or not path.exists(directory + filename)):
             # User has selected multiple files without an active one, or the active one is non-existent
             filename = files[0].name
 
-        if not path.exists(directory+filename):
-            self.report({'ERROR'}, filename+" does not exist!")
+        if not path.exists(directory + filename):
+            self.report({'ERROR'}, filename + " does not exist!")
             return {'CANCELLED'}
 
         without_ext = '.'.join(filename.split('.')[:-1])
 
         # if last digit isn't a number, it's not a sequence
         if not without_ext[-1].isdigit():
-            self.report({'ERROR'}, filename+" does not seem to be part of a sequence")
+            self.report({'ERROR'}, filename + " does not seem to be part of a sequence")
             return {'CANCELLED'}
 
-
         extension = filename.split('.')[-1]
-        reverse = without_ext[::-1] # reverse string
+        reverse = without_ext[::-1]  # reverse string
 
         count_numbers = 0
         for char in reverse:
@@ -2605,9 +2644,9 @@ class NWAddSequence(Operator, NWBase, ImportHelper):
             else:
                 break
 
-        without_num = without_ext[:count_numbers*-1]
+        without_num = without_ext[:count_numbers * -1]
 
-        files = sorted(glob(directory + without_num + "[0-9]"*count_numbers + "." + extension))
+        files = sorted(glob(directory + without_num + "[0-9]" * count_numbers + "." + extension))
 
         num_frames = len(files)
 
@@ -2619,18 +2658,18 @@ class NWAddSequence(Operator, NWBase, ImportHelper):
             for node in nodes:
                 node.select = False
                 yloc += node_mid_pt(node, 'y')
-            yloc = yloc/len(nodes)
+            yloc = yloc / len(nodes)
         else:
             xloc = 0
             yloc = 0
 
-        name_with_hashes = without_num + "#"*count_numbers + '.' + extension
+        name_with_hashes = without_num + "#" * count_numbers + '.' + extension
 
         bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type=node_type)
         node = nodes.active
         node.label = name_with_hashes
 
-        filepath = directory+(without_ext+'.'+extension)
+        filepath = directory + (without_ext + '.' + extension)
         if self.relative_path:
             if bpy.data.filepath:
                 try:
@@ -2643,7 +2682,8 @@ class NWAddSequence(Operator, NWBase, ImportHelper):
         img.name = name_with_hashes
         node.image = img
         image_user = node.image_user if tree.type == 'SHADER' else node
-        image_user.frame_offset = int(files[0][len(without_num)+len(directory):-1*(len(extension)+1)]) - 1  # separate the number from the file name of the first  file
+        # separate the number from the file name of the first  file
+        image_user.frame_offset = int(files[0][len(without_num) + len(directory):-1 * (len(extension) + 1)]) - 1
         image_user.frame_duration = num_frames
 
         return {'FINISHED'}
@@ -2665,7 +2705,7 @@ class NWAddMultipleImages(Operator, NWBase, ImportHelper):
     def execute(self, context):
         nodes, links = get_nodes_links(context)
 
-        xloc, yloc = context.region.view2d.region_to_view(context.area.width/2, context.area.height/2)
+        xloc, yloc = context.region.view2d.region_to_view(context.area.width / 2, context.area.height / 2)
 
         if context.space_data.node_tree.type == 'SHADER':
             node_type = "ShaderNodeTexImage"
@@ -2688,7 +2728,7 @@ class NWAddMultipleImages(Operator, NWBase, ImportHelper):
             node.location.y = yloc
             yloc -= 40
 
-            img = bpy.data.images.load(self.directory+fname)
+            img = bpy.data.images.load(self.directory + fname)
             node.image = img
 
         # shift new nodes up to center of tree
@@ -2696,7 +2736,7 @@ class NWAddMultipleImages(Operator, NWBase, ImportHelper):
         for node in nodes:
             if node in new_nodes:
                 node.select = True
-                node.location.y += (list_size/2)
+                node.location.y += (list_size / 2)
             else:
                 node.select = False
         return {'FINISHED'}
@@ -2720,7 +2760,7 @@ class NWViewerFocus(bpy.types.Operator):
     def invoke(self, context, event):
         render = context.scene.render
         space = context.space_data
-        percent = render.resolution_percentage*0.01
+        percent = render.resolution_percentage * 0.01
 
         nodes, links = get_nodes_links(context)
         viewers = [n for n in nodes if n.type == 'VIEWER']
@@ -2730,11 +2770,11 @@ class NWViewerFocus(bpy.types.Operator):
             mlocy = event.mouse_region_y
             select_node = bpy.ops.node.select(location=(mlocx, mlocy), extend=False)
 
-            if not 'FINISHED' in select_node:  # only run if we're not clicking on a node
+            if 'FINISHED' not in select_node:  # only run if we're not clicking on a node
                 region_x = context.region.width
                 region_y = context.region.height
 
-                region_center_x = context.region.width  / 2
+                region_center_x = context.region.width / 2
                 region_center_y = context.region.height / 2
 
                 bd_x = render.resolution_x * percent * space.backdrop_zoom
@@ -2764,21 +2804,21 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
     bl_label = "Save This Image"
     filepath: StringProperty(subtype="FILE_PATH")
     filename_ext: EnumProperty(
-            name="Format",
-            description="Choose the file format to save to",
-            items=(('.bmp', "BMP", ""),
-                   ('.rgb', 'IRIS', ""),
-                   ('.png', 'PNG', ""),
-                   ('.jpg', 'JPEG', ""),
-                   ('.jp2', 'JPEG2000', ""),
-                   ('.tga', 'TARGA', ""),
-                   ('.cin', 'CINEON', ""),
-                   ('.dpx', 'DPX', ""),
-                   ('.exr', 'OPEN_EXR', ""),
-                   ('.hdr', 'HDR', ""),
-                   ('.tif', 'TIFF', "")),
-            default='.png',
-            )
+        name="Format",
+        description="Choose the file format to save to",
+        items=(('.bmp', "BMP", ""),
+               ('.rgb', 'IRIS', ""),
+               ('.png', 'PNG', ""),
+               ('.jpg', 'JPEG', ""),
+               ('.jp2', 'JPEG2000', ""),
+               ('.tga', 'TARGA', ""),
+               ('.cin', 'CINEON', ""),
+               ('.dpx', 'DPX', ""),
+               ('.exr', 'OPEN_EXR', ""),
+               ('.hdr', 'HDR', ""),
+               ('.tif', 'TIFF', "")),
+        default='.png',
+    )
 
     @classmethod
     def poll(cls, context):
@@ -2794,19 +2834,19 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
         fp = self.filepath
         if fp:
             formats = {
-                       '.bmp': 'BMP',
-                       '.rgb': 'IRIS',
-                       '.png': 'PNG',
-                       '.jpg': 'JPEG',
-                       '.jpeg': 'JPEG',
-                       '.jp2': 'JPEG2000',
-                       '.tga': 'TARGA',
-                       '.cin': 'CINEON',
-                       '.dpx': 'DPX',
-                       '.exr': 'OPEN_EXR',
-                       '.hdr': 'HDR',
-                       '.tiff': 'TIFF',
-                       '.tif': 'TIFF'}
+                '.bmp': 'BMP',
+                '.rgb': 'IRIS',
+                '.png': 'PNG',
+                '.jpg': 'JPEG',
+                '.jpeg': 'JPEG',
+                '.jp2': 'JPEG2000',
+                '.tga': 'TARGA',
+                '.cin': 'CINEON',
+                '.dpx': 'DPX',
+                '.exr': 'OPEN_EXR',
+                '.hdr': 'HDR',
+                '.tiff': 'TIFF',
+                '.tif': 'TIFF'}
             basename, ext = path.splitext(fp)
             old_render_format = context.scene.render.image_settings.file_format
             context.scene.render.image_settings.file_format = formats[self.filename_ext]
@@ -2832,7 +2872,7 @@ class NWResetNodes(bpy.types.Operator):
     def execute(self, context):
         node_active = context.active_node
         node_selected = context.selected_nodes
-        node_ignore = ["FRAME","REROUTE", "GROUP"]
+        node_ignore = ["FRAME", "REROUTE", "GROUP"]
 
         # Check if one node is selected at least
         if not (len(node_selected) > 0):

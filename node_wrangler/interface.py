@@ -125,9 +125,11 @@ class NWMergeNodesMenu(Menu, NWBase):
             props.mode = 'MIX'
             props.merge_type = 'ALPHAOVER'
 
+
 class NWMergeGeometryMenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_merge_geometry_menu"
     bl_label = "Merge Selected Nodes using Geometry Nodes"
+
     def draw(self, context):
         layout = self.layout
         # The boolean node + Join Geometry node
@@ -135,6 +137,7 @@ class NWMergeGeometryMenu(Menu, NWBase):
             props = layout.operator(operators.NWMergeNodes.bl_idname, text=name)
             props.mode = type
             props.merge_type = 'GEOMETRY'
+
 
 class NWMergeShadersMenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_merge_shaders_menu"
@@ -172,7 +175,10 @@ class NWConnectionListOutputs(Menu, NWBase):
         for index, output in enumerate(n1.outputs):
             # Only show sockets that are exposed.
             if output.enabled:
-                layout.operator(operators.NWCallInputsMenu.bl_idname, text=output.name, icon="RADIOBUT_OFF").from_socket=index
+                layout.operator(
+                    operators.NWCallInputsMenu.bl_idname,
+                    text=output.name,
+                    icon="RADIOBUT_OFF").from_socket = index
 
 
 class NWConnectionListInputs(Menu, NWBase):
@@ -407,9 +413,11 @@ def draw_switch_category_submenu(self, context):
 #  APPENDAGES TO EXISTING UI
 #
 
+
 def select_parent_children_buttons(self, context):
     layout = self.layout
-    layout.operator(operators.NWSelectParentChildren.bl_idname, text="Select frame's members (children)").option = 'CHILD'
+    layout.operator(operators.NWSelectParentChildren.bl_idname,
+                    text="Select frame's members (children)").option = 'CHILD'
     layout.operator(operators.NWSelectParentChildren.bl_idname, text="Select parent frame").option = 'PARENT'
 
 
@@ -441,7 +449,7 @@ def save_viewer_menu_func(self, context):
 def reset_nodes_button(self, context):
     node_active = context.active_node
     node_selected = context.selected_nodes
-    node_ignore = ["FRAME","REROUTE", "GROUP"]
+    node_ignore = ["FRAME", "REROUTE", "GROUP"]
 
     # Check if active node is in the selection and respective type
     if (len(node_selected) == 1) and node_active and node_active.select and node_active.type not in node_ignore:
@@ -478,6 +486,7 @@ classes = (
     NWAttributeMenu,
     NWSwitchNodeTypeMenu,
 )
+
 
 def register():
     from bpy.utils import register_class

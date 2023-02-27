@@ -114,7 +114,11 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
 
         box = layout.box()
         col = box.column(align=True)
-        col.prop(self, "show_principled_lists", text='Edit tags for auto texture detection in Principled BSDF setup', toggle=True)
+        col.prop(
+            self,
+            "show_principled_lists",
+            text='Edit tags for auto texture detection in Principled BSDF setup',
+            toggle=True)
         if self.show_principled_lists:
             tags = self.principled_tags
 
@@ -156,6 +160,7 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
                         if hotkey[3]:
                             keystr = "Ctrl " + keystr
                         row.label(text=keystr)
+
 
 #
 #  REGISTER/UNREGISTER CLASSES AND KEYMAP ITEMS
@@ -285,13 +290,20 @@ kmi_defs = (
     (operators.NWLinkActiveToSelected.bl_idname, 'SEMI_COLON', 'PRESS', False, True, False,
         (('replace', True), ('use_node_name', False), ('use_outputs_names', True),), "Link active to selected (Replace links, output names)"),
     # CHANGE MIX FACTOR
-    (operators.NWChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS', False, False, True, (('option', -0.1),), "Reduce Mix Factor by 0.1"),
-    (operators.NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS', False, False, True, (('option', 0.1),), "Increase Mix Factor by 0.1"),
-    (operators.NWChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS', False, True, True, (('option', -0.01),), "Reduce Mix Factor by 0.01"),
-    (operators.NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS', False, True, True, (('option', 0.01),), "Increase Mix Factor by 0.01"),
-    (operators.NWChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
-    (operators.NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
-    (operators.NWChangeMixFactor.bl_idname, 'NUMPAD_0', 'PRESS', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
+    (operators.NWChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS', False,
+     False, True, (('option', -0.1),), "Reduce Mix Factor by 0.1"),
+    (operators.NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS', False,
+     False, True, (('option', 0.1),), "Increase Mix Factor by 0.1"),
+    (operators.NWChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS', False,
+     True, True, (('option', -0.01),), "Reduce Mix Factor by 0.01"),
+    (operators.NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS', False,
+     True, True, (('option', 0.01),), "Increase Mix Factor by 0.01"),
+    (operators.NWChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS',
+     True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
+    (operators.NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS',
+     True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
+    (operators.NWChangeMixFactor.bl_idname, 'NUMPAD_0', 'PRESS',
+     True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
     (operators.NWChangeMixFactor.bl_idname, 'ZERO', 'PRESS', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
     (operators.NWChangeMixFactor.bl_idname, 'NUMPAD_1', 'PRESS', True, True, True, (('option', 1.0),), "Mix Factor to 1.0"),
     (operators.NWChangeMixFactor.bl_idname, 'ONE', 'PRESS', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
@@ -300,16 +312,19 @@ kmi_defs = (
     # MODIFY LABEL (Alt Shift L)
     (operators.NWModifyLabels.bl_idname, 'L', 'PRESS', False, True, True, None, "Modify node labels"),
     # Copy Label from active to selected
-    (operators.NWCopyLabel.bl_idname, 'V', 'PRESS', False, True, False, (('option', 'FROM_ACTIVE'),), "Copy label from active to selected"),
+    (operators.NWCopyLabel.bl_idname, 'V', 'PRESS', False, True, False,
+     (('option', 'FROM_ACTIVE'),), "Copy label from active to selected"),
     # DETACH OUTPUTS (Alt Shift D)
     (operators.NWDetachOutputs.bl_idname, 'D', 'PRESS', False, True, True, None, "Detach outputs"),
     # LINK TO OUTPUT NODE (O)
     (operators.NWLinkToOutputNode.bl_idname, 'O', 'PRESS', False, False, False, None, "Link to output node"),
     # SELECT PARENT/CHILDREN
     # Select Children
-    (operators.NWSelectParentChildren.bl_idname, 'RIGHT_BRACKET', 'PRESS', False, False, False, (('option', 'CHILD'),), "Select children"),
+    (operators.NWSelectParentChildren.bl_idname, 'RIGHT_BRACKET', 'PRESS',
+     False, False, False, (('option', 'CHILD'),), "Select children"),
     # Select Parent
-    (operators.NWSelectParentChildren.bl_idname, 'LEFT_BRACKET', 'PRESS', False, False, False, (('option', 'PARENT'),), "Select Parent"),
+    (operators.NWSelectParentChildren.bl_idname, 'LEFT_BRACKET', 'PRESS',
+     False, False, False, (('option', 'PARENT'),), "Select Parent"),
     # Add Texture Setup
     (operators.NWAddTextureSetup.bl_idname, 'T', 'PRESS', True, False, False, None, "Add texture setup"),
     # Add Principled BSDF Texture Setup
@@ -323,8 +338,10 @@ kmi_defs = (
     # Swap Links
     (operators.NWSwapLinks.bl_idname, 'S', 'PRESS', False, False, True, None, "Swap Links"),
     # Preview Node
-    (operators.NWPreviewNode.bl_idname, 'LEFTMOUSE', 'PRESS', True, True, False, (('run_in_geometry_nodes', False),), "Preview node output"),
-    (operators.NWPreviewNode.bl_idname, 'LEFTMOUSE', 'PRESS', False, True, True, (('run_in_geometry_nodes', True),), "Preview node output"),
+    (operators.NWPreviewNode.bl_idname, 'LEFTMOUSE', 'PRESS', True, True,
+     False, (('run_in_geometry_nodes', False),), "Preview node output"),
+    (operators.NWPreviewNode.bl_idname, 'LEFTMOUSE', 'PRESS', False, True,
+     True, (('run_in_geometry_nodes', True),), "Preview node output"),
     # Reload Images
     (operators.NWReloadImages.bl_idname, 'R', 'PRESS', False, False, True, None, "Reload images"),
     # Lazy Mix
@@ -332,25 +349,34 @@ kmi_defs = (
     # Lazy Connect
     (operators.NWLazyConnect.bl_idname, 'RIGHTMOUSE', 'PRESS', False, False, True, (('with_menu', False),), "Lazy Connect"),
     # Lazy Connect with Menu
-    (operators.NWLazyConnect.bl_idname, 'RIGHTMOUSE', 'PRESS', False, True, True, (('with_menu', True),), "Lazy Connect with Socket Menu"),
+    (operators.NWLazyConnect.bl_idname, 'RIGHTMOUSE', 'PRESS', False,
+     True, True, (('with_menu', True),), "Lazy Connect with Socket Menu"),
     # Viewer Tile Center
     (operators.NWViewerFocus.bl_idname, 'LEFTMOUSE', 'DOUBLE_CLICK', False, False, False, None, "Set Viewers Tile Center"),
     # Align Nodes
-    (operators.NWAlignNodes.bl_idname, 'EQUAL', 'PRESS', False, True, False, None, "Align selected nodes neatly in a row/column"),
+    (operators.NWAlignNodes.bl_idname, 'EQUAL', 'PRESS', False, True,
+     False, None, "Align selected nodes neatly in a row/column"),
     # Reset Nodes (Back Space)
-    (operators.NWResetNodes.bl_idname, 'BACK_SPACE', 'PRESS', False, False, False, None, "Revert node back to default state, but keep connections"),
+    (operators.NWResetNodes.bl_idname, 'BACK_SPACE', 'PRESS', False, False,
+     False, None, "Revert node back to default state, but keep connections"),
     # MENUS
     ('wm.call_menu', 'W', 'PRESS', False, True, False, (('name', interface.NodeWranglerMenu.bl_idname),), "Node Wrangler menu"),
-    ('wm.call_menu', 'SLASH', 'PRESS', False, False, False, (('name', interface.NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
-    ('wm.call_menu', 'NUMPAD_SLASH', 'PRESS', False, False, False, (('name', interface.NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
-    ('wm.call_menu', 'BACK_SLASH', 'PRESS', False, False, False, (('name', interface.NWLinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
-    ('wm.call_menu', 'C', 'PRESS', False, True, False, (('name', interface.NWCopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
-    ('wm.call_menu', 'S', 'PRESS', False, True, False, (('name', interface.NWSwitchNodeTypeMenu.bl_idname),), "Switch node type menu"),
+    ('wm.call_menu', 'SLASH', 'PRESS', False, False, False,
+     (('name', interface.NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
+    ('wm.call_menu', 'NUMPAD_SLASH', 'PRESS', False, False, False,
+     (('name', interface.NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
+    ('wm.call_menu', 'BACK_SLASH', 'PRESS', False, False, False,
+     (('name', interface.NWLinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
+    ('wm.call_menu', 'C', 'PRESS', False, True, False,
+     (('name', interface.NWCopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
+    ('wm.call_menu', 'S', 'PRESS', False, True, False,
+     (('name', interface.NWSwitchNodeTypeMenu.bl_idname),), "Switch node type menu"),
 )
 
 classes = (
     NWPrincipledPreferences, NWNodeWrangler
 )
+
 
 def register():
     from bpy.utils import register_class
@@ -385,6 +411,7 @@ def register():
             switch_category_menus.append(switch_category_type)
 
             bpy.utils.register_class(switch_category_type)
+
 
 def unregister():
     for cat_types in switch_category_menus:
