@@ -1455,10 +1455,10 @@ class weight_contour_displace(Operator):
 
         # Displace Modifier
         if self.bool_displace:
-            ob.modifiers.new(type='DISPLACE', name='Displace')
-            ob.modifiers["Displace"].mid_level = 0
-            ob.modifiers["Displace"].strength = 0.1
-            ob.modifiers['Displace'].vertex_group = vertex_group_name
+            displace_modifier = ob.modifiers.new(type='DISPLACE', name='Displace')
+            displace_modifier.mid_level = 0
+            displace_modifier.strength = 0.1
+            displace_modifier.vertex_group = vertex_group_name
 
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.object.mode_set(mode='WEIGHT_PAINT')
