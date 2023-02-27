@@ -153,10 +153,13 @@ def match_files_to_socket_names(files, sockets):
 
     for sname in sockets:
         for name, tag_list in names_to_tag_lists.items():
-            if sname[0] == "Normal" and "dx" in tag_list:
+            if sname[0] == "Normal":
                 # Blender wants GL normals, not DX (DirectX) ones:
                 # https://www.reddit.com/r/blender/comments/rbuaua/texture_contains_normaldx_and_normalgl_files/
-                continue
+                if 'dx' in tag_list:
+                    continue
+                if 'directx' in tag_list:
+                    continue
 
             matches = set(sname[1]).intersection(set(tag_list))
             if matches:

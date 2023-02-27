@@ -225,6 +225,34 @@ class TestPutFileNamesInSockets(unittest.TestCase):
             },
         )
 
+    def test_texturecan(self):
+        """Texture from: https://www.texturecan.com/details/67/"""
+
+        files = [
+            MockFile("metal_0010_ao_1k.jpg"),
+            MockFile("metal_0010_color_1k.jpg"),
+            MockFile("metal_0010_height_1k.png"),
+            MockFile("metal_0010_metallic_1k.jpg"),
+            MockFile("metal_0010_normal_directx_1k.png"),
+            MockFile("metal_0010_normal_opengl_1k.png"),
+            MockFile("metal_0010_roughness_1k.jpg"),
+        ]
+        sockets = sockets_fixture()
+        match_files_to_socket_names(files, sockets)
+
+        assert_sockets(
+            self,
+            sockets,
+            {
+                "Ambient Occlusion": "metal_0010_ao_1k.jpg",
+                "Base Color": "metal_0010_color_1k.jpg",
+                "Displacement": "metal_0010_height_1k.png",
+                "Metallic": "metal_0010_metallic_1k.jpg",
+                "Normal": "metal_0010_normal_opengl_1k.png",
+                "Roughness": "metal_0010_roughness_1k.jpg",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
