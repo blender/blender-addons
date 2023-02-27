@@ -1,7 +1,9 @@
 name: Add-on Bug Report
 about: File a bug report for an add-on bundled with Blender
 labels:
-  - type::Report
+  - "Type/Report"
+  - "Status/Needs Triage"
+  - "Priority/Normal"
 body:
   - type: markdown
     attributes:
