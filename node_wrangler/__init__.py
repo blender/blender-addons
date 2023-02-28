@@ -2095,8 +2095,6 @@ class NWMergeNodes(Operator, NWBase):
             if tree_type == 'GEOMETRY':
                 if nodes_list is selected_math or nodes_list is selected_vector or nodes_list is selected_mix:
                     node_type = 'ShaderNode'
-                    if mode == 'MIX':
-                        mode = 'ADD'
                 else:
                     node_type = 'GeometryNode'
             if merge_position == 'CENTER':
@@ -2230,16 +2228,16 @@ class NWMergeNodes(Operator, NWBase):
             if len(nodes_list) == 2:
                 if not first_selected_output.links:
                     second_selected = nodes[nodes_list[1][0]]
-                    for ss_link in second_selected.outputs[0].links:
+                    for ss_link in get_first_enabled_output(second_selected).links:
                         # Prevent cyclic dependencies when nodes to be merged are linked to one another.
                         # Link only if "to_node" index not in invalid indexes list.
                         if not self.link_creates_cycle(ss_link, invalid_nodes):
-                            links.new(last_add.outputs[0], ss_link.to_socket)
+                            links.new(get_first_enabled_output(last_add), ss_link.to_socket)
             # add links from last_add to all links 'to_socket' of out links of first selected.
             for fs_link in first_selected_output.links:
                 # Link only if "to_node" index not in invalid indexes list.
                 if not self.link_creates_cycle(fs_link, invalid_nodes):
-                    links.new(last_add.outputs[0], fs_link.to_socket)
+                    links.new(get_first_enabled_output(last_add), fs_link.to_socket)
             # add link from "first" selected and "first" add node
             node_to = nodes[count_after - 1]
             links.new(first_selected_output, node_to.inputs[first])
