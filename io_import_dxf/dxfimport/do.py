@@ -1379,7 +1379,7 @@ class Do:
         return o
 
     def _recenter(self, scene, name):
-        bpy.context.screen.scene = scene
+        bpy.context.window.scene = scene
         bpy.context.view_layer.update()
         bpy.ops.object.select_all(action='DESELECT')
 
