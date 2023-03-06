@@ -590,7 +590,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         name='Shape Key Animations',
         description='Export shape keys animations (morph targets)',
         default=True
-    )    
+    )
 
     export_lights: BoolProperty(
         name='Punctual Lights',
