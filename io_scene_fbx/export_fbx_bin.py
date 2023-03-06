@@ -1213,16 +1213,27 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
             elem_data_single_string(lay_ma, b"Name", b"")
             nbr_mats = len(me_fbxmaterials_idx)
             if nbr_mats > 1:
-                t_pm = array.array(data_types.ARRAY_INT32, (0,)) * len(me.polygons)
+                bl_pm_dtype = np.uintc
+                fbx_pm_dtype = np.int32
+                t_pm = np.empty(len(me.polygons), dtype=bl_pm_dtype)
                 me.polygons.foreach_get("material_index", t_pm)
 
                 # We have to validate mat indices, and map them to FBX indices.
-                # Note a mat might not be in me_fbxmats_idx (e.g. node mats are ignored).
-                def_ma = next(me_fbxmaterials_idx[m] for m in me_blmaterials if m in me_fbxmaterials_idx)
-                blmaterials_to_fbxmaterials_idxs = [me_fbxmaterials_idx.get(m, def_ma) for m in me_blmaterials]
-                ma_idx_limit = len(blmaterials_to_fbxmaterials_idxs)
-                _gen = (blmaterials_to_fbxmaterials_idxs[m] if m < ma_idx_limit else def_ma for m in t_pm)
-                t_pm = array.array(data_types.ARRAY_INT32, _gen)
+                # Note a mat might not be in me_fbxmaterials_idx (e.g. node mats are ignored).
+
+                # The first valid material will be used for materials out of bounds of me_blmaterials or materials not
+                # in me_fbxmaterials_idx.
+                def_me_blmaterial_idx, def_ma = next(
+                    (i, me_fbxmaterials_idx[m]) for i, m in enumerate(me_blmaterials) if m in me_fbxmaterials_idx)
+
+                # Set material indices that are out of bounds to the default material index
+                mat_idx_limit = len(me_blmaterials)
+                t_pm[t_pm >= mat_idx_limit] = def_me_blmaterial_idx
+
+                # Map to FBX indices. Materials not in me_fbxmaterials_idx will be set to the default material index.
+                blmat_fbx_idx = np.fromiter((me_fbxmaterials_idx.get(m, def_ma) for m in me_blmaterials),
+                                            dtype=fbx_pm_dtype)
+                t_pm = blmat_fbx_idx[t_pm]
 
                 elem_data_single_string(lay_ma, b"MappingInformationType", b"ByPolygon")
                 # XXX Logically, should be "Direct" reference type, since we do not have any index array, and have one
