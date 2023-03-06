@@ -1,5 +1,5 @@
 # Running Tests
 
 ```
-./util_test.py
+./utils/paths_test.py
 ```
