@@ -1248,38 +1248,48 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     colors_type = scene_data.settings.colors_type
     vcolnumber = 0 if colors_type == 'NONE' else len(me.color_attributes)
     if vcolnumber:
-        def _coltuples_gen(raw_cols):
-            return zip(*(iter(raw_cols),) * 4)
-
         color_prop_name = "color_srgb" if colors_type == 'SRGB' else "color"
+        # ByteColorAttribute color also gets returned by the API as single precision float
+        bl_lc_dtype = np.single
+        bl_lvi_dtype = np.uintc
+        fbx_lc_dtype = np.float64
+        fbx_lcidx_dtype = np.int32
+        t_lvi = None
 
         for colindex, collayer in enumerate(me.color_attributes):
             is_point = collayer.domain == "POINT"
             vcollen = len(me.vertices if is_point else me.loops)
-            t_lc = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * vcollen * 4
+            # Each rgba component is flattened in the array
+            t_lc = np.empty(vcollen * 4, dtype=bl_lc_dtype)
             collayer.data.foreach_get(color_prop_name, t_lc)
-
             lay_vcol = elem_data_single_int32(geom, b"LayerElementColor", colindex)
             elem_data_single_int32(lay_vcol, b"Version", FBX_GEOMETRY_VCOLOR_VERSION)
             elem_data_single_string_unicode(lay_vcol, b"Name", collayer.name)
             elem_data_single_string(lay_vcol, b"MappingInformationType", b"ByPolygonVertex")
             elem_data_single_string(lay_vcol, b"ReferenceInformationType", b"IndexToDirect")
 
-            col2idx = tuple(set(_coltuples_gen(t_lc)))
-            elem_data_single_float64_array(lay_vcol, b"Colors", chain(*col2idx))  # Flatten again...
+            # Use the fast uniqueness helper function since we don't care about sorting.
+            t_lc, col_indices = fast_first_axis_unique(t_lc.reshape(-1, 4), return_inverse=True)
 
-            col2idx = {col: idx for idx, col in enumerate(col2idx)}
-            col_indices = list(col2idx[c] for c in _coltuples_gen(t_lc))
             if is_point:
                 # for "point" domain colors, we could directly emit them
                 # with a "ByVertex" mapping type, but some software does not
                 # properly understand that. So expand to full "ByPolygonVertex"
                 # index map.
-                col_indices = list((col_indices[c.vertex_index] for c in me.loops))
+                if t_lvi is None:
+                    t_lvi = np.empty(len(me.loops), dtype=bl_lvi_dtype)
+                    me.loops.foreach_get("vertex_index", t_lvi)
+                col_indices = col_indices[t_lvi]
+
+            t_lc = t_lc.astype(fbx_lc_dtype, copy=False)
+            col_indices = astype_view_signedness(col_indices, fbx_lcidx_dtype)
+
+            elem_data_single_float64_array(lay_vcol, b"Colors", t_lc)
             elem_data_single_int32_array(lay_vcol, b"ColorIndex", col_indices)
-            del col2idx
+
             del t_lc
-        del _coltuples_gen
+            del col_indices
+        del t_lvi
 
     # Write UV layers.
     # Note: LayerElementTexture is deprecated since FBX 2011 - luckily!
