@@ -265,13 +265,6 @@ def vcos_transformed_gen(raw_cos, m=None):
     gen = zip(*(iter(raw_cos),) * 3)
     return gen if m is None else (m @ Vector(v) for v in gen)
 
-def nors_transformed_gen(raw_nors, m=None):
-    # Great, now normals are also expected 4D!
-    # XXX Back to 3D normals for now!
-    # gen = zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
-    gen = zip(*(iter(raw_nors),) * 3)
-    return gen if m is None else (m @ Vector(v) for v in gen)
-
 
 def _mat4_vec3_array_multiply(mat4, vec3_array, dtype=None, return_4d=False):
     """Multiply a 4d matrix by each 3d vector in an array and return as an array of either 3d or 4d vectors.
