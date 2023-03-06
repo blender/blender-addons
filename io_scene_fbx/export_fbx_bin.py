@@ -1257,7 +1257,12 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         fbx_lcidx_dtype = np.int32
         t_lvi = None
 
-        for colindex, collayer in enumerate(me.color_attributes):
+        color_attributes = me.color_attributes
+        if scene_data.settings.prioritize_active_color:
+            active_color = me.color_attributes.active_color
+            color_attributes = sorted(color_attributes, key=lambda x: x == active_color, reverse=True)            
+
+        for colindex, collayer in enumerate(color_attributes):
             is_point = collayer.domain == "POINT"
             vcollen = len(me.vertices if is_point else me.loops)
             # Each rgba component is flattened in the array
@@ -3290,6 +3295,7 @@ def save_single(operator, scene, depsgraph, filepath="",
                 bake_space_transform=False,
                 armature_nodetype='NULL',
                 colors_type='SRGB',
+                prioritize_active_color=False,
                 **kwargs
                 ):
 
@@ -3357,7 +3363,7 @@ def save_single(operator, scene, depsgraph, filepath="",
         add_leaf_bones, bone_correction_matrix, bone_correction_matrix_inv,
         bake_anim, bake_anim_use_all_bones, bake_anim_use_nla_strips, bake_anim_use_all_actions,
         bake_anim_step, bake_anim_simplify_factor, bake_anim_force_startend_keying,
-        False, media_settings, use_custom_props, colors_type,
+        False, media_settings, use_custom_props, colors_type, prioritize_active_color
     )
 
     import bpy_extras.io_utils
