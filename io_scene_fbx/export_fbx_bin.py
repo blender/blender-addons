@@ -11,6 +11,7 @@ import os
 import time
 
 from itertools import zip_longest, chain
+from functools import cache
 
 if "bpy" in locals():
     import importlib
@@ -47,7 +48,7 @@ from .fbx_utils import (
     # Miscellaneous utils.
     PerfMon,
     units_blender_to_fbx_factor, units_convertor, units_convertor_iter,
-    matrix4_to_array, similar_values, similar_values_iter, astype_view_signedness, fast_first_axis_unique,
+    matrix4_to_array, similar_values, shape_difference_exclude_similar, astype_view_signedness, fast_first_axis_unique,
     # Mesh transform helpers.
     vcos_transformed_gen, vcos_transformed, nors_transformed,
     # UUID from key.
@@ -760,15 +761,19 @@ def fbx_data_mesh_shapes_elements(root, me_obj, me, scene_data, fbx_me_tmpl, fbx
     for shape, (channel_key, geom_key, shape_verts_co, shape_verts_idx) in shapes.items():
         # Use vgroups as weights, if defined.
         if shape.vertex_group and shape.vertex_group in me_obj.bdata.vertex_groups:
-            shape_verts_weights = array.array(data_types.ARRAY_FLOAT64, [0.0]) * (len(shape_verts_co) // 3)
+            shape_verts_weights = np.zeros(len(shape_verts_idx), dtype=np.float64)
+            # It's slightly faster to iterate and index the underlying memoryview objects
+            mv_shape_verts_weights = shape_verts_weights.data
+            mv_shape_verts_idx = shape_verts_idx.data
             vg_idx = me_obj.bdata.vertex_groups[shape.vertex_group].index
-            for sk_idx, v_idx in enumerate(shape_verts_idx):
+            for sk_idx, v_idx in enumerate(mv_shape_verts_idx):
                 for vg in vertices[v_idx].groups:
                     if vg.group == vg_idx:
-                        shape_verts_weights[sk_idx] = vg.weight * 100.0
+                        mv_shape_verts_weights[sk_idx] = vg.weight
                         break
+            shape_verts_weights *= 100.0
         else:
-            shape_verts_weights = array.array(data_types.ARRAY_FLOAT64, [100.0]) * (len(shape_verts_co) // 3)
+            shape_verts_weights = np.full(len(shape_verts_idx), 100.0, dtype=np.float64)
         channels.append((channel_key, shape, shape_verts_weights))
 
         geom = elem_data_single_int64(root, b"Geometry", get_fbx_uuid_from_key(geom_key))
@@ -784,8 +789,7 @@ def fbx_data_mesh_shapes_elements(root, me_obj, me, scene_data, fbx_me_tmpl, fbx
         elem_data_single_int32_array(geom, b"Indexes", shape_verts_idx)
         elem_data_single_float64_array(geom, b"Vertices", shape_verts_co)
         if write_normals:
-            elem_data_single_float64_array(geom, b"Normals",
-                                           array.array(data_types.ARRAY_FLOAT64, [0.0]) * len(shape_verts_co))
+            elem_data_single_float64_array(geom, b"Normals", np.zeros(len(shape_verts_idx) * 3, dtype=np.float64))
 
     # Yiha! BindPose for shapekeys too! Dodecasigh...
     # XXX Not sure yet whether several bindposes on same mesh are allowed, or not... :/
@@ -2501,6 +2505,18 @@ def fbx_data_from_scene(scene, depsgraph, settings):
     # ShapeKeys.
     data_deformers_shape = {}
     geom_mat_co = settings.global_matrix if settings.bake_space_transform else None
+    co_bl_dtype = np.single
+    co_fbx_dtype = np.float64
+    idx_fbx_dtype = np.int32
+
+    def empty_verts_fallbacks():
+        """Create fallback arrays for when there are no verts"""
+        # FBX does not like empty shapes (makes Unity crash e.g.).
+        # To prevent this, we add a vertex that does nothing, but it keeps the shape key intact
+        single_vert_co = np.zeros((1, 3), dtype=co_fbx_dtype)
+        single_vert_idx = np.zeros(1, dtype=idx_fbx_dtype)
+        return single_vert_co, single_vert_idx
+
     for me_key, me, _free in data_meshes.values():
         if not (me.shape_keys and len(me.shape_keys.key_blocks) > 1):  # We do not want basis-only relative skeys...
             continue
@@ -2508,40 +2524,43 @@ def fbx_data_from_scene(scene, depsgraph, settings):
             continue
 
         shapes_key = get_blender_mesh_shape_key(me)
-        # We gather all vcos first, since some skeys may be based on others...
-        _cos = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.vertices) * 3
-        me.vertices.foreach_get("co", _cos)
-        v_cos = tuple(vcos_transformed_gen(_cos, geom_mat_co))
-        sk_cos = {}
-        for shape in me.shape_keys.key_blocks[1:]:
-            shape.data.foreach_get("co", _cos)
-            sk_cos[shape] = tuple(vcos_transformed_gen(_cos, geom_mat_co))
+
         sk_base = me.shape_keys.key_blocks[0]
 
+        # Get and cache only the cos that we need
+        @cache
+        def sk_cos(shape_key):
+            _cos = np.empty(len(me.vertices) * 3, dtype=co_bl_dtype)
+            if shape_key == sk_base:
+                me.vertices.foreach_get("co", _cos)
+            else:
+                shape_key.data.foreach_get("co", _cos)
+            return vcos_transformed(_cos, geom_mat_co, co_fbx_dtype)
+
         for shape in me.shape_keys.key_blocks[1:]:
-            # Only write vertices really different from org coordinates!
-            shape_verts_co = []
-            shape_verts_idx = []
+            # Only write vertices really different from base coordinates!
+            relative_key = shape.relative_key
+            if shape == relative_key:
+                # Shape is its own relative key, so it does nothing
+                shape_verts_co, shape_verts_idx = empty_verts_fallbacks()
+            else:
+                sv_cos = sk_cos(shape)
+                ref_cos = sk_cos(shape.relative_key)
 
-            sv_cos = sk_cos[shape]
-            ref_cos = v_cos if shape.relative_key == sk_base else sk_cos[shape.relative_key]
-            for idx, (sv_co, ref_co) in enumerate(zip(sv_cos, ref_cos)):
-                if similar_values_iter(sv_co, ref_co):
-                    # Note: Maybe this is a bit too simplistic, should we use real shape base here? Though FBX does not
-                    #       have this at all... Anyway, this should cover most common cases imho.
-                    continue
-                shape_verts_co.extend(Vector(sv_co) - Vector(ref_co))
-                shape_verts_idx.append(idx)
+                # Exclude cos similar to ref_cos and get the indices of the cos that remain
+                shape_verts_co, shape_verts_idx = shape_difference_exclude_similar(sv_cos, ref_cos)
 
-            # FBX does not like empty shapes (makes Unity crash e.g.).
-            # To prevent this, we add a vertex that does nothing, but it keeps the shape key intact
-            if not shape_verts_co:
-                shape_verts_co.extend((0, 0, 0))
-                shape_verts_idx.append(0)
+                if not shape_verts_co.size:
+                    shape_verts_co, shape_verts_idx = empty_verts_fallbacks()
+                else:
+                    # Ensure the indices are of the correct type
+                    shape_verts_idx = astype_view_signedness(shape_verts_idx, idx_fbx_dtype)
 
             channel_key, geom_key = get_blender_mesh_shape_channel_key(me, shape)
             data = (channel_key, geom_key, shape_verts_co, shape_verts_idx)
             data_deformers_shape.setdefault(me, (me_key, shapes_key, {}))[2][shape] = data
+
+        del sk_cos
 
     perfmon.step("FBX export prepare: Wrapping Armatures...")
 
