@@ -49,6 +49,7 @@ from .fbx_utils import (
     PerfMon,
     units_blender_to_fbx_factor, units_convertor, units_convertor_iter,
     matrix4_to_array, similar_values, shape_difference_exclude_similar, astype_view_signedness, fast_first_axis_unique,
+    fast_first_axis_flat,
     # Mesh transform helpers.
     vcos_transformed_gen, vcos_transformed, nors_transformed,
     # UUID from key.
