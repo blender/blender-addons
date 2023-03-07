@@ -260,16 +260,44 @@ def similar_values_iter(v1, v2, e=1e-6):
             return False
     return True
 
+
+def shape_difference_exclude_similar(sv_cos, ref_cos, e=1e-6):
+    """Return a tuple of:
+        the difference between the vertex cos in sv_cos and ref_cos, excluding any that are nearly the same,
+        and the indices of the vertices that are not nearly the same"""
+    assert(sv_cos.size == ref_cos.size)
+
+    # Create views of 1 co per row of the arrays, only making copies if needed.
+    sv_cos = sv_cos.reshape(-1, 3)
+    ref_cos = ref_cos.reshape(-1, 3)
+
+    # Quick check for equality
+    if np.array_equal(sv_cos, ref_cos):
+        # There's no difference between the two arrays.
+        empty_cos = np.empty((0, 3), dtype=sv_cos.dtype)
+        empty_indices = np.empty(0, dtype=np.int32)
+        return empty_cos, empty_indices
+
+    # Note that unlike math.isclose(a,b), np.isclose(a,b) is not symmetrical and the second argument 'b', is
+    # considered to be the reference value.
+    # Note that atol=0 will mean that if only one co component being compared is zero, they won't be considered close.
+    similar_mask = np.isclose(sv_cos, ref_cos, atol=0, rtol=e)
+
+    # A co is only similar if every component in it is similar.
+    co_similar_mask = np.all(similar_mask, axis=1)
+
+    # Get the indices of cos that are not similar.
+    not_similar_verts_idx = np.flatnonzero(~co_similar_mask)
+
+    # Subtracting first over the entire arrays and then indexing seems faster than indexing both arrays first and then
+    # subtracting, until less than about 3% of the cos are being indexed.
+    difference_cos = (sv_cos - ref_cos)[not_similar_verts_idx]
+    return difference_cos, not_similar_verts_idx
+
+
 def vcos_transformed_gen(raw_cos, m=None):
     # Note: we could most likely get much better performances with numpy, but will leave this as TODO for now.
     gen = zip(*(iter(raw_cos),) * 3)
-    return gen if m is None else (m @ Vector(v) for v in gen)
-
-def nors_transformed_gen(raw_nors, m=None):
-    # Great, now normals are also expected 4D!
-    # XXX Back to 3D normals for now!
-    # gen = zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
-    gen = zip(*(iter(raw_nors),) * 3)
     return gen if m is None else (m @ Vector(v) for v in gen)
 
 
@@ -1461,7 +1489,7 @@ FBXExportSettings = namedtuple("FBXExportSettings", (
     "bone_correction_matrix", "bone_correction_matrix_inv",
     "bake_anim", "bake_anim_use_all_bones", "bake_anim_use_nla_strips", "bake_anim_use_all_actions",
     "bake_anim_step", "bake_anim_simplify_factor", "bake_anim_force_startend_keying",
-    "use_metadata", "media_settings", "use_custom_props", "colors_type",
+    "use_metadata", "media_settings", "use_custom_props", "colors_type", "prioritize_active_color"
 ))
 
 # Helper container gathering some data we need multiple times:

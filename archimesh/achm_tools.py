@@ -172,11 +172,9 @@ def set_modifier_solidify(myobject, width):
 # Add modifier (boolean)
 # --------------------------------------------------------------------
 def set_modifier_boolean(myobject, bolobject):
-    bpy.context.view_layer.objects.active = myobject
-    if bpy.context.view_layer.objects.active.name == myobject.name:
-        boolean_modifier = context.object.modifiers.new("", 'BOOLEAN')
-        boolean_modifier.operation = 'DIFFERENCE'
-        boolean_modifier.object = bolobject
+    boolean_modifier = myobject.modifiers.new("", 'BOOLEAN')
+    boolean_modifier.operation = 'DIFFERENCE'
+    boolean_modifier.object = bolobject
 
 
 # --------------------------------------------------------------------

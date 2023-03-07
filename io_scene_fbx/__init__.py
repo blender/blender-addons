@@ -2,9 +2,9 @@
 
 bl_info = {
     "name": "FBX format",
-    "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (4, 37, 5),
-    "blender": (3, 4, 0),
+    "author": "Campbell Barton, Bastien Montagne, Jens Restemeier, @Mysteryem",
+    "version": (5, 1, 0),
+    "blender": (3, 6, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UVs, vertex colors, materials, textures, cameras, lamps and actions",
     "warning": "",
@@ -482,6 +482,12 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             description="Export vertex color attributes",
             default='SRGB',
             )
+    prioritize_active_color: BoolProperty(
+            name="Prioritize Active Color",
+            description="Make sure active color will be exported first. Could be important "
+                        "since some other software can discard other color attributes besides the first one",
+            default=False,
+            )
     use_subsurf: BoolProperty(
             name="Export Subdivision Surface",
             description="Export the last Catmull-Rom subdivision modifier as FBX subdivision "
@@ -787,6 +793,7 @@ class FBX_PT_export_geometry(bpy.types.Panel):
         #~ sub.enabled = operator.mesh_smooth_type in {'OFF'}
         sub.prop(operator, "use_tspace")
         layout.prop(operator, "colors_type")
+        layout.prop(operator, "prioritize_active_color")
 
 
 class FBX_PT_export_armature(bpy.types.Panel):
