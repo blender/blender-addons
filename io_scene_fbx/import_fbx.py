@@ -1205,12 +1205,14 @@ def blen_read_geom_layer_material(fbx_obj, mesh):
     layer_id = b'Materials'
     fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, layer_id))
 
-    blen_data = mesh.polygons
+    blen_data = MESH_ATTRIBUTE_MATERIAL_INDEX.ensure(mesh.attributes).data
+    fbx_item_size = 1
+    assert(fbx_item_size == MESH_ATTRIBUTE_MATERIAL_INDEX.item_size)
     blen_read_geom_array_mapped_polygon(
-        mesh, blen_data, "material_index", np.uintc,
+        mesh, blen_data, MESH_ATTRIBUTE_MATERIAL_INDEX.foreach_attribute, MESH_ATTRIBUTE_MATERIAL_INDEX.dtype,
         fbx_layer_data, None,
         fbx_layer_mapping, fbx_layer_ref,
-        1, 1, layer_id,
+        1, fbx_item_size, layer_id,
         )
 
 

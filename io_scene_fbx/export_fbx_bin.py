@@ -1423,11 +1423,13 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
             elem_data_single_int32(lay_ma, b"Version", FBX_GEOMETRY_MATERIAL_VERSION)
             elem_data_single_string(lay_ma, b"Name", b"")
             nbr_mats = len(me_fbxmaterials_idx)
-            if nbr_mats > 1:
-                bl_pm_dtype = np.uintc
+            multiple_fbx_mats = nbr_mats > 1
+            # If a mesh does not have more than one material its material_index attribute can be ignored.
+            # If a mesh has multiple materials but all its polygons are assigned to the first material, its
+            # material_index attribute may not exist.
+            t_pm = None if not multiple_fbx_mats else MESH_ATTRIBUTE_MATERIAL_INDEX.get_ndarray(attributes)
+            if t_pm is not None:
                 fbx_pm_dtype = np.int32
-                t_pm = np.empty(len(me.polygons), dtype=bl_pm_dtype)
-                me.polygons.foreach_get("material_index", t_pm)
 
                 # We have to validate mat indices, and map them to FBX indices.
                 # Note a mat might not be in me_fbxmaterials_idx (e.g. node mats are ignored).
@@ -1439,7 +1441,10 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
                 # Set material indices that are out of bounds to the default material index
                 mat_idx_limit = len(me_blmaterials)
-                t_pm[t_pm >= mat_idx_limit] = def_me_blmaterial_idx
+                # Material indices shouldn't be negative, but they technically could be. Viewing as unsigned before
+                # checking for indices that are too large means that a single >= check will pick up both negative
+                # indices and indices that are too large.
+                t_pm[t_pm.view("u%i" % t_pm.itemsize) >= mat_idx_limit] = def_me_blmaterial_idx
 
                 # Map to FBX indices. Materials not in me_fbxmaterials_idx will be set to the default material index.
                 blmat_fbx_idx = np.fromiter((me_fbxmaterials_idx.get(m, def_ma) for m in me_blmaterials),
@@ -1453,11 +1458,18 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                 #     indices??? *sigh*).
                 elem_data_single_string(lay_ma, b"ReferenceInformationType", b"IndexToDirect")
                 elem_data_single_int32_array(lay_ma, b"Materials", t_pm)
-                del t_pm
             else:
                 elem_data_single_string(lay_ma, b"MappingInformationType", b"AllSame")
                 elem_data_single_string(lay_ma, b"ReferenceInformationType", b"IndexToDirect")
-                elem_data_single_int32_array(lay_ma, b"Materials", [0])
+                if multiple_fbx_mats:
+                    # There's no material_index attribute, so every material index is effectively zero.
+                    # In the order of the mesh's materials, get the FBX index of the first material that is exported.
+                    all_same_idx = next(me_fbxmaterials_idx[m] for m in me_blmaterials if m in me_fbxmaterials_idx)
+                else:
+                    # There's only one fbx material, so the index will always be zero.
+                    all_same_idx = 0
+                elem_data_single_int32_array(lay_ma, b"Materials", [all_same_idx])
+            del t_pm
 
     # And the "layer TOC"...
 
