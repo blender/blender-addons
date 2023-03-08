@@ -295,12 +295,6 @@ def shape_difference_exclude_similar(sv_cos, ref_cos, e=1e-6):
     return difference_cos, not_similar_verts_idx
 
 
-def vcos_transformed_gen(raw_cos, m=None):
-    # Note: we could most likely get much better performances with numpy, but will leave this as TODO for now.
-    gen = zip(*(iter(raw_cos),) * 3)
-    return gen if m is None else (m @ Vector(v) for v in gen)
-
-
 def _mat4_vec3_array_multiply(mat4, vec3_array, dtype=None, return_4d=False):
     """Multiply a 4d matrix by each 3d vector in an array and return as an array of either 3d or 4d vectors.
 

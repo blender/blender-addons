@@ -3,14 +3,13 @@
 # Script copyright (C) Campbell Barton, Bastien Montagne
 
 
-import array
 import datetime
 import math
 import numpy as np
 import os
 import time
 
-from itertools import zip_longest, chain
+from itertools import zip_longest
 from functools import cache
 
 if "bpy" in locals():
@@ -51,7 +50,7 @@ from .fbx_utils import (
     matrix4_to_array, similar_values, shape_difference_exclude_similar, astype_view_signedness, fast_first_axis_unique,
     fast_first_axis_flat,
     # Mesh transform helpers.
-    vcos_transformed_gen, vcos_transformed, nors_transformed,
+    vcos_transformed, nors_transformed,
     # UUID from key.
     get_fbx_uuid_from_key,
     # Key generators.
@@ -999,7 +998,8 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
         # We have to ^-1 last index of each loop.
         # Ensure t_pvi is the correct number of bits before inverting.
-        t_pvi = astype_view_signedness(t_lvi, pvi_fbx_dtype)
+        # t_lvi may be used again later, so always create a copy to avoid modifying it in the next step.
+        t_pvi = t_lvi.astype(pvi_fbx_dtype)
         # The index of the end of each loop is one before the index of the start of the next loop.
         t_pvi[t_ls[1:] - 1] ^= -1
         # The index of the end of the last loop will be the very last index.
@@ -1015,7 +1015,6 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     t_eli = astype_view_signedness(t_eli, eli_fbx_dtype)
     elem_data_single_int32_array(geom, b"PolygonVertexIndex", t_pvi)
     elem_data_single_int32_array(geom, b"Edges", t_eli)
-    del t_lvi
     del t_pvi
     del t_eli
     del t_ev
@@ -1168,7 +1167,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
             elem_data_single_float64_array(lay_nor, b"Normals", t_ln)
             # Normal weights, no idea what it is.
-            # t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(t_ln)
+            # t_lnw = np.zeros(len(t_ln), dtype=np.float64)
             # elem_data_single_float64_array(lay_nor, b"NormalsW", t_lnw)
 
             elem_data_single_int32_array(lay_nor, b"NormalsIndex", t_lnidx)
@@ -1183,7 +1182,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
             elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
             elem_data_single_float64_array(lay_nor, b"Normals", t_ln)
             # Normal weights, no idea what it is.
-            # t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
+            # t_ln = np.zeros(len(me.loops), dtype=np.float64)
             # elem_data_single_float64_array(lay_nor, b"NormalsW", t_ln)
         del t_ln
 
@@ -1205,7 +1204,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                     del t_lt
                     num_loops = len(me.loops)
                     t_ln = np.empty(num_loops * 3, dtype=ln_bl_dtype)
-                    # t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
+                    # t_lnw = np.zeros(len(me.loops), dtype=np.float64)
                     uv_names = [uvlayer.name for uvlayer in me.uv_layers]
                     # Annoying, `me.calc_tangent` errors in case there is no geometry...
                     if num_loops > 0:
@@ -1252,15 +1251,13 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         color_prop_name = "color_srgb" if colors_type == 'SRGB' else "color"
         # ByteColorAttribute color also gets returned by the API as single precision float
         bl_lc_dtype = np.single
-        bl_lvi_dtype = np.uintc
         fbx_lc_dtype = np.float64
         fbx_lcidx_dtype = np.int32
-        t_lvi = None
 
         color_attributes = me.color_attributes
         if scene_data.settings.prioritize_active_color:
             active_color = me.color_attributes.active_color
-            color_attributes = sorted(color_attributes, key=lambda x: x == active_color, reverse=True)            
+            color_attributes = sorted(color_attributes, key=lambda x: x == active_color, reverse=True)
 
         for colindex, collayer in enumerate(color_attributes):
             is_point = collayer.domain == "POINT"
@@ -1282,10 +1279,8 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                 # with a "ByVertex" mapping type, but some software does not
                 # properly understand that. So expand to full "ByPolygonVertex"
                 # index map.
-                if t_lvi is None:
-                    t_lvi = np.empty(len(me.loops), dtype=bl_lvi_dtype)
-                    me.loops.foreach_get("vertex_index", t_lvi)
-                col_indices = col_indices[t_lvi]
+                # Ignore loops added for loose edges.
+                col_indices = col_indices[t_lvi[:len(me.loops)]]
 
             t_lc = t_lc.astype(fbx_lc_dtype, copy=False)
             col_indices = astype_view_signedness(col_indices, fbx_lcidx_dtype)
@@ -1295,7 +1290,6 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
             del t_lc
             del col_indices
-        del t_lvi
 
     # Write UV layers.
     # Note: LayerElementTexture is deprecated since FBX 2011 - luckily!
@@ -1304,7 +1298,6 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     if uvnumber:
         luv_bl_dtype = np.single
         luv_fbx_dtype = np.float64
-        lv_idx_bl_dtype = np.uintc
         lv_idx_fbx_dtype = np.int32
 
         t_luv = np.empty(len(me.loops) * 2, dtype=luv_bl_dtype)
@@ -1315,8 +1308,8 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
         # Looks like this mapping is also expected to convey UV islands (arg..... :((((( ).
         # So we need to generate unique triplets (uv, vertex_idx) here, not only just based on UV values.
-        t_lvidx = np.empty(len(me.loops), dtype=lv_idx_bl_dtype)
-        me.loops.foreach_get("vertex_index", t_lvidx)
+        # Ignore loops added for loose edges.
+        t_lvidx = t_lvi[:len(me.loops)]
 
         # If we were to create a combined array of (uv, vertex_idx) elements, we could find unique triplets by sorting
         # that array by first sorting by the vertex_idx column and then sorting by the uv column using a stable sorting
@@ -1407,6 +1400,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         del t_lvidx
         del t_luv
         del t_luv_fast_pair_view
+    del t_lvi
 
     # Face's materials.
     me_fbxmaterials_idx = scene_data.mesh_material_indices.get(me)
