@@ -1422,9 +1422,6 @@ def blen_read_geom_layer_normal(fbx_obj, mesh, xform=None):
 
 
 def blen_read_geom(fbx_tmpl, fbx_obj, settings):
-    from itertools import chain
-    import array
-
     # Vertices are in object space, but we are post-multiplying all transforms with the inverse of the
     # global matrix, so we need to apply the global matrix to the vertices to get the correct result.
     geom_mat_co = settings.global_matrix if settings.bake_space_transform else None
@@ -1442,36 +1439,61 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     fbx_polys = elem_prop_first(elem_find_first(fbx_obj, b'PolygonVertexIndex'))
     fbx_edges = elem_prop_first(elem_find_first(fbx_obj, b'Edges'))
 
-    if geom_mat_co is not None:
-        def _vcos_transformed_gen(raw_cos, m=None):
-            # Note: we could most likely get much better performances with numpy, but will leave this as TODO for now.
-            return chain(*(m @ Vector(v) for v in zip(*(iter(raw_cos),) * 3)))
-        fbx_verts = array.array(fbx_verts.typecode, _vcos_transformed_gen(fbx_verts, geom_mat_co))
+    bl_vcos_dtype = np.single
 
-    if fbx_verts is None:
-        fbx_verts = ()
-    if fbx_polys is None:
-        fbx_polys = ()
+    # The dtypes when empty don't matter, but are set to what the fbx arrays are expected to be.
+    fbx_verts = parray_as_ndarray(fbx_verts) if fbx_verts else np.empty(0, dtype=data_types.ARRAY_FLOAT64)
+    fbx_polys = parray_as_ndarray(fbx_polys) if fbx_polys else np.empty(0, dtype=data_types.ARRAY_INT32)
+    fbx_edges = parray_as_ndarray(fbx_edges) if fbx_edges else np.empty(0, dtype=data_types.ARRAY_INT32)
+
+    # Each vert is a 3d vector so is made of 3 components.
+    tot_verts = len(fbx_verts) // 3
+    if tot_verts * 3 != len(fbx_verts):
+        print("ERROR: Not a whole number of vertices. Ignoring the partial vertex!")
+        # Remove any remainder.
+        fbx_verts = fbx_verts[:tot_verts * 3]
+
+    tot_loops = len(fbx_polys)
+    tot_edges = len(fbx_edges)
 
     mesh = bpy.data.meshes.new(name=elem_name_utf8)
-    mesh.vertices.add(len(fbx_verts) // 3)
-    mesh.vertices.foreach_set("co", fbx_verts)
 
-    if fbx_polys:
-        mesh.loops.add(len(fbx_polys))
-        poly_loop_starts = []
-        poly_loop_totals = []
-        poly_loop_prev = 0
-        for i, l in enumerate(mesh.loops):
-            index = fbx_polys[i]
-            if index < 0:
-                poly_loop_starts.append(poly_loop_prev)
-                poly_loop_totals.append((i - poly_loop_prev) + 1)
-                poly_loop_prev = i + 1
-                index ^= -1
-            l.vertex_index = index
+    if tot_verts:
+        if geom_mat_co is not None:
+            fbx_verts = vcos_transformed(fbx_verts, geom_mat_co, bl_vcos_dtype)
+        else:
+            fbx_verts = fbx_verts.astype(bl_vcos_dtype, copy=False)
 
-        mesh.polygons.add(len(poly_loop_starts))
+        mesh.vertices.add(tot_verts)
+        mesh.vertices.foreach_set("co", fbx_verts.ravel())
+
+    if tot_loops:
+        bl_loop_start_dtype = bl_loop_total_dtype = bl_loop_vertex_index_dtype = np.uintc
+
+        mesh.loops.add(tot_loops)
+        # The end of each polygon is specified by an inverted index.
+        fbx_loop_end_idx = np.flatnonzero(fbx_polys < 0)
+
+        tot_polys = len(fbx_loop_end_idx)
+
+        # Un-invert the loop ends.
+        fbx_polys[fbx_loop_end_idx] ^= -1
+        # Set loop vertex indices, casting to the Blender C type first for performance.
+        mesh.loops.foreach_set("vertex_index", astype_view_signedness(fbx_polys, bl_loop_vertex_index_dtype))
+
+        poly_loop_totals = np.empty(tot_polys, dtype=bl_loop_total_dtype)
+        # The loop total of the first polygon is first loop end index plus 1.
+        poly_loop_totals[0] = fbx_loop_end_idx[0] + 1
+        # The differences between consecutive loop end indices are the remaining loop totals.
+        poly_loop_totals[1:] = np.diff(fbx_loop_end_idx)
+
+        poly_loop_starts = np.empty(tot_polys, dtype=bl_loop_start_dtype)
+        # The first loop is always a loop start.
+        poly_loop_starts[0] = 0
+        # Ignoring the last loop end, the indices after every loop end are the remaining loop starts.
+        poly_loop_starts[1:] = fbx_loop_end_idx[:-1] + 1
+
+        mesh.polygons.add(tot_polys)
         mesh.polygons.foreach_set("loop_start", poly_loop_starts)
         mesh.polygons.foreach_set("loop_total", poly_loop_totals)
 
@@ -1479,36 +1501,40 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
         blen_read_geom_layer_uv(fbx_obj, mesh)
         blen_read_geom_layer_color(fbx_obj, mesh, settings.colors_type)
 
-    if fbx_edges:
-        # edges in fact index the polygons (NOT the vertices)
-        import array
-        tot_edges = len(fbx_edges)
-        edges_conv = array.array('i', [0]) * (tot_edges * 2)
+        if tot_edges:
+            # edges in fact index the polygons (NOT the vertices)
+            bl_edge_vertex_indices_dtype = np.uintc
 
-        edge_index = 0
-        for i in fbx_edges:
-            e_a = fbx_polys[i]
-            if e_a >= 0:
-                e_b = fbx_polys[i + 1]
-                if e_b < 0:
-                    e_b ^= -1
-            else:
-                # Last index of polygon, wrap back to the start.
+            # The first vertex index of each edge is the vertex index of the corresponding loop in fbx_polys.
+            edges_a = fbx_polys[fbx_edges]
 
-                # ideally we wouldn't have to search back,
-                # but it should only be 2-3 iterations.
-                j = i - 1
-                while j >= 0 and fbx_polys[j] >= 0:
-                    j -= 1
-                e_a ^= -1
-                e_b = fbx_polys[j + 1]
+            # The second vertex index of each edge is the vertex index of the next loop in the same polygon. The
+            # complexity here is that if the first vertex index was the last loop of that polygon in fbx_polys, the next
+            # loop in the polygon is the first loop of that polygon, which is not the next loop in fbx_polys.
 
-            edges_conv[edge_index] = e_a
-            edges_conv[edge_index + 1] = e_b
-            edge_index += 2
+            # Copy fbx_polys, but rolled backwards by 1 so that indexing the result by [fbx_edges] will get the next
+            # loop of the same polygon unless the first vertex index was the last loop of the polygon.
+            fbx_polys_next = np.roll(fbx_polys, -1)
+            # Get the first loop of each polygon and set them into fbx_polys_next at the same indices as the last loop
+            # of each polygon in fbx_polys.
+            fbx_polys_next[fbx_loop_end_idx] = fbx_polys[poly_loop_starts]
 
-        mesh.edges.add(tot_edges)
-        mesh.edges.foreach_set("vertices", edges_conv)
+            # Indexing fbx_polys_next by fbx_edges now gets the vertex index of the next loop in fbx_polys.
+            edges_b = fbx_polys_next[fbx_edges]
+
+            # edges_a and edges_b need to be combined so that the first vertex index of each edge is immediately
+            # followed by the second vertex index of that same edge.
+            # Stack edges_a and edges_b as individual columns like np.column_stack((edges_a, edges_b)).
+            # np.concatenate is used because np.column_stack doesn't allow specifying the dtype of the returned array.
+            edges_conv = np.concatenate((edges_a.reshape(-1, 1), edges_b.reshape(-1, 1)),
+                                        axis=1, dtype=bl_edge_vertex_indices_dtype, casting='unsafe')
+
+            # Add the edges and set their vertex indices.
+            mesh.edges.add(len(edges_conv))
+            # ravel() because edges_conv must be flat and C-contiguous when passed to foreach_set.
+            mesh.edges.foreach_set("vertices", edges_conv.ravel())
+    elif tot_edges:
+        print("ERROR: No polygons, but edges exist. Ignoring the edges!")
 
     # must be after edge, face loading.
     ok_smooth = blen_read_geom_layer_smooth(fbx_obj, mesh)
@@ -1529,14 +1555,17 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     mesh.validate(clean_customdata=False)  # *Very* important to not remove lnors here!
 
     if ok_normals:
-        clnors = array.array('f', [0.0] * (len(mesh.loops) * 3))
+        bl_nors_dtype = np.single
+        clnors = np.empty(len(mesh.loops) * 3, dtype=bl_nors_dtype)
         mesh.loops.foreach_get("normal", clnors)
 
         if not ok_smooth:
-            mesh.polygons.foreach_set("use_smooth", [True] * len(mesh.polygons))
+            mesh.polygons.foreach_set("use_smooth", np.full(len(mesh.polygons), True, dtype=bool))
             ok_smooth = True
 
-        mesh.normals_split_custom_set(tuple(zip(*(iter(clnors),) * 3)))
+        # Iterating clnors into a nested tuple first is faster than passing clnors.reshape(-1, 3) directly into
+        # normals_split_custom_set. We use clnors.data since it is a memoryview, which is faster to iterate than clnors.
+        mesh.normals_split_custom_set(tuple(zip(*(iter(clnors.data),) * 3)))
         mesh.use_auto_smooth = True
     else:
         mesh.calc_normals()
@@ -1545,7 +1574,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
         mesh.free_normals_split()
 
     if not ok_smooth:
-        mesh.polygons.foreach_set("use_smooth", [True] * len(mesh.polygons))
+        mesh.polygons.foreach_set("use_smooth", np.full(len(mesh.polygons), True, dtype=bool))
 
     if settings.use_custom_props:
         blen_read_custom_properties(fbx_obj, mesh, settings)
