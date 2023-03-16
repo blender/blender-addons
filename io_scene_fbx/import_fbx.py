@@ -461,8 +461,9 @@ def add_vgroup_to_objects(vg_indices, vg_weights, vg_name, objects):
             vg = obj.vertex_groups.get(vg_name)
             if vg is None:
                 vg = obj.vertex_groups.new(name=vg_name)
+            vg_add = vg.add
             for i, w in zip(vg_indices, vg_weights):
-                vg.add((i,), w, 'REPLACE')
+                vg_add((i,), w, 'REPLACE')
 
 
 def blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat, use_prepost_rot):
@@ -1378,46 +1379,78 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     return mesh
 
 
-def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene):
-    elem_name_utf8 = elem_name_ensure_class(fbx_sdata, b'Geometry')
-    indices = elem_prop_first(elem_find_first(fbx_sdata, b'Indexes'), default=())
-    dvcos = tuple(co for co in zip(*[iter(elem_prop_first(elem_find_first(fbx_sdata, b'Vertices'), default=()))] * 3))
-    # We completely ignore normals here!
-    weight = elem_prop_first(elem_find_first(fbx_bcdata, b'DeformPercent'), default=100.0) / 100.0
-    vgweights = tuple(vgw / 100.0 for vgw in elem_prop_first(elem_find_first(fbx_bcdata, b'FullWeights'), default=()))
+def blen_read_shapes(fbx_tmpl, fbx_data, objects, me, scene):
+    if not fbx_data:
+        # No shape key data. Nothing to do.
+        return
 
-    # Special case, in case all weights are the same, FullWeight can have only one element - *sigh!*
-    nbr_indices = len(indices)
-    if len(vgweights) == 1 and nbr_indices > 1:
-        vgweights = (vgweights[0],) * nbr_indices
+    bl_vcos_dtype = np.single
+    me_vcos = np.empty(len(me.vertices) * 3, dtype=bl_vcos_dtype)
+    me.vertices.foreach_get("co", me_vcos)
+    me_vcos_vector_view = me_vcos.reshape(-1, 3)
 
-    assert(len(vgweights) == nbr_indices == len(dvcos))
-    create_vg = bool(set(vgweights) - {1.0})
+    objects = list({node.bl_obj for node in objects})
+    assert(objects)
 
-    keyblocks = []
+    bc_uuid_to_keyblocks = {}
+    for bc_uuid, fbx_sdata, fbx_bcdata in fbx_data:
+        elem_name_utf8 = elem_name_ensure_class(fbx_sdata, b'Geometry')
+        indices = elem_prop_first(elem_find_first(fbx_sdata, b'Indexes'))
+        dvcos = elem_prop_first(elem_find_first(fbx_sdata, b'Vertices'))
 
-    for me, objects in meshes:
-        vcos = tuple((idx, me.vertices[idx].co + Vector(dvco)) for idx, dvco in zip(indices, dvcos))
-        objects = list({node.bl_obj for node in objects})
-        assert(objects)
+        indices = parray_as_ndarray(indices) if indices else np.empty(0, dtype=data_types.ARRAY_INT32)
+        dvcos = parray_as_ndarray(dvcos) if dvcos else np.empty(0, dtype=data_types.ARRAY_FLOAT64)
 
+        # If there's not a whole number of vectors, trim off the remainder.
+        # 3 components per vector.
+        remainder = len(dvcos) % 3
+        if remainder:
+            dvcos = dvcos[:-remainder]
+        dvcos = dvcos.reshape(-1, 3)
+
+        # We completely ignore normals here!
+        weight = elem_prop_first(elem_find_first(fbx_bcdata, b'DeformPercent'), default=100.0) / 100.0
+
+        vgweights = elem_prop_first(elem_find_first(fbx_bcdata, b'FullWeights'))
+        vgweights = parray_as_ndarray(vgweights) if vgweights else np.empty(0, dtype=data_types.ARRAY_FLOAT64)
+        # Not doing the division in-place in-case it's possible for FBX shape keys to be used by more than one mesh.
+        vgweights = vgweights / 100.0
+
+        create_vg = (vgweights != 1.0).any()
+
+        # Special case, in case all weights are the same, FullWeight can have only one element - *sigh!*
+        nbr_indices = len(indices)
+        if len(vgweights) == 1 and nbr_indices > 1:
+            vgweights = np.full_like(indices, vgweights[0], dtype=vgweights.dtype)
+
+        assert(len(vgweights) == nbr_indices == len(dvcos))
+
+        # To add shape keys to the mesh, an Object using the mesh is needed.
         if me.shape_keys is None:
             objects[0].shape_key_add(name="Basis", from_mix=False)
         kb = objects[0].shape_key_add(name=elem_name_utf8, from_mix=False)
         me.shape_keys.use_relative = True  # Should already be set as such.
 
-        for idx, co in vcos:
-            kb.data[idx].co[:] = co
+        # Only need to set the shape key co if there are any non-zero dvcos.
+        if dvcos.any():
+            shape_cos = me_vcos_vector_view.copy()
+            shape_cos[indices] += dvcos
+            kb.data.foreach_set("co", shape_cos.ravel())
+
         kb.value = weight
 
         # Add vgroup if necessary.
         if create_vg:
-            vgoups = add_vgroup_to_objects(indices, vgweights, kb.name, objects)
+            # VertexGroup.add only allows sequences of int indices, but iterating the indices array directly would
+            # produce numpy scalars of types such as np.int32. The underlying memoryview of the indices array, however,
+            # does produce standard Python ints when iterated, so pass indices.data to add_vgroup_to_objects instead of
+            # indices.
+            # memoryviews tend to be faster to iterate than numpy arrays anyway, so vgweights.data is passed too.
+            add_vgroup_to_objects(indices.data, vgweights.data, kb.name, objects)
             kb.vertex_group = kb.name
 
-        keyblocks.append(kb)
-
-    return keyblocks
+        bc_uuid_to_keyblocks.setdefault(bc_uuid, []).append(kb)
+    return bc_uuid_to_keyblocks
 
 
 # --------
@@ -2868,6 +2901,7 @@ def load(operator, context, filepath="",
     def _():
         fbx_tmpl = fbx_template_get((b'Geometry', b'KFbxShape'))
 
+        mesh_to_shapes = {}
         for s_uuid, s_item in fbx_table_nodes.items():
             fbx_sdata, bl_sdata = s_item = fbx_table_nodes.get(s_uuid, (None, None))
             if fbx_sdata is None or fbx_sdata.id != b'Geometry' or fbx_sdata.props[2] != b'Shape':
@@ -2880,8 +2914,6 @@ def load(operator, context, filepath="",
                 fbx_bcdata, _bl_bcdata = fbx_table_nodes.get(bc_uuid, (None, None))
                 if fbx_bcdata is None or fbx_bcdata.id != b'Deformer' or fbx_bcdata.props[2] != b'BlendShapeChannel':
                     continue
-                meshes = []
-                objects = []
                 for bs_uuid, bs_ctype in fbx_connection_map.get(bc_uuid, ()):
                     if bs_ctype.props[0] != b'OO':
                         continue
@@ -2896,20 +2928,29 @@ def load(operator, context, filepath="",
                             continue
                         # Blenmeshes are assumed already created at that time!
                         assert(isinstance(bl_mdata, bpy.types.Mesh))
-                        # And we have to find all objects using this mesh!
-                        objects = []
-                        for o_uuid, o_ctype in fbx_connection_map.get(m_uuid, ()):
-                            if o_ctype.props[0] != b'OO':
-                                continue
-                            node = fbx_helper_nodes[o_uuid]
-                            if node:
-                                objects.append(node)
-                        meshes.append((bl_mdata, objects))
+                        # Group shapes by mesh so that each mesh only needs to be processed once for all of its shape
+                        # keys.
+                        if bl_mdata not in mesh_to_shapes:
+                            # And we have to find all objects using this mesh!
+                            objects = []
+                            for o_uuid, o_ctype in fbx_connection_map.get(m_uuid, ()):
+                                if o_ctype.props[0] != b'OO':
+                                    continue
+                                node = fbx_helper_nodes[o_uuid]
+                                if node:
+                                    objects.append(node)
+                            shapes_list = []
+                            mesh_to_shapes[bl_mdata] = (objects, shapes_list)
+                        else:
+                            shapes_list = mesh_to_shapes[bl_mdata][1]
+                        shapes_list.append((bc_uuid, fbx_sdata, fbx_bcdata))
                     # BlendShape deformers are only here to connect BlendShapeChannels to meshes, nothing else to do.
 
+        # Iterate through each mesh and create its shape keys
+        for bl_mdata, (objects, shapes) in mesh_to_shapes.items():
+            for bc_uuid, keyblocks in blen_read_shapes(fbx_tmpl, shapes, objects, bl_mdata, scene).items():
                 # keyblocks is a list of tuples (mesh, keyblock) matching that shape/blendshapechannel, for animation.
-                keyblocks = blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene)
-                blend_shape_channels[bc_uuid] = keyblocks
+                blend_shape_channels.setdefault(bc_uuid, []).extend(keyblocks)
     _(); del _
 
     if settings.use_subsurf:
