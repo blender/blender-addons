@@ -3231,8 +3231,16 @@ def load(operator, context, filepath="",
                     if decal_offset != 0.0:
                         for material in mesh.materials:
                             if material in material_decals:
-                                for v in mesh.vertices:
-                                    v.co += v.normal * decal_offset
+                                num_verts = len(mesh.vertices)
+                                blen_cos_dtype = blen_norm_dtype = np.single
+                                vcos = np.empty(num_verts * 3, dtype=blen_cos_dtype)
+                                vnorm = np.empty(num_verts * 3, dtype=blen_norm_dtype)
+                                mesh.vertices.foreach_get("co", vcos)
+                                mesh.vertices.foreach_get("normal", vnorm)
+
+                                vcos += vnorm * decal_offset
+
+                                mesh.vertices.foreach_set("co", vcos)
                                 break
 
                     for obj in (obj for obj in bpy.data.objects if obj.data == mesh):
