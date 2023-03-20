@@ -4,6 +4,7 @@ import bpy
 from bpy.types import Operator, Menu
 from bl_operators.presets import AddPresetBase
 import os
+from math import degrees
 
 from .sun_calc import (format_lat_long, format_time, format_hms, sun)
 
@@ -211,10 +212,10 @@ class SUNPOS_PT_Location(bpy.types.Panel):
             col = flow.column(align=True)
             split = col.split(factor=0.4, align=True)
             split.label(text="Azimuth:")
-            split.label(text=str(round(sun.azimuth, 3)) + "°")
+            split.label(text=str(round(degrees(sun.azimuth), 3)) + "°")
             split = col.split(factor=0.4, align=True)
             split.label(text="Elevation:")
-            split.label(text=str(round(sun.elevation, 3)) + "°")
+            split.label(text=str(round(degrees(sun.elevation), 3)) + "°")
             col.separator()
 
         if p.show_refraction:
