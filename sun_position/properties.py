@@ -19,7 +19,7 @@ TODAY = datetime.today()
 
 class SunPosProperties(PropertyGroup):
     usage_mode: EnumProperty(
-        name="Usage mode",
+        name="Usage Mode",
         description="Operate in normal mode or environment texture mode",
         items=(
             ('NORMAL', "Normal", ""),
@@ -29,14 +29,14 @@ class SunPosProperties(PropertyGroup):
         update=sun_update)
 
     use_daylight_savings: BoolProperty(
-        name="Daylight savings",
+        name="Daylight Savings",
         description="Daylight savings time adds 1 hour to standard time",
         default=False,
         update=sun_update)
 
     use_refraction: BoolProperty(
-        name="Use refraction",
-        description="Show apparent sun position due to refraction",
+        name="Use Refraction",
+        description="Show apparent Sun position due to refraction",
         default=True,
         update=sun_update)
 
