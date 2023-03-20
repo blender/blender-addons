@@ -105,7 +105,7 @@ def move_sun(context):
             phi = -sun_props.hdr_azimuth
 
             obj = sun_props.sun_object
-            obj.location = get_sun_vector(theta, phi) * sun_props.sun_distance
+            obj.location = get_sun_vector(azimuth, elevation, north_offset) * sun_props.sun_distance
 
             rotation_euler = Euler((sun_props.hdr_elevation - pi/2,
                                     0, -sun_props.hdr_azimuth))
@@ -125,9 +125,9 @@ def move_sun(context):
         calc_sunrise_sunset(rise=True)
         calc_sunrise_sunset(rise=False)
 
-    theta, phi, azimuth, elevation = get_sun_coordinates(
+    azimuth, elevation = get_sun_coordinates(
         local_time, sun_props.latitude, sun_props.longitude,
-        north_offset, zone, sun_props.month, sun_props.day, sun_props.year,
+        zone, sun_props.month, sun_props.day, sun_props.year,
         sun_props.sun_distance)
     sun.azimuth = azimuth
     sun.elevation = elevation
@@ -136,7 +136,7 @@ def move_sun(context):
         sky_node = bpy.context.scene.world.node_tree.nodes.get(sun_props.sky_texture)
         if sky_node is not None and sky_node.type == "TEX_SKY":
             sky_node.texture_mapping.rotation.z = 0.0
-            sky_node.sun_direction = get_sun_vector(theta, phi)
+            sky_node.sun_direction = get_sun_vector(azimuth, elevation, north_offset)
             sky_node.sun_elevation = elevation
             sky_node.sun_rotation = azimuth
 
@@ -144,7 +144,7 @@ def move_sun(context):
     if (sun_props.sun_object is not None
             and sun_props.sun_object.name in context.view_layer.objects):
         obj = sun_props.sun_object
-        obj.location = get_sun_vector(theta, phi) * sun_props.sun_distance
+        obj.location = get_sun_vector(azimuth, elevation, north_offset) * sun_props.sun_distance
         rotation_euler = Euler((elevation - pi/2, 0, -azimuth))
         set_sun_rotations(obj, rotation_euler)
 
@@ -161,12 +161,12 @@ def move_sun(context):
                 time_increment = sun_props.time_spread
 
             for obj in sun_objects:
-                theta, phi, azimuth, elevation = get_sun_coordinates(
+                azimuth, elevation = get_sun_coordinates(
                     local_time, sun_props.latitude,
-                    sun_props.longitude, north_offset, zone,
+                    sun_props.longitude, zone,
                     sun_props.month, sun_props.day,
                     sun_props.year, sun_props.sun_distance)
-                obj.location = get_sun_vector(theta, phi) * sun_props.sun_distance
+                obj.location = get_sun_vector(azimuth, elevation, north_offset) * sun_props.sun_distance
                 local_time -= time_increment
                 obj.rotation_euler = ((elevation - pi/2, 0, -azimuth))
         else:
@@ -176,12 +176,12 @@ def move_sun(context):
             for obj in sun_objects:
                 dt = (datetime.date(sun_props.year, 1, 1) +
                       datetime.timedelta(day - 1))
-                theta, phi, azimuth, elevation = get_sun_coordinates(
+                azimuth, elevation = get_sun_coordinates(
                     local_time, sun_props.latitude,
-                    sun_props.longitude, north_offset, zone,
+                    sun_props.longitude, zone,
                     dt.month, dt.day, sun_props.year,
                     sun_props.sun_distance)
-                obj.location = get_sun_vector(theta, phi) * sun_props.sun_distance
+                obj.location = get_sun_vector(azimuth, elevation, north_offset) * sun_props.sun_distance
                 day -= day_increment
                 obj.rotation_euler = (elevation - pi/2, 0, -azimuth)
 
@@ -271,7 +271,7 @@ def format_lat_long(lat_long, is_latitude):
     return hh + "° " + mm + "' " + ss + '"' + coord_tag
 
 
-def get_sun_coordinates(local_time, latitude, longitude, north_offset,
+def get_sun_coordinates(local_time, latitude, longitude,
                         utc_zone, month, day, year, distance):
     """
     Calculate the actual position of the sun based on input parameters.
@@ -365,16 +365,16 @@ def get_sun_coordinates(local_time, latitude, longitude, north_offset,
     else:
         elevation = pi/2 - zenith
 
-    phi = -(azimuth + north_offset)
-    theta = pi/2 - elevation
-
-    return theta, phi, azimuth, elevation
+    return azimuth, elevation
 
 
-def get_sun_vector(theta, phi):
+def get_sun_vector(azimuth, elevation, north_offset):
     """
     Convert the sun coordinates to cartesian
     """
+    phi = -(azimuth + north_offset)
+    theta = pi/2 - elevation
+
     loc_x = sin(phi) * sin(-theta)
     loc_y = sin(theta) * cos(phi)
     loc_z = cos(theta)
@@ -448,8 +448,8 @@ def calc_sunrise_sunset(rise):
                                         sun.latitude, sun.longitude)
     time_local = new_time_UTC + (-zone * 60.0)
     tl = time_local / 60.0
-    _theta, _phi, azimuth, elevation = get_sun_coordinates(
-        tl, sun.latitude, sun.longitude, 0.0,
+    azimuth, elevation = get_sun_coordinates(
+        tl, sun.latitude, sun.longitude,
         zone, sun.month, sun.day, sun.year,
         sun.sun_distance)
     if sun.use_daylight_savings:
@@ -568,10 +568,10 @@ def calc_surface(context):
     north_offset = sun_props.north_offset
 
     def get_surface_coordinates(time, month):
-        theta, phi, _azimuth, _elevation = get_sun_coordinates(
-            time, sun_props.latitude, sun_props.longitude, north_offset,
+        azimuth, elevation = get_sun_coordinates(
+            time, sun_props.latitude, sun_props.longitude,
             zone, month, 1, sun_props.year, sun_props.sun_distance)
-        sun_vector = get_sun_vector(theta, phi) * sun_props.sun_distance
+        sun_vector = get_sun_vector(azimuth, elevation, north_offset) * sun_props.sun_distance
         sun_vector.z = max(0, sun_vector.z)
         return sun_vector
 
@@ -594,11 +594,11 @@ def calc_analemma(context, h):
     north_offset = sun_props.north_offset
     for day_of_year in range(1, 367, 5):
         day, month = day_of_year_to_month_day(sun_props.year, day_of_year)
-        theta, phi, _azimuth, _elevation = get_sun_coordinates(
+        azimuth, elevation = get_sun_coordinates(
             h, sun_props.latitude, sun_props.longitude,
-            north_offset, zone, month, day, sun_props.year,
+            zone, month, day, sun_props.year,
             sun_props.sun_distance)
-        sun_vector = get_sun_vector(theta, phi) * sun_props.sun_distance
+        sun_vector = get_sun_vector(azimuth, elevation, north_offset) * sun_props.sun_distance
         if sun_vector.z > 0:
             vertices.append(sun_vector)
     return vertices
