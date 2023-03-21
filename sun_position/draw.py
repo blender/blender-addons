@@ -23,10 +23,6 @@ else:
     shader_info.vertex_out(shader_interface)
 
     shader_info.vertex_source(
-        # uniform mat4 u_ViewProjectionMatrix;
-        # in vec3 position;
-        # flat out vec2 v_StartPos;
-        # out vec4 v_VertPos;
         '''
         void main()
         {
@@ -40,11 +36,6 @@ else:
 
     shader_info.fragment_out(0, 'VEC4', "FragColor")
     shader_info.fragment_source(
-        # uniform vec4 u_Color;
-        # uniform vec2 u_Resolution;
-        # flat in vec2 v_StartPos;
-        # in vec4 v_VertPos;
-        # out vec4 FragColor;
         '''
         void main()
         {

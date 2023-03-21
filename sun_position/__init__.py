@@ -63,6 +63,7 @@ def register():
     bpy.app.handlers.load_post.append(sun_scene_handler)
     bpy.app.translations.register(__name__, translations.translations_dict)
 
+
 def unregister():
     bpy.app.translations.unregister(__name__)
     bpy.app.handlers.frame_change_post.remove(sun_calc.sun_handler)

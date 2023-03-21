@@ -80,7 +80,7 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
 
     def draw_environ_mode_panel(self, context, sp, p, layout):
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True,
-                             even_rows=False, align=False)
+                                even_rows=False, align=False)
 
         col = flow.column(align=True)
         col.label(text="Environment Texture")
@@ -153,6 +153,7 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         else:
             col.label(text="Please select World in the World panel.",
                       icon="ERROR")
+
 
 class SUNPOS_PT_Location(bpy.types.Panel):
     bl_space_type = "PROPERTIES"
@@ -282,7 +283,6 @@ class SUNPOS_PT_Time(bpy.types.Panel):
         split.label(text="UTC:", icon='PREVIEW_RANGE')
         split.label(text=ut)
         col.separator()
-
 
         col = flow.column(align=True)
         col.alignment = 'CENTER'

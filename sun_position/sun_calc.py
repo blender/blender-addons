@@ -48,6 +48,7 @@ class SunInfo:
     sun_distance = 0.0
     use_daylight_savings = False
 
+
 sun = SunInfo()
 
 
@@ -189,6 +190,7 @@ def move_sun(context):
 def day_of_year_to_month_day(year, day_of_year):
     dt = (datetime.date(year, 1, 1) + datetime.timedelta(day_of_year - 1))
     return dt.day, dt.month
+
 
 def month_day_to_day_of_year(year, month, day):
     dt = datetime.date(year, month, day)
@@ -417,8 +419,8 @@ def calc_sun_declination(t):
 def calc_hour_angle_sunrise(lat, solar_dec):
     lat_rad = radians(lat)
     HAarg = (cos(radians(90.833)) /
-            (cos(lat_rad) * cos(solar_dec))
-            - tan(lat_rad) * tan(solar_dec))
+             (cos(lat_rad) * cos(solar_dec))
+             - tan(lat_rad) * tan(solar_dec))
     if HAarg < -1.0:
         HAarg = -1.0
     elif HAarg > 1.0:
@@ -619,6 +621,7 @@ def draw_analemmas(batch, shader):
 
 _handle_surface = None
 
+
 def surface_update(self, context):
     global _handle_surface
     if self.show_surface:
@@ -637,6 +640,7 @@ def surface_update(self, context):
 
 _handle_analemmas = None
 
+
 def analemmas_update(self, context):
     global _handle_analemmas
     if self.show_analemmas:
@@ -653,7 +657,7 @@ def analemmas_update(self, context):
 
         shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
         batch = batch_for_shader(shader, 'LINES',
-                                {"pos": coords}, indices=indices)
+                                 {"pos": coords}, indices=indices)
 
         if _handle_analemmas is not None:
             bpy.types.SpaceView3D.draw_handler_remove(_handle_analemmas, 'WINDOW')
