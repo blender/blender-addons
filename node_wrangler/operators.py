@@ -1304,6 +1304,8 @@ class NWMergeNodes(Operator, NWBase):
             if tree_type == 'GEOMETRY':
                 if nodes_list is selected_math or nodes_list is selected_vector or nodes_list is selected_mix:
                     node_type = 'ShaderNode'
+                    if mode == 'MIX':
+                        mode = 'ADD'
                 else:
                     node_type = 'GeometryNode'
             if merge_position == 'CENTER':
