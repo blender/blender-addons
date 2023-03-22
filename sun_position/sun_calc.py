@@ -86,6 +86,8 @@ def move_sun(context):
     addon_prefs = context.preferences.addons[__package__].preferences
     sun_props = context.scene.sun_pos_properties
 
+    north_offset = sun_props.north_offset
+
     if sun_props.usage_mode == "HDR":
         nt = context.scene.world.node_tree.nodes
         env_tex = nt.get(sun_props.hdr_texture)
@@ -102,11 +104,10 @@ def move_sun(context):
             env_tex.texture_mapping.rotation.z = az
 
         if sun_props.sun_object:
-            theta = pi / 2 - sun_props.hdr_elevation
-            phi = -sun_props.hdr_azimuth
-
             obj = sun_props.sun_object
-            obj.location = get_sun_vector(azimuth, elevation, north_offset) * sun_props.sun_distance
+            obj.location = get_sun_vector(
+                sun_props.hdr_azimuth, sun_props.hdr_elevation,
+                north_offset) * sun_props.sun_distance
 
             rotation_euler = Euler((sun_props.hdr_elevation - pi/2,
                                     0, -sun_props.hdr_azimuth))
@@ -119,8 +120,6 @@ def move_sun(context):
     sun.use_daylight_savings = sun_props.use_daylight_savings
     if sun.use_daylight_savings:
         zone -= 1
-
-    north_offset = sun_props.north_offset
 
     if addon_prefs.show_rise_set:
         calc_sunrise_sunset(rise=True)
