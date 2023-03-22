@@ -18,6 +18,9 @@ import bpy
 from bpy.app.translations import pgettext_tip as tip_
 from mathutils import Matrix, Euler, Vector
 
+# Also imported in .fbx_utils, so importing here is unlikely to further affect Blender startup time.
+import numpy as np
+
 # -----
 # Utils
 from . import parse_fbx, fbx_utils
@@ -34,6 +37,10 @@ from .fbx_utils import (
     similar_values,
     similar_values_iter,
     FBXImportSettings,
+    vcos_transformed,
+    nors_transformed,
+    parray_as_ndarray,
+    astype_view_signedness,
 )
 
 # global singleton, assign on execution
