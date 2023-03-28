@@ -146,7 +146,8 @@ class NWMergeShadersMenu(Menu, NWBase):
     def draw(self, context):
         layout = self.layout
         for type in ('MIX', 'ADD'):
-            props = layout.operator(operators.NWMergeNodes.bl_idname, text=type)
+            name = f'{type.capitalize()} Shader'
+            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name)
             props.mode = type
             props.merge_type = 'SHADER'
 
