@@ -16,27 +16,23 @@ class SunInfo:
     """
     Store intermediate sun calculations
     """
-    class TAzEl:
-        time = 0.0
-        azimuth = 0.0
-        elevation = 0.0
 
-    class CLAMP:
+    class SunBind:
         azimuth = 0.0
         elevation = 0.0
         az_start_sun = 0.0
         az_start_env = 0.0
 
-    sunrise = TAzEl()
-    sunset = TAzEl()
-
-    bind = CLAMP()
+    bind = SunBind()
     bind_to_sun = False
 
     latitude = 0.0
     longitude = 0.0
     elevation = 0.0
     azimuth = 0.0
+
+    sunrise = 0.0
+    sunset = 0.0
 
     month = 0
     day = 0
@@ -459,13 +455,9 @@ def calc_sunrise_sunset(rise):
         tl = time_local / 60.0
     tl %= 24.0
     if rise:
-        sun.sunrise.time = tl
-        sun.sunrise.azimuth = azimuth
-        sun.sunrise.elevation = elevation
+        sun.sunrise = tl
     else:
-        sun.sunset.time = tl
-        sun.sunset.azimuth = azimuth
-        sun.sunset.elevation = elevation
+        sun.sunset = tl
 
 
 def julian_time_from_y2k(utc_time, year, month, day):
