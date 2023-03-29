@@ -79,7 +79,8 @@ def write_mesh(context, report_cb):
         name = data_("untitled")
 
     # add object name
-    name += f"-{bpy.path.clean_name(obj.name)}"
+    import re
+    name += "-" + re.sub(r'[\\/:*?"<>|]', "", obj.name)
 
     # first ensure the path is created
     if export_path:
