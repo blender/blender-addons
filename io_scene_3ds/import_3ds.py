@@ -583,9 +583,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         # is it an ambient light chunk?
         elif new_chunk.ID == AMBIENTLIGHT:
-            bpy.ops.world.new()
-            context.scene.world.name = "Ambient"
-            context.scene.world.use_nodes = False
+            world = bpy.data.worlds.new("Ambient")
+            world.use_nodes = False
+            context.scene.world = world
+            world.light_settings.use_ambient_occlusion = True
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == COLOR_F:
                 context.scene.world.color[:] = read_float_color(temp_chunk)
