@@ -42,6 +42,7 @@ PRIMARY = 0x4D4D
 # ------ Main Chunks
 OBJECTINFO = 0x3D3D  # This gives the version of the mesh and is found right before the material and object information
 VERSION = 0x0002  # This gives the version of the .3ds file
+AMBIENTLIGHT = 0x2100  # The color of the ambient light
 EDITKEYFRAME = 0xB000  # This is the header for all of the key frame info
 
 # ------ Data Chunks, used for various attributes
@@ -91,6 +92,8 @@ MAT_MAP_GCOL = 0xA366  # Green mapping
 MAT_MAP_BCOL = 0xA368  # Blue mapping
 MAT_FLOAT_COLOR = 0x0010  # color defined as 3 floats
 MAT_24BIT_COLOR = 0x0011  # color defined as 3 bytes
+MAT_LIN_COLOR_24 = 0x0012  # byte color in newer 3ds versions
+MAT_LIN_COLOR_F = 0x0013  # float color in newer 3ds versions
 
 # >------ sub defines of OBJECT
 OBJECT_MESH = 0x4100  # This lets us know that we are reading a new object
@@ -580,6 +583,16 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             if version > 3:
                 print('\tNon-Fatal Error:  Version greater than 3, may not load correctly: ', version)
 
+        # is it an ambient light chunk?
+        elif new_chunk.ID == AMBIENTLIGHT:
+            read_chunk(file, temp_chunk)
+            if temp_chunk.ID == RGB:
+                context.scene.world.color[:] = read_float_color(temp_chunk)
+            elif temp_chunk.ID == RGBF:
+                context.scene.world.color[:] = read_float_color(temp_chunk)
+            else: skip_to_end(file, temp_chunk)     
+            new_chunk.bytes_read += temp_chunk.bytes_read
+
         # is it an object info chunk?
         elif new_chunk.ID == OBJECTINFO:
             process_next_chunk(context, file, new_chunk, imported_objects, IMAGE_SEARCH, KEYFRAME)
@@ -779,7 +792,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif new_chunk.ID == OBJECT_VERTICES:
             """Worldspace vertex locations"""
-
             temp_data = file.read(SZ_U_SHORT)
             num_verts = struct.unpack('<H', temp_data)[0]
             new_chunk.bytes_read += 2
@@ -935,7 +947,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             new_chunk.bytes_read += 2
             child = object_dictionary.get(object_name)
 
-            if child is None: # and object_name != '$AMBIENT$':
+            if child is None and object_name != '$AMBIENT$':
                 child = bpy.data.objects.new(object_name, None)  # create an empty object
                 context.view_layer.active_layer_collection.collection.objects.link(child)
                 imported_objects.append(child)
@@ -1097,7 +1109,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         parent = object_parent[ind]
         if parent == ROOT_OBJECT:
             if ob.parent is not None:
-                ob.parent = ROOT_OBJECT
+                ob.parent = None
         else:
             if ob.parent != object_list[parent]:
                 if ob == object_list[parent]:
