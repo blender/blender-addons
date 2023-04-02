@@ -48,10 +48,10 @@ EDITKEYFRAME = 0xB000  # This is the header for all of the key frame info
 # ------ Data Chunks, used for various attributes
 COLOR_F = 0x0010  # color defined as 3 floats
 COLOR_24 = 0x0011  # color defined as 3 bytes
-LIN_COLOR_24 = 0x0012  # byte color in newer 3ds versions
-LIN_COLOR_F = 0x0013  # float color in newer 3ds versions
-PCT_SHORT = 0x30
-PCT_FLOAT = 0x31
+LIN_COLOR_24 = 0x0012  # linear byte color
+LIN_COLOR_F = 0x0013  # linear float color
+PCT_SHORT = 0x30  # percentage short
+PCT_FLOAT = 0x31  # percentage float
 
 # ------ sub defines of OBJECTINFO
 MATERIAL = 0xAFFF  # This stored the texture info
