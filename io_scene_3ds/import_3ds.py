@@ -81,8 +81,7 @@ MAT_TEX2_MAP = 0xA33A  # This is a header for a secondary texture
 MAT_SHIN_MAP = 0xA33C  # This is a header for a new roughness map
 MAT_SELFI_MAP = 0xA33D  # This is a header for a new emission map
 MAT_MAP_FILEPATH = 0xA300  # This holds the file name of the texture
-
-MAT_MAP_TILING = 0xa351   # 2nd bit (from LSB) is mirror UV flag
+MAT_MAP_TILING = 0xA351   # 2nd bit (from LSB) is mirror UV flag
 MAT_MAP_USCALE = 0xA354   # U axis scaling
 MAT_MAP_VSCALE = 0xA356   # V axis scaling
 MAT_MAP_UOFFSET = 0xA358  # U axis offset
@@ -584,6 +583,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         # is it an ambient light chunk?
         elif new_chunk.ID == AMBIENTLIGHT:
+            bpy.ops.world.new()
+            context.scene.world.name = "Ambient"
+            context.scene.world.use_nodes = False
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == COLOR_F:
                 context.scene.world.color[:] = read_float_color(temp_chunk)
