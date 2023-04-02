@@ -46,8 +46,12 @@ AMBIENTLIGHT = 0x2100  # The color of the ambient light
 EDITKEYFRAME = 0xB000  # This is the header for all of the key frame info
 
 # ------ Data Chunks, used for various attributes
-PERCENTAGE_SHORT = 0x30
-PERCENTAGE_FLOAT = 0x31
+COLOR_F = 0x0010  # color defined as 3 floats
+COLOR_24 = 0x0011  # color defined as 3 bytes
+LIN_COLOR_24 = 0x0012  # byte color in newer 3ds versions
+LIN_COLOR_F = 0x0013  # float color in newer 3ds versions
+PCT_SHORT = 0x30
+PCT_FLOAT = 0x31
 
 # ------ sub defines of OBJECTINFO
 MATERIAL = 0xAFFF  # This stored the texture info
@@ -67,7 +71,6 @@ MAT_SELF_ILLUM = 0xA080  # Self Illumination value of material
 MAT_SELF_ILPCT = 0xA084  # Self illumination strength (percent)
 MAT_WIRE = 0xA085  # Only render's wireframe
 MAT_SHADING = 0xA100  # Material shading method
-
 MAT_TEXTURE_MAP = 0xA200  # This is a header for a new texture map
 MAT_SPECULAR_MAP = 0xA204  # This is a header for a new specular map
 MAT_OPACITY_MAP = 0xA210  # This is a header for a new opacity map
@@ -90,10 +93,6 @@ MAT_MAP_COL2 = 0xA362  # Map Color2
 MAT_MAP_RCOL = 0xA364  # Red mapping
 MAT_MAP_GCOL = 0xA366  # Green mapping
 MAT_MAP_BCOL = 0xA368  # Blue mapping
-MAT_FLOAT_COLOR = 0x0010  # color defined as 3 floats
-MAT_24BIT_COLOR = 0x0011  # color defined as 3 bytes
-MAT_LIN_COLOR_24 = 0x0012  # byte color in newer 3ds versions
-MAT_LIN_COLOR_F = 0x0013  # float color in newer 3ds versions
 
 # >------ sub defines of OBJECT
 OBJECT_MESH = 0x4100  # This lets us know that we are reading a new object
@@ -514,7 +513,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         while (new_chunk.bytes_read < new_chunk.length):
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == PERCENTAGE_SHORT:
+            if temp_chunk.ID == PCT_SHORT:
                 pct = read_short(temp_chunk)
 
             elif temp_chunk.ID == MAT_MAP_FILEPATH:
@@ -586,9 +585,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         # is it an ambient light chunk?
         elif new_chunk.ID == AMBIENTLIGHT:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == RGB:
+            if temp_chunk.ID == COLOR_F:
                 context.scene.world.color[:] = read_float_color(temp_chunk)
-            elif temp_chunk.ID == RGBF:
+            elif temp_chunk.ID == LIN_COLOR_F:
                 context.scene.world.color[:] = read_float_color(temp_chunk)
             else: skip_to_end(file, temp_chunk)     
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -641,9 +640,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         elif new_chunk.ID == MAT_AMBIENT:
             read_chunk(file, temp_chunk)
             # only available color is emission color
-            if temp_chunk.ID == MAT_FLOAT_COLOR:
+            if temp_chunk.ID == COLOR_F:
                 contextMaterial.line_color[:3] = read_float_color(temp_chunk)
-            elif temp_chunk.ID == MAT_24BIT_COLOR:
+            elif temp_chunk.ID == COLOR_24:
                 contextMaterial.line_color[:3] = read_byte_color(temp_chunk)
             else:
                 skip_to_end(file, temp_chunk)
@@ -651,9 +650,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif new_chunk.ID == MAT_DIFFUSE:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == MAT_FLOAT_COLOR:
+            if temp_chunk.ID == COLOR_F:
                 contextMaterial.diffuse_color[:3] = read_float_color(temp_chunk)
-            elif temp_chunk.ID == MAT_24BIT_COLOR:
+            elif temp_chunk.ID == COLOR_24:
                 contextMaterial.diffuse_color[:3] = read_byte_color(temp_chunk)
             else:
                 skip_to_end(file, temp_chunk)
@@ -662,9 +661,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         elif new_chunk.ID == MAT_SPECULAR:
             read_chunk(file, temp_chunk)
             # Specular color is available
-            if temp_chunk.ID == MAT_FLOAT_COLOR:
+            if temp_chunk.ID == COLOR_F:
                 contextMaterial.specular_color = read_float_color(temp_chunk)
-            elif temp_chunk.ID == MAT_24BIT_COLOR:
+            elif temp_chunk.ID == COLOR_24:
                 contextMaterial.specular_color = read_byte_color(temp_chunk)
             else:
                 skip_to_end(file, temp_chunk)
@@ -672,11 +671,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif new_chunk.ID == MAT_SHINESS:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == PERCENTAGE_SHORT:
+            if temp_chunk.ID == PCT_SHORT:
                 temp_data = file.read(SZ_U_SHORT)
                 temp_chunk.bytes_read += SZ_U_SHORT
                 contextMaterial.roughness = 1 - (float(struct.unpack('<H', temp_data)[0]) / 100)
-            elif temp_chunk.ID == PERCENTAGE_FLOAT:
+            elif temp_chunk.ID == PCT_FLOAT:
                 temp_data = file.read(SZ_FLOAT)
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextMaterial.roughness = 1 - float(struct.unpack('f', temp_data)[0])
@@ -684,11 +683,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif new_chunk.ID == MAT_SHIN2:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == PERCENTAGE_SHORT:
+            if temp_chunk.ID == PCT_SHORT:
                 temp_data = file.read(SZ_U_SHORT)
                 temp_chunk.bytes_read += SZ_U_SHORT
                 contextMaterial.specular_intensity = (float(struct.unpack('<H', temp_data)[0]) / 100)
-            elif temp_chunk.ID == PERCENTAGE_FLOAT:
+            elif temp_chunk.ID == PCT_FLOAT:
                 temp_data = file.read(SZ_FLOAT)
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextMaterial.specular_intensity = float(struct.unpack('f', temp_data)[0])
@@ -696,11 +695,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif new_chunk.ID == MAT_SHIN3:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == PERCENTAGE_SHORT:
+            if temp_chunk.ID == PCT_SHORT:
                 temp_data = file.read(SZ_U_SHORT)
                 temp_chunk.bytes_read += SZ_U_SHORT
                 contextMaterial.metallic = (float(struct.unpack('<H', temp_data)[0]) / 100)
-            elif temp_chunk.ID == PERCENTAGE_FLOAT:
+            elif temp_chunk.ID == PCT_FLOAT:
                 temp_data = file.read(SZ_FLOAT)
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextMaterial.metallic = float(struct.unpack('f', temp_data)[0])
@@ -708,11 +707,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif new_chunk.ID == MAT_TRANSPARENCY:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == PERCENTAGE_SHORT:
+            if temp_chunk.ID == PCT_SHORT:
                 temp_data = file.read(SZ_U_SHORT)
                 temp_chunk.bytes_read += SZ_U_SHORT
                 contextMaterial.diffuse_color[3] = 1 - (float(struct.unpack('<H', temp_data)[0]) / 100)
-            elif temp_chunk.ID == PERCENTAGE_FLOAT:
+            elif temp_chunk.ID == PCT_FLOAT:
                 temp_data = file.read(SZ_FLOAT)
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextMaterial.diffuse_color[3] = 1 - float(struct.unpack('f', temp_data)[0])
@@ -722,11 +721,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif new_chunk.ID == MAT_SELF_ILPCT:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == PERCENTAGE_SHORT:
+            if temp_chunk.ID == PCT_SHORT:
                 temp_data = file.read(SZ_U_SHORT)
                 temp_chunk.bytes_read += SZ_U_SHORT
                 contextMaterial.line_priority = int(struct.unpack('H', temp_data)[0])
-            elif temp_chunk.ID == PERCENTAGE_FLOAT:
+            elif temp_chunk.ID == PCT_FLOAT:
                 temp_data = file.read(SZ_FLOAT)
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextMaterial.line_priority = (float(struct.unpack('f', temp_data)[0]) * 100)
@@ -765,11 +764,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif new_chunk.ID == MAT_BUMP_PERCENT:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == PERCENTAGE_SHORT:
+            if temp_chunk.ID == PCT_SHORT:
                 temp_data = file.read(SZ_U_SHORT)
                 temp_chunk.bytes_read += SZ_U_SHORT
                 contextWrapper.normalmap_strength = (float(struct.unpack('<H', temp_data)[0]) / 100)
-            elif temp_chunk.ID == PERCENTAGE_FLOAT:
+            elif temp_chunk.ID == PCT_FLOAT:
                 temp_data = file.read(SZ_FLOAT)
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextWrapper.normalmap_strength = float(struct.unpack('f', temp_data)[0])
@@ -858,7 +857,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             CreateBlenderObject = False
             CreateLightObject = True
 
-        elif CreateLightObject and new_chunk.ID == MAT_FLOAT_COLOR:  # color
+        elif CreateLightObject and new_chunk.ID == COLOR_F:  # color
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.color = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
