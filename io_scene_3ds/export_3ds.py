@@ -87,10 +87,12 @@ MAP_RCOL = 0xA364  # Red tint
 MAP_GCOL = 0xA366  # Green tint
 MAP_BCOL = 0xA368  # Blue tint
 
-RGB = 0x0010  # RGB float
-RGB1 = 0x0011  # RGB Color1
-RGB2 = 0x0012  # RGB Color2
+RGB = 0x0010  # RGB float Color1
+RGB1 = 0x0011  # RGB int Color1
+RGBI = 0x0012  # RGB int Color2
+RGBF = 0x0013  # RGB float Color2
 PCT = 0x0030  # Percent chunk
+PCTF = 0x0031  # Percent float
 MASTERSCALE = 0x0100  # Master scale factor
 
 # >------ sub defines of OBJECT
@@ -518,7 +520,7 @@ def make_material_subchunk(chunk_id, color):
     col1.add_variable("color1", _3ds_rgb_color(color))
     mat_sub.add_subchunk(col1)
     # optional:
-    #col2 = _3ds_chunk(RGB1)
+    #col2 = _3ds_chunk(RGBI)
     #col2.add_variable("color2", _3ds_rgb_color(color))
     # mat_sub.add_subchunk(col2)
     return mat_sub
@@ -716,7 +718,7 @@ def make_material_chunk(material, image):
 
         if wrap.roughness_texture:
             roughness = [wrap.roughness_texture]
-            r_pct = material.roughness
+            r_pct = 1 - material.roughness
             matmap = make_material_texture_chunk(MAT_SHINMAP, roughness, r_pct)
             if matmap:
                 material_chunk.add_subchunk(matmap)
