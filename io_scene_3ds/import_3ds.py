@@ -229,7 +229,10 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
         mixer = nodes.new(type='ShaderNodeMixRGB')
         mixer.label = "Mixer"
         mixer.inputs[0].default_value = pct / 100
-        mixer.inputs[1].default_value = tintcolor[:3] + [1] if tintcolor else shader.inputs['Base Color'].default_value[:]
+        mixer.inputs[1].default_value = (
+            tintcolor[:3] + [1] if tintcolor else
+            shader.inputs['Base Color'].default_value[:]
+        )
         contextWrapper._grid_to_location(1, 2, dst_node=mixer, ref_node=shader)
         img_wrap = contextWrapper.base_color_texture
         links.new(img_wrap.node_image.outputs['Color'], mixer.inputs[2])
@@ -321,7 +324,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
     contextMesh_smooth = None
     contextMeshUV = None
 
-    #TEXTURE_DICT = {}
+    # TEXTURE_DICT = {}
     MATDICT = {}
 
     # Localspace variable names, faster.
@@ -610,7 +613,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 context.scene.world.color[:] = read_float_color(temp_chunk)
             elif temp_chunk.ID == LIN_COLOR_F:
                 context.scene.world.color[:] = read_float_color(temp_chunk)
-            else: skip_to_end(file, temp_chunk)     
+            else:
+                skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
 
         # is it an object info chunk?
@@ -1056,7 +1060,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         if CreateLightObject or CreateCameraObject:
             pass
         else:
-            putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMesh_flag, contextMeshMaterials, contextMesh_smooth)
+            putContextMesh(
+                context,
+                contextMesh_vertls,
+                contextMesh_facels,
+                contextMesh_flag,
+                contextMeshMaterials,
+                contextMesh_smooth,
+            )
 
     # Assign parents to objects
     # check _if_ we need to assign first because doing so recalcs the depsgraph
@@ -1079,7 +1090,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             pivot = pivot_list[ind]
             pivot_matrix = object_matrix.get(ob, mathutils.Matrix())  # unlikely to fail
             pivot_matrix = mathutils.Matrix.Translation(-1 * pivot)
-            #pivot_matrix = mathutils.Matrix.Translation(pivot_matrix.to_3x3() @ -pivot)
+            # pivot_matrix = mathutils.Matrix.Translation(pivot_matrix.to_3x3() @ -pivot)
             ob.data.transform(pivot_matrix)
 
 

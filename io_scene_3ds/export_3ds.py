@@ -207,7 +207,7 @@ class _3ds_string(object):
     __slots__ = ("value", )
 
     def __init__(self, val):
-        assert(type(val) == bytes)
+        assert type(val) == bytes
         self.value = val
 
     def get_size(self):
@@ -502,8 +502,8 @@ def make_material_subchunk(chunk_id, color):
     col1.add_variable("color1", _3ds_rgb_color(color))
     mat_sub.add_subchunk(col1)
     # optional:
-    #col2 = _3ds_chunk(RGBI)
-    #col2.add_variable("color2", _3ds_rgb_color(color))
+    # col2 = _3ds_chunk(RGBI)
+    # col2.add_variable("color2", _3ds_rgb_color(color))
     # mat_sub.add_subchunk(col2)
     return mat_sub
 
@@ -631,8 +631,8 @@ def make_material_chunk(material, image):
 
     name_str = material.name if material else "None"
 
-    #if image:
-    #    name_str += image.name
+    # if image:
+    #     name_str += image.name
 
     name.add_variable("name", _3ds_string(sane_name(name_str)))
     material_chunk.add_subchunk(name)
@@ -721,7 +721,7 @@ def make_material_chunk(material, image):
                 diffuse = [link.from_node.image]
 
         if diffuse:
-            if primary_tex == False:
+            if not primary_tex:
                 matmap = make_texture_chunk(MAT_DIFFUSEMAP, diffuse)
             else:
                 matmap = make_texture_chunk(MAT_TEX2MAP, diffuse)
@@ -809,7 +809,7 @@ def extract_triangles(mesh):
 
         smoothgroup = polygroup[face.polygon_index]
 
-        if len(f_v)==3:
+        if len(f_v) == 3:
             new_tri = tri_wrapper((v1, v2, v3), face.material_index, img)
             if (do_uv):
                 new_tri.faceuvs = uv_key(uv1), uv_key(uv2), uv_key(uv3)
@@ -827,7 +827,7 @@ def remove_face_uv(verts, tri_list):
     there are multiple uv coordinates per vertex."""
 
     # initialize a list of UniqueLists, one per vertex:
-    #uv_list = [UniqueList() for i in xrange(len(verts))]
+    # uv_list = [UniqueList() for i in xrange(len(verts))]
     unique_uvs = [{} for i in range(len(verts))]
 
     # for each face uv coordinate, add it to the UniqueList of the vertex
@@ -917,8 +917,8 @@ def make_faces_chunk(tri_list, mesh, materialDict):
                 context_face_array = unique_mats[ma, img][1]
             except:
                 name_str = ma if ma else "None"
-                #if img:
-                #    name_str += img
+                # if img:
+                #     name_str += img
 
                 context_face_array = _3ds_array()
                 unique_mats[ma, img] = _3ds_string(sane_name(name_str)), context_face_array
@@ -1178,7 +1178,7 @@ def save(operator,
          ):
 
     import time
-    #from bpy_extras.io_utils import create_derived_objects, free_derived_objects
+    # from bpy_extras.io_utils import create_derived_objects, free_derived_objects
 
     """Save the Blender scene to a 3ds file."""
 
@@ -1242,7 +1242,7 @@ def save(operator,
 
     for ob in objects:
         # get derived objects
-        #free, derived = create_derived_objects(scene, ob)
+        # free, derived = create_derived_objects(scene, ob)
         derived_dict = bpy_extras.io_utils.create_derived_objects(depsgraph, [ob])
         derived = derived_dict.get(ob)
 
@@ -1296,8 +1296,8 @@ def save(operator,
 
                 # ob_derived_eval.to_mesh_clear()
 
-        #if free:
-        #    free_derived_objects(ob)
+        # if free:
+        #     free_derived_objects(ob)
 
     # Make material chunks for all materials used in the meshes:
     for ma_image in materialDict.values():
@@ -1305,10 +1305,10 @@ def save(operator,
 
     # Give all objects a unique ID and build a dictionary from object name to object id:
     translation = {}  # collect translation for transformation matrix
-    #name_to_id = {}
+    # name_to_id = {}
     for ob, data, matrix in mesh_objects:
         translation[ob.name] = ob.location
-        #name_to_id[ob.name]= len(name_to_id)
+        # name_to_id[ob.name]= len(name_to_id)
     """
     #for ob in empty_objects:
     #    name_to_id[ob.name]= len(name_to_id)
@@ -1341,7 +1341,7 @@ def save(operator,
 
         # if not blender_mesh.users:
         # bpy.data.meshes.remove(blender_mesh)
-        #blender_mesh.vertices = None
+        # blender_mesh.vertices = None
 
         i += i
 
