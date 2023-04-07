@@ -332,6 +332,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
     SZ_2FLOAT = struct.calcsize('2f')
     SZ_3FLOAT = struct.calcsize('3f')
     SZ_4FLOAT = struct.calcsize('4f')
+    SZ_U_INT = struct.calcsize('I')
     SZ_U_SHORT = struct.calcsize('H')
     SZ_4U_SHORT = struct.calcsize('4H')
     SZ_4x3MAT = struct.calcsize('ffffffffffff')
@@ -550,17 +551,21 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                                     (uoffset, voffset, 0), angle, tintcolor, mapto)
 
     def read_track_data(temp_chunk):
+        new_chunk.bytes_read += SZ_U_SHORT * 5
         temp_data = file.read(SZ_U_SHORT * 5)
-        temp_data = file.read(SZ_U_SHORT)
-        nkeys = struct.unpack('<H', temp_data)[0]
-        temp_data = file.read(SZ_U_SHORT)
-        new_chunk.bytes_read += SZ_U_SHORT * 2
+        temp_data = file.read(SZ_U_INT)
+        nkeys = struct.unpack('<I', temp_data)[0]
+        new_chunk.bytes_read += SZ_U_INT
         for i in range(nkeys):
+            temp_data = file.read(SZ_U_INT)
+            nframe = struct.unpack('<I', temp_data)[0]
+            new_chunk.bytes_read += SZ_U_INT
             temp_data = file.read(SZ_U_SHORT)
-            nframe = struct.unpack('<H', temp_data)[0]
+            nflags = struct.unpack('<H', temp_data)[0]
             new_chunk.bytes_read += SZ_U_SHORT
-            temp_data = file.read(SZ_U_SHORT * 2)
-            new_chunk.bytes_read += SZ_U_SHORT * 2
+            if nflags > 0:
+                temp_data = file.read(SZ_FLOAT)
+                new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_3FLOAT)
             data = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
@@ -568,17 +573,21 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 return data
 
     def read_track_angle(temp_chunk):
+        new_chunk.bytes_read += SZ_U_SHORT * 5
         temp_data = file.read(SZ_U_SHORT * 5)
-        temp_data = file.read(SZ_U_SHORT)
-        nkeys = struct.unpack('<H', temp_data)[0]
-        temp_data = file.read(SZ_U_SHORT)
-        new_chunk.bytes_read += SZ_U_SHORT * 2
+        temp_data = file.read(SZ_U_INT)
+        nkeys = struct.unpack('<I', temp_data)[0]
+        new_chunk.bytes_read += SZ_U_INT
         for i in range(nkeys):
+            temp_data = file.read(SZ_U_INT)
+            nframe = struct.unpack('<I', temp_data)[0]
+            new_chunk.bytes_read += SZ_U_INT
             temp_data = file.read(SZ_U_SHORT)
-            nframe = struct.unpack('<H', temp_data)[0]
+            nflags = struct.unpack('<H', temp_data)[0]
             new_chunk.bytes_read += SZ_U_SHORT
-            temp_data = file.read(SZ_U_SHORT * 2)
-            new_chunk.bytes_read += SZ_U_SHORT * 2
+            if nflags > 0:
+                temp_data = file.read(SZ_FLOAT)
+                new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_FLOAT)
             angle = struct.unpack('<f', temp_data)[0]
             new_chunk.bytes_read += SZ_FLOAT
@@ -594,7 +603,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         # is it a Version chunk?
         if new_chunk.ID == VERSION:
             # read in the version of the file
-            temp_data = file.read(struct.calcsize('I'))
+            temp_data = file.read(SZ_U_INT)
             version = struct.unpack('<I', temp_data)[0]
             new_chunk.bytes_read += 4  # read the 4 bytes for the version number
             # this loader works with version 3 and below, but may not with 4 and above
@@ -846,9 +855,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             # look up the material in all the materials
 
         elif new_chunk.ID == OBJECT_SMOOTH:
-            temp_data = file.read(struct.calcsize('I') * num_faces)
+            temp_data = file.read(SZ_U_INT * num_faces)
             smoothgroup = struct.unpack('<%dI' % (num_faces), temp_data)
-            new_chunk.bytes_read += struct.calcsize('I') * num_faces
+            new_chunk.bytes_read += SZ_U_INT * num_faces
             contextMesh_smooth = smoothgroup
 
         elif new_chunk.ID == OBJECT_UV:
@@ -946,12 +955,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         elif new_chunk.ID == EDITKEYFRAME:
             pass
 
-        elif new_chunk.ID == KFDATA_KFSEG:
-            temp_data = file.read(struct.calcsize('I'))
+        elif KEYFRAME and new_chunk.ID == KFDATA_KFSEG:
+            temp_data = file.read(SZ_U_INT)
             start = struct.unpack('<I', temp_data)[0]
             new_chunk.bytes_read += 4
             context.scene.frame_start = start
-            temp_data = file.read(struct.calcsize('I'))
+            temp_data = file.read(SZ_U_INT)
             stop = struct.unpack('<I', temp_data)[0]
             new_chunk.bytes_read += 4
             context.scene.frame_end = stop
@@ -995,33 +1004,34 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             object_dictionary[object_name] = child
             new_chunk.bytes_read += read_str_len
 
-        elif new_chunk.ID == OBJECT_PIVOT:  # pivot
+        elif new_chunk.ID == OBJECT_PIVOT:  # Pivot
             temp_data = file.read(SZ_3FLOAT)
             pivot = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
             pivot_list[len(pivot_list) - 1] = mathutils.Vector(pivot)
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'AMBIENT':  # Ambient
-            new_chunk.bytes_read += SZ_U_SHORT * 5
             child.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_track_data(temp_chunk)
 
-        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG:  # translation
-            new_chunk.bytes_read += SZ_U_SHORT * 5
+        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG:  # Translation
             child.location = read_track_data(temp_chunk)
 
-        elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and child.type == 'MESH':  # rotation
+        elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and child.type == 'MESH':  # Rotation
             new_chunk.bytes_read += SZ_U_SHORT * 5
             temp_data = file.read(SZ_U_SHORT * 5)
-            temp_data = file.read(SZ_U_SHORT)
-            nkeys = struct.unpack('<H', temp_data)[0]
-            temp_data = file.read(SZ_U_SHORT)
-            new_chunk.bytes_read += SZ_U_SHORT * 2
+            temp_data = file.read(SZ_U_INT)
+            nkeys = struct.unpack('<I', temp_data)[0]
+            new_chunk.bytes_read += SZ_U_INT
             for i in range(nkeys):
+                temp_data = file.read(SZ_U_INT)
+                nframe = struct.unpack('<I', temp_data)[0]
+                new_chunk.bytes_read += SZ_U_INT
                 temp_data = file.read(SZ_U_SHORT)
-                nframe = struct.unpack('<H', temp_data)[0]
+                nflags = struct.unpack('<H', temp_data)[0]
                 new_chunk.bytes_read += SZ_U_SHORT
-                temp_data = file.read(SZ_U_SHORT * 2)
-                new_chunk.bytes_read += SZ_U_SHORT * 2
+                if nflags > 0:  # Check for spline term values
+                    temp_data = file.read(SZ_FLOAT)
+                    new_chunk.bytes_read += SZ_FLOAT
                 temp_data = file.read(SZ_4FLOAT)
                 rad, axis_x, axis_y, axis_z = struct.unpack("<4f", temp_data)
                 new_chunk.bytes_read += SZ_4FLOAT
@@ -1029,20 +1039,16 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     child.rotation_euler = mathutils.Quaternion(
                         (axis_x, axis_y, axis_z), -rad).to_euler()   # why negative?
 
-        elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and child.type == 'MESH':  # scale
-            new_chunk.bytes_read += SZ_U_SHORT * 5
+        elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and child.type == 'MESH':  # Scale
             child.scale = read_track_data(temp_chunk)
 
-        elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'LIGHT':  # color
-            new_chunk.bytes_read += SZ_U_SHORT * 5
+        elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'LIGHT':  # Color
             child.data.color = read_track_data(temp_chunk)
 
         elif KEYFRAME and new_chunk.ID == FOV_TRACK_TAG and child.type == 'CAMERA':  # Field of view
-            new_chunk.bytes_read += SZ_U_SHORT * 5
             child.data.angle = read_track_angle(temp_chunk)
 
         elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and child.type == 'CAMERA':  # Roll angle
-            new_chunk.bytes_read += SZ_U_SHORT * 5
             child.rotation_euler[1] = read_track_angle(temp_chunk)
 
         else:
