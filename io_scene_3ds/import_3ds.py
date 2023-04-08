@@ -129,7 +129,7 @@ OBJECT_INSTANCE_NAME = 0xB011
 # OBJECT_PRESCALE = 0xB012
 OBJECT_PIVOT = 0xB013
 # OBJECT_BOUNDBOX =   0xB014
-# MORPH_SMOOTH = 0xB015
+MORPH_SMOOTH = 0xB015
 POS_TRACK_TAG = 0xB020
 ROT_TRACK_TAG = 0xB021
 SCL_TRACK_TAG = 0xB022
@@ -445,7 +445,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 smoothface = myContextMesh_smooth[f]
                 if smoothface > 0:
                     bmesh.polygons[f].use_smooth = True
-            bmesh.use_auto_smooth = True
 
         if contextMatrix:
             ob.matrix_local = contextMatrix
@@ -1009,6 +1008,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             pivot = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
             pivot_list[len(pivot_list) - 1] = mathutils.Vector(pivot)
+
+        elif new_chunk.ID == MORPH_SMOOTH and child.type == 'MESH':  # Smooth angle
+            child.data.use_auto_smooth = True
+            temp_data = file.read(SZ_FLOAT)
+            smooth_angle = struct.unpack('<f', temp_data)[0]
+            new_chunk.bytes_read += SZ_FLOAT
+            child.data.auto_smooth_angle = math.radians(smooth_angle)
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'AMBIENT':  # Ambient
             child.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_track_data(temp_chunk)
