@@ -308,7 +308,7 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
     contextWrapper._grid_to_location(1, 0, dst_node=contextWrapper.node_out, ref_node=shader)
 
 
-def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SEARCH, KEYFRAME):
+def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME):
     from bpy_extras.image_utils import load_image
 
     contextObName = None
@@ -348,6 +348,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             myContextMesh_flag,
             myContextMeshMaterials,
             myContextMesh_smooth,
+            WORLD_MATRIX,
     ):
         bmesh = bpy.data.meshes.new(contextObName)
 
@@ -447,7 +448,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     bmesh.polygons[f].use_smooth = True
 
         if contextMatrix:
-            ob.matrix_local = contextMatrix
+            if WORLD_MATRIX:
+                ob.matrix_world = contextMatrix
+            else:
+                ob.matrix_local = contextMatrix
             object_matrix[ob] = contextMatrix.copy()
 
     # a spare chunk
@@ -627,7 +631,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         # is it an object info chunk?
         elif new_chunk.ID == OBJECTINFO:
-            process_next_chunk(context, file, new_chunk, imported_objects, IMAGE_SEARCH, KEYFRAME)
+            process_next_chunk(context, file, new_chunk, imported_objects, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME)
 
             # keep track of how much we read in the main chunk
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -643,6 +647,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     contextMesh_flag,
                     contextMeshMaterials,
                     contextMesh_smooth,
+                    WORLD_MATRIX
                 )
                 contextMesh_vertls = []
                 contextMesh_facels = []
@@ -1079,6 +1084,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 contextMesh_flag,
                 contextMeshMaterials,
                 contextMesh_smooth,
+                WORLD_MATRIX
             )
 
     # Assign parents to objects
@@ -1110,6 +1116,7 @@ def load_3ds(filepath,
              context,
              IMPORT_CONSTRAIN_BOUNDS=10.0,
              IMAGE_SEARCH=True,
+             WORLD_MATRIX=False,
              KEYFRAME=True,
              APPLY_MATRIX=True,
              global_matrix=None):
@@ -1152,7 +1159,7 @@ def load_3ds(filepath,
     scn = context.scene
 
     imported_objects = []  # Fill this list with objects
-    process_next_chunk(context, file, current_chunk, imported_objects, IMAGE_SEARCH, KEYFRAME)
+    process_next_chunk(context, file, current_chunk, imported_objects, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME)
 
     # fixme, make unglobal
     object_dictionary.clear()
@@ -1244,6 +1251,7 @@ def load(operator,
          filepath="",
          constrain_size=0.0,
          use_image_search=True,
+         use_world_matrix=False,
          read_keyframe=True,
          use_apply_transform=True,
          global_matrix=None,
@@ -1253,6 +1261,7 @@ def load(operator,
              context,
              IMPORT_CONSTRAIN_BOUNDS=constrain_size,
              IMAGE_SEARCH=use_image_search,
+             WORLD_MATRIX=use_world_matrix,
              KEYFRAME=read_keyframe,
              APPLY_MATRIX=use_apply_transform,
              global_matrix=global_matrix,
