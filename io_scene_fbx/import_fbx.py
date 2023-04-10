@@ -3530,7 +3530,7 @@ def load(operator, context, filepath="",
                                 vcos = np.empty(num_verts * 3, dtype=blen_cos_dtype)
                                 vnorm = np.empty(num_verts * 3, dtype=blen_norm_dtype)
                                 mesh.vertices.foreach_get("co", vcos)
-                                mesh.vertices.foreach_get("normal", vnorm)
+                                mesh.vertex_normals.foreach_get("vector", vnorm)
 
                                 vcos += vnorm * decal_offset
 
