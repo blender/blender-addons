@@ -1184,6 +1184,9 @@ def load_3ds(filepath,
 
     for ob in imported_objects:
         ob.select_set(True)
+        if not APPLY_MATRIX:  # Reset transform
+            bpy.ops.object.rotation_clear()
+            bpy.ops.object.location_clear()
 
     # Done DUMMYVERT
     """
