@@ -2,6 +2,8 @@
 
 import bpy
 from bpy.app.handlers import persistent
+from bpy.app.translations import pgettext_iface as iface_
+
 import gpu
 from gpu_extras.batch import batch_for_shader
 
@@ -58,7 +60,7 @@ def sun_update(self, context):
 
 
 def parse_coordinates(self, context):
-    error_message = "ERROR: Could not parse coordinates"
+    error_message = iface_("ERROR: Could not parse coordinates")
     sun_props = context.scene.sun_pos_properties
 
     if sun_props.co_parser:

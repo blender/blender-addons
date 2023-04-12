@@ -36,32 +36,32 @@ class SunPosProperties(PropertyGroup):
 
     use_refraction: BoolProperty(
         name="Use Refraction",
-        description="Show apparent Sun position due to refraction",
+        description="Show the apparent Sun position due to atmospheric refraction",
         default=True,
         update=sun_update)
 
     show_north: BoolProperty(
         name="Show North",
-        description="Draw line pointing north",
+        description="Draw a line pointing to the north",
         default=False,
         update=north_update)
 
     north_offset: FloatProperty(
         name="North Offset",
-        description="Rotate the scene to choose North direction",
+        description="Rotate the scene to choose the North direction",
         unit="ROTATION",
         soft_min=-pi, soft_max=pi, step=10.0, default=0.0,
         update=sun_update)
 
     show_surface: BoolProperty(
         name="Show Surface",
-        description="Draw sun surface",
+        description="Draw the surface that the Sun occupies in the sky",
         default=False,
         update=surface_update)
 
     show_analemmas: BoolProperty(
         name="Show Analemmas",
-        description="Draw sun analemmas",
+        description="Draw Sun analemmas. These help visualize the motion of the Sun in the sky during the year, for each hour of the day",
         default=False,
         update=analemmas_update)
 
@@ -97,20 +97,20 @@ class SunPosProperties(PropertyGroup):
 
     sun_azimuth: FloatProperty(
         name="Sun Azimuth",
-        description="Rotation angle of the Sun from the north direction",
+        description="Rotation angle of the Sun from the direction of the north",
         soft_min=-pi, soft_max=pi,
         default=0.0,
         get=lambda _: sun.azimuth)
 
     sun_elevation: FloatProperty(
-        name="Sunset Time",
+        name="Sun Elevation",
         description="Elevation angle of the Sun",
         soft_min=-pi/2, soft_max=pi/2,
         default=0.0,
         get=lambda _: sun.elevation)
 
     co_parser: StringProperty(
-        name="Enter coordinates",
+        name="Enter Coordinates",
         description="Enter coordinates from an online map",
         update=parse_coordinates)
 
@@ -130,19 +130,19 @@ class SunPosProperties(PropertyGroup):
         update=sun_update)
 
     use_day_of_year: BoolProperty(
-        description="Use a single value for day of year",
+        description="Use a single value for the day of year",
         name="Use day of year",
         default=False,
         update=sun_update)
 
     day_of_year: IntProperty(
-        name="Day of year",
+        name="Day of Year",
         min=1, max=366, default=1,
         update=sun_update)
 
     UTC_zone: FloatProperty(
-        name="UTC zone",
-        description="Time zone: Difference from Greenwich, England in hours",
+        name="UTC Zone",
+        description="Difference from Greenwich, England, in hours",
         precision=1,
         min=-14.0, max=13, step=50, default=0.0,
         update=sun_update)
@@ -156,7 +156,7 @@ class SunPosProperties(PropertyGroup):
 
     sun_distance: FloatProperty(
         name="Distance",
-        description="Distance to sun from origin",
+        description="Distance to the Sun from the origin",
         unit="LENGTH",
         min=0.0, soft_max=3000.0, step=10.0, default=50.0,
         update=sun_update)
@@ -164,22 +164,22 @@ class SunPosProperties(PropertyGroup):
     sun_object: PointerProperty(
         name="Sun Object",
         type=bpy.types.Object,
-        description="Sun object to set in the scene",
+        description="Sun object to use in the scene",
         poll=lambda self, obj: obj.type == 'LIGHT',
         update=sun_update)
 
     object_collection: PointerProperty(
         name="Collection",
         type=bpy.types.Collection,
-        description="Collection of objects used to visualize sun motion",
+        description="Collection of objects used to visualize the motion of the Sun",
         update=sun_update)
 
     object_collection_type: EnumProperty(
         name="Display type",
-        description="Show object collection as sun motion",
+        description="Type of Sun motion to visualize.",
         items=(
-            ('ANALEMMA', "Analemma", ""),
-            ('DIURNAL', "Diurnal", ""),
+            ('ANALEMMA', "Analemma", "Trajectory of the Sun in the sky during the year, for a given time of the day"),
+            ('DIURNAL', "Diurnal", "Trajectory of the Sun in the sky during a single day"),
         ),
         default='ANALEMMA',
         update=sun_update)
@@ -187,19 +187,19 @@ class SunPosProperties(PropertyGroup):
     sky_texture: StringProperty(
         name="Sky Texture",
         default="",
-        description="Name of sky texture to be used",
+        description="Name of the sky texture to use",
         update=sun_update)
 
     hdr_texture: StringProperty(
         default="Environment Texture",
         name="Environment Texture",
-        description="Name of texture to use. World nodes must be enabled "
-                    "and color set to Environment Texture",
+        description="Name of the environment texture to use. World nodes must be enabled "
+                    "and the color set to an environment Texture",
         update=sun_update)
 
     hdr_azimuth: FloatProperty(
         name="Rotation",
-        description="Rotation angle of sun and environment texture",
+        description="Rotation angle of the Sun and environment texture",
         unit="ROTATION",
         step=10.0,
         default=0.0, precision=3,
@@ -207,7 +207,7 @@ class SunPosProperties(PropertyGroup):
 
     hdr_elevation: FloatProperty(
         name="Elevation",
-        description="Elevation angle of sun",
+        description="Elevation angle of the Sun",
         unit="ROTATION",
         step=10.0,
         default=0.0, precision=3,
@@ -215,13 +215,13 @@ class SunPosProperties(PropertyGroup):
 
     bind_to_sun: BoolProperty(
         name="Bind Texture to Sun",
-        description="If true, Environment texture moves with sun",
+        description="If enabled, the environment texture moves with the Sun",
         default=False,
         update=sun_update)
 
     time_spread: FloatProperty(
         name="Time Spread",
-        description="Time period in which to spread object collection",
+        description="Time period around which to spread object collection",
         precision=4,
         soft_min=1.0, soft_max=24.0, step=1.0, default=23.0,
         update=sun_update)
@@ -235,52 +235,52 @@ class SunPosAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
     show_time_place: BoolProperty(
-        name="Time and place presets",
-        description="Show time/place presets",
+        name="Time and Place Presets",
+        description="Show time and place presets",
         default=False)
 
     show_dms: BoolProperty(
         name="D° M' S\"",
-        description="Show lat/long degrees, minutes, seconds labels",
+        description="Show degrees, minutes, seconds labels for the latitude and longitude",
         default=True)
 
     show_north: BoolProperty(
         name="Show North",
-        description="Show north offset choice and slider",
+        description="Show North offset choice and slider",
         default=True,
         update=sun_update)
 
     show_surface: BoolProperty(
         name="Show Surface",
-        description="Show sun surface choice and slider",
+        description="Show Sun surface choice",
         default=True,
         update=sun_update)
 
     show_analemmas: BoolProperty(
         name="Show Analemmas",
-        description="Show analemmas choice and slider",
+        description="Show Analemmas choice",
         default=True,
         update=sun_update)
 
     show_refraction: BoolProperty(
         name="Refraction",
-        description="Show sun refraction choice",
+        description="Show Sun Refraction choice",
         default=True,
         update=sun_update)
 
     show_az_el: BoolProperty(
-        name="Azimuth and elevation info",
+        name="Azimuth and Elevation Info",
         description="Show azimuth and solar elevation info",
         default=True)
 
     show_daylight_savings: BoolProperty(
-        name="Daylight savings",
+        name="Daylight Savings",
         description="Show daylight savings time choice",
         default=True,
         update=sun_update)
 
     show_rise_set: BoolProperty(
-        name="Sunrise and sunset info",
+        name="Sunrise and Sunset Info",
         description="Show sunrise and sunset labels",
         default=True)
 

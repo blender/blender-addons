@@ -95,7 +95,7 @@ def draw_callback_px(self, context):
 
 
 class SUNPOS_OT_ShowHdr(bpy.types.Operator):
-    """Tooltip"""
+    """Select the location of the Sun in any 3D viewport and keep it in sync with the environment"""
     bl_idname = "world.sunpos_show_hdr"
     bl_label = "Sync Sun to Texture"
 

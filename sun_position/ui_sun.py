@@ -260,7 +260,7 @@ class SUNPOS_PT_Time(bpy.types.Panel):
         col.separator()
 
         col = flow.column(align=True)
-        col.prop(sp, "time")
+        col.prop(sp, "time", text="Time", text_ctxt="Hour")
         col.prop(sp, "UTC_zone")
         if p.show_daylight_savings:
             col.prop(sp, "use_daylight_savings")
