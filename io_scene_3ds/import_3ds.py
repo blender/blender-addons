@@ -367,7 +367,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             for v1, v2, v3 in myContextMesh_facels:
                 eekadoodle_faces.extend((v3, v1, v2) if v3 == 0 else (v1, v2, v3))
             bmesh.polygons.foreach_set("loop_start", range(0, nbr_faces * 3, 3))
-            bmesh.polygons.foreach_set("loop_total", (3,) * nbr_faces)
             bmesh.loops.foreach_set("vertex_index", eekadoodle_faces)
 
             if bmesh.polygons and contextMeshUV:
