@@ -5,8 +5,8 @@ from bpy.types import AddonPreferences, PropertyGroup
 from bpy.props import (StringProperty, EnumProperty, IntProperty,
                        FloatProperty, BoolProperty, PointerProperty)
 
-from .sun_calc import sun_update, parse_coordinates, surface_update, analemmas_update, sun
-from .draw import north_update
+from .sun_calc import format_lat_long, parse_coordinates, sun, update_time, move_sun
+from .draw import north_update, surface_update, analemmas_update
 
 from math import pi
 from datetime import datetime
@@ -15,6 +15,19 @@ TODAY = datetime.today()
 ############################################################################
 # Sun panel properties
 ############################################################################
+
+def sun_update(self, context):
+    sun_props = context.scene.sun_pos_properties
+
+    update_time(context)
+    move_sun(context)
+
+    if sun_props.show_surface:
+        surface_update(self, context)
+    if sun_props.show_analemmas:
+        analemmas_update(self, context)
+    if sun_props.show_north:
+        north_update(self, context)
 
 
 class SunPosProperties(PropertyGroup):

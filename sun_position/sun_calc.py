@@ -50,15 +50,6 @@ class SunInfo:
 sun = SunInfo()
 
 
-def sun_update(self, context):
-    update_time(context)
-    move_sun(context)
-    if self.show_surface:
-        surface_update(self, context)
-    if self.show_analemmas:
-        analemmas_update(self, context)
-
-
 def parse_coordinates(self, context):
     error_message = iface_("ERROR: Could not parse coordinates")
     sun_props = context.scene.sun_pos_properties
@@ -596,65 +587,3 @@ def calc_analemma(context, h):
         if sun_vector.z > 0:
             vertices.append(sun_vector)
     return vertices
-
-
-def draw_surface(batch, shader):
-    blend = gpu.state.blend_get()
-    gpu.state.blend_set("ALPHA")
-    shader.uniform_float("color", (.8, .6, 0, 0.2))
-    batch.draw(shader)
-    gpu.state.blend_set(blend)
-
-
-def draw_analemmas(batch, shader):
-    shader.uniform_float("color", (1, 0, 0, 1))
-    batch.draw(shader)
-
-
-_handle_surface = None
-
-
-def surface_update(self, context):
-    global _handle_surface
-    if self.show_surface:
-        coords = calc_surface(context)
-        shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-        batch = batch_for_shader(shader, 'TRIS', {"pos": coords})
-
-        if _handle_surface is not None:
-            bpy.types.SpaceView3D.draw_handler_remove(_handle_surface, 'WINDOW')
-        _handle_surface = bpy.types.SpaceView3D.draw_handler_add(
-            draw_surface, (batch, shader), 'WINDOW', 'POST_VIEW')
-    elif _handle_surface is not None:
-        bpy.types.SpaceView3D.draw_handler_remove(_handle_surface, 'WINDOW')
-        _handle_surface = None
-
-
-_handle_analemmas = None
-
-
-def analemmas_update(self, context):
-    global _handle_analemmas
-    if self.show_analemmas:
-        coords = []
-        indices = []
-        coord_offset = 0
-        for h in range(24):
-            analemma_verts = calc_analemma(context, h)
-            coords.extend(analemma_verts)
-            for i in range(len(analemma_verts) - 1):
-                indices.append((coord_offset + i,
-                                coord_offset + i+1))
-            coord_offset += len(analemma_verts)
-
-        shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-        batch = batch_for_shader(shader, 'LINES',
-                                 {"pos": coords}, indices=indices)
-
-        if _handle_analemmas is not None:
-            bpy.types.SpaceView3D.draw_handler_remove(_handle_analemmas, 'WINDOW')
-        _handle_analemmas = bpy.types.SpaceView3D.draw_handler_add(
-            draw_analemmas, (batch, shader), 'WINDOW', 'POST_VIEW')
-    elif _handle_analemmas is not None:
-        bpy.types.SpaceView3D.draw_handler_remove(_handle_analemmas, 'WINDOW')
-        _handle_analemmas = None
