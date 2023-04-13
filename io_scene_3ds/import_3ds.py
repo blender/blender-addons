@@ -571,6 +571,17 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             temp_data = file.read(SZ_3FLOAT)
             data = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
+            if nkeys > 1:  # Read keyframe data
+                for i in range(nkeys - 1):
+                    temp_data = file.read(SZ_U_INT)
+                    kframe = struct.unpack('<I', temp_data)[0]
+                    new_chunk.bytes_read += SZ_U_INT
+                    temp_data = file.read(SZ_U_SHORT)
+                    kflags = struct.unpack('<H', temp_data)[0]
+                    new_chunk.bytes_read += SZ_U_SHORT
+                    temp_data = file.read(SZ_3FLOAT)
+                    kdata = struct.unpack('<3f', temp_data)
+                    new_chunk.bytes_read += SZ_3FLOAT
             if nframe == 0:
                 return data
 
@@ -593,6 +604,17 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             temp_data = file.read(SZ_FLOAT)
             angle = struct.unpack('<f', temp_data)[0]
             new_chunk.bytes_read += SZ_FLOAT
+            if nkeys > 1:  # Read keyframe data
+                for i in range(nkeys - 1):
+                    temp_data = file.read(SZ_U_INT)
+                    kframe = struct.unpack('<I', temp_data)[0]
+                    new_chunk.bytes_read += SZ_U_INT
+                    temp_data = file.read(SZ_U_SHORT)
+                    kflags = struct.unpack('<H', temp_data)[0]
+                    new_chunk.bytes_read += SZ_U_SHORT
+                    temp_data = file.read(SZ_FLOAT)
+                    kangle = struct.unpack('<f', temp_data)[0]
+                    new_chunk.bytes_read += SZ_FLOAT
             if nframe == 0:
                 return math.radians(angle)
 
@@ -1045,6 +1067,17 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 temp_data = file.read(SZ_4FLOAT)
                 rad, axis_x, axis_y, axis_z = struct.unpack("<4f", temp_data)
                 new_chunk.bytes_read += SZ_4FLOAT
+                if nkeys > 1:  # Read keyframe data
+                    for i in range(nkeys - 1):
+                        temp_data = file.read(SZ_U_INT)
+                        kframe = struct.unpack('<I', temp_data)[0]
+                        new_chunk.bytes_read += SZ_U_INT
+                        temp_data = file.read(SZ_U_SHORT)
+                        kflags = struct.unpack('<H', temp_data)[0]
+                        new_chunk.bytes_read += SZ_U_SHORT
+                        temp_data = file.read(SZ_4FLOAT)
+                        rotation = struct.unpack('<4f', temp_data)
+                        new_chunk.bytes_read += SZ_4FLOAT
                 if nframe == 0:
                     child.rotation_euler = mathutils.Quaternion(
                         (axis_x, axis_y, axis_z), -rad).to_euler()   # why negative?
