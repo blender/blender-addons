@@ -79,46 +79,33 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
             self.draw_normal_mode_panel(context, sp, p, layout)
 
     def draw_environ_mode_panel(self, context, sp, p, layout):
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True,
-                                even_rows=False, align=False)
+        layout = self.layout
+        layout.use_property_split = True
 
-        col = flow.column(align=True)
-        col.label(text="Environment Texture")
-
+        col = layout.column(align=True)
         if context.scene.world is not None:
             if context.scene.world.node_tree is not None:
                 col.prop_search(sp, "hdr_texture",
-                                context.scene.world.node_tree, "nodes", text="")
+                                context.scene.world.node_tree, "nodes")
             else:
                 col.label(text="Please activate Use Nodes in the World panel.",
                           icon="ERROR")
         else:
             col.label(text="Please select World in the World panel.",
                       icon="ERROR")
-
-        col.separator()
-
-        col = flow.column(align=True)
-        col.label(text="Sun Object")
         col.prop_search(sp, "sun_object",
-                        context.view_layer, "objects", text="")
-        col.separator()
+                        context.view_layer, "objects")
 
-        col = flow.column(align=True)
-        col.prop(sp, "sun_distance")
-        if not sp.bind_to_sun:
-            col.prop(sp, "hdr_elevation")
+        col = layout.column(align=True)
+        col.prop(sp, "bind_to_sun", text="Bind Texture to Sun")
         col.prop(sp, "hdr_azimuth")
+        row = col.row(align=True)
+        row.active = not sp.bind_to_sun
+        row.prop(sp, "hdr_elevation")
+        col.prop(sp, "sun_distance")
         col.separator()
 
-        col = flow.column(align=True)
-        if sp.bind_to_sun:
-            col.prop(sp, "bind_to_sun", toggle=True, icon="CONSTRAINT",
-                     text="Release binding")
-        else:
-            col.prop(sp, "bind_to_sun", toggle=True, icon="CONSTRAINT",
-                     text="Bind Texture to Sun")
-
+        col = layout.column(align=True)
         row = col.row(align=True)
         row.enabled = not sp.bind_to_sun
         row.operator("world.sunpos_show_hdr", icon='LIGHT_SUN')
