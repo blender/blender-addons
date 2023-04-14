@@ -2,7 +2,6 @@
 
 import bpy
 from bpy.app.handlers import persistent
-from bpy.app.translations import pgettext_iface as iface_
 
 import gpu
 from gpu_extras.batch import batch_for_shader
@@ -48,23 +47,6 @@ class SunInfo:
 
 
 sun = SunInfo()
-
-
-def parse_coordinates(self, context):
-    error_message = iface_("ERROR: Could not parse coordinates")
-    sun_props = context.scene.sun_pos_properties
-
-    if sun_props.co_parser:
-        parsed_co = parse_position(sun_props.co_parser)
-
-        if parsed_co is not None and len(parsed_co) == 2:
-            sun_props.latitude, sun_props.longitude = parsed_co
-        elif sun_props.co_parser != error_message:
-            sun_props.co_parser = error_message
-
-        # Clear prop
-    if sun_props.co_parser not in {'', error_message}:
-        sun_props.co_parser = ''
 
 
 def move_sun(context):

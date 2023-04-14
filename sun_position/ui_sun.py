@@ -160,20 +160,14 @@ class SUNPOS_PT_Location(bpy.types.Panel):
         p = context.preferences.addons[__package__].preferences
 
         col = layout.column(align=True)
-        col.label(text="Enter Coordinates")
-        col.prop(sp, "co_parser", text='', icon='URL')
-
-        layout.separator()
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column(align=True)
+        col.label(text="Enter Coordinates")
+        col.prop(sp, "coordinates", text="", icon='URL')
         col.prop(sp, "latitude")
         col.prop(sp, "longitude")
-        if p.show_dms:
-            row = col.row()
-            row.alignment = 'RIGHT'
-            row.label(text=format_lat_long(sp.latitude, sp.longitude))
         col.separator()
 
         if p.show_overlays:

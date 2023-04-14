@@ -4,8 +4,10 @@ import bpy
 from bpy.types import AddonPreferences, PropertyGroup
 from bpy.props import (StringProperty, EnumProperty, IntProperty,
                        FloatProperty, BoolProperty, PointerProperty)
+from bpy.app.translations import pgettext_iface as iface_
 
-from .sun_calc import format_lat_long, parse_coordinates, sun, update_time, move_sun
+
+from .sun_calc import format_lat_long, parse_position, sun, update_time, move_sun
 from .draw import north_update, surface_update, analemmas_update
 
 from math import pi
@@ -15,6 +17,34 @@ TODAY = datetime.today()
 ############################################################################
 # Sun panel properties
 ############################################################################
+
+parse_success = True
+
+
+def lat_long_update(self, context):
+    global parse_success
+    parse_success = True
+    sun_update(self, context)
+
+
+def get_coordinates(self):
+    if parse_success:
+        return format_lat_long(self.latitude, self.longitude)
+    return iface_("ERROR: Could not parse coordinates")
+
+
+def set_coordinates(self, value):
+    parsed_co = parse_position(value)
+
+    global parse_success
+    if parsed_co is not None and len(parsed_co) == 2:
+        latitude, longitude = parsed_co
+        self.latitude, self.longitude = latitude, longitude
+    else:
+        parse_success = False
+
+    sun_update(self, bpy.context)
+
 
 def sun_update(self, context):
     sun_props = context.scene.sun_pos_properties
@@ -78,13 +108,20 @@ class SunPosProperties(PropertyGroup):
         default=False,
         update=analemmas_update)
 
+    coordinates: StringProperty(
+        name="Coordinates",
+        description="Enter coordinates from an online map",
+        get=get_coordinates,
+        set=set_coordinates,
+        options={'SKIP_SAVE'})
+
     latitude: FloatProperty(
         name="Latitude",
         description="Latitude: (+) Northern (-) Southern",
         soft_min=-90.0, soft_max=90.0,
         step=5, precision=3,
         default=0.0,
-        update=sun_update)
+        update=lat_long_update)
 
     longitude: FloatProperty(
         name="Longitude",
@@ -92,7 +129,7 @@ class SunPosProperties(PropertyGroup):
         soft_min=-180.0, soft_max=180.0,
         step=5, precision=3,
         default=0.0,
-        update=sun_update)
+        update=lat_long_update)
 
     sunrise_time: FloatProperty(
         name="Sunrise Time",
@@ -121,11 +158,6 @@ class SunPosProperties(PropertyGroup):
         soft_min=-pi/2, soft_max=pi/2,
         default=0.0,
         get=lambda _: sun.elevation)
-
-    co_parser: StringProperty(
-        name="Enter Coordinates",
-        description="Enter coordinates from an online map",
-        update=parse_coordinates)
 
     month: IntProperty(
         name="Month",
@@ -252,11 +284,6 @@ class SunPosAddonPreferences(AddonPreferences):
         description="Show time and place presets",
         default=False)
 
-    show_dms: BoolProperty(
-        name="D° M' S\"",
-        description="Show degrees, minutes, seconds labels for the latitude and longitude",
-        default=True)
-
     show_overlays: BoolProperty(
         name="Show Overlays",
         description="Display overlays in the viewport: the direction of the north, analemmas and the Sun surface",
@@ -294,7 +321,6 @@ class SunPosAddonPreferences(AddonPreferences):
         col.label(text="Show options or labels:")
         flow = col.grid_flow(columns=0, even_columns=True, even_rows=False, align=False)
         flow.prop(self, "show_time_place")
-        flow.prop(self, "show_dms")
         flow.prop(self, "show_refraction")
         flow.prop(self, "show_overlays")
         flow.prop(self, "show_az_el")
