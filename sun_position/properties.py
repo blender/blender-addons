@@ -7,8 +7,9 @@ from bpy.props import (StringProperty, EnumProperty, IntProperty,
 from bpy.app.translations import pgettext_iface as iface_
 
 
-from .sun_calc import format_lat_long, parse_position, sun, update_time, move_sun
 from .draw import north_update, surface_update, analemmas_update
+from .geo import parse_position
+from .sun_calc import format_lat_long, sun, update_time, move_sun
 
 from math import pi
 from datetime import datetime

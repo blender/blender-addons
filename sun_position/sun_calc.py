@@ -10,7 +10,6 @@ from mathutils import Euler, Vector
 
 from math import degrees, radians, pi, sin, cos, asin, acos, tan, floor
 import datetime
-from .geo import parse_position
 
 
 class SunInfo:
@@ -95,8 +94,7 @@ def move_sun(context):
 
     azimuth, elevation = get_sun_coordinates(
         local_time, sun_props.latitude, sun_props.longitude,
-        zone, sun_props.month, sun_props.day, sun_props.year,
-        sun_props.sun_distance)
+        zone, sun_props.month, sun_props.day, sun_props.year)
 
     sun.azimuth = azimuth
     sun.elevation = elevation
@@ -134,8 +132,7 @@ def move_sun(context):
                 azimuth, elevation = get_sun_coordinates(
                     local_time, sun_props.latitude,
                     sun_props.longitude, zone,
-                    sun_props.month, sun_props.day,
-                    sun_props.year, sun_props.sun_distance)
+                    sun_props.month, sun_props.day)
                 obj.location = get_sun_vector(azimuth, elevation) * sun_props.sun_distance
                 local_time -= time_increment
                 obj.rotation_euler = ((elevation - pi/2, 0, -azimuth))
@@ -149,8 +146,7 @@ def move_sun(context):
                 azimuth, elevation = get_sun_coordinates(
                     local_time, sun_props.latitude,
                     sun_props.longitude, zone,
-                    dt.month, dt.day, sun_props.year,
-                    sun_props.sun_distance)
+                    dt.month, dt.day, sun_props.year)
                 obj.location = get_sun_vector(azimuth, elevation) * sun_props.sun_distance
                 day -= day_increment
                 obj.rotation_euler = (elevation - pi/2, 0, -azimuth)
@@ -200,7 +196,7 @@ def sun_handler(scene):
     move_sun(bpy.context)
 
 
-def format_time(time, daylight_savings, longitude, UTC_zone=None):
+def format_time(time, daylight_savings, UTC_zone=None):
     if UTC_zone is not None:
         if daylight_savings:
             UTC_zone += 1
@@ -239,7 +235,7 @@ def format_lat_long(latitude, longitude):
 
 
 def get_sun_coordinates(local_time, latitude, longitude,
-                        utc_zone, month, day, year, distance):
+                        utc_zone, month, day, year):
     """
     Calculate the actual position of the sun based on input parameters.
 
@@ -255,7 +251,6 @@ def get_sun_coordinates(local_time, latitude, longitude,
     NOAA's web site is:
                 http://www.esrl.noaa.gov/gmd/grad/solcalc
     """
-    addon_prefs = bpy.context.preferences.addons[__package__].preferences
     sun_props = bpy.context.scene.sun_pos_properties
 
     longitude *= -1                   # for internal calculations
@@ -417,10 +412,6 @@ def calc_sunrise_sunset(rise):
                                         sun.latitude, sun.longitude)
     time_local = new_time_UTC + (-zone * 60.0)
     tl = time_local / 60.0
-    azimuth, elevation = get_sun_coordinates(
-        tl, sun.latitude, sun.longitude,
-        zone, sun.month, sun.day, sun.year,
-        sun.sun_distance)
     if sun.use_daylight_savings:
         time_local += 60.0
         tl = time_local / 60.0
@@ -534,7 +525,7 @@ def calc_surface(context):
     def get_surface_coordinates(time, month):
         azimuth, elevation = get_sun_coordinates(
             time, sun_props.latitude, sun_props.longitude,
-            zone, month, 1, sun_props.year, sun_props.sun_distance)
+            zone, month, 1, sun_props.year)
         sun_vector = get_sun_vector(azimuth, elevation) * sun_props.sun_distance
         sun_vector.z = max(0, sun_vector.z)
         return sun_vector
@@ -559,8 +550,7 @@ def calc_analemma(context, h):
         day, month = day_of_year_to_month_day(sun_props.year, day_of_year)
         azimuth, elevation = get_sun_coordinates(
             h, sun_props.latitude, sun_props.longitude,
-            zone, month, day, sun_props.year,
-            sun_props.sun_distance)
+            zone, month, day, sun_props.year)
         sun_vector = get_sun_vector(azimuth, elevation) * sun_props.sun_distance
         if sun_vector.z > 0:
             vertices.append(sun_vector)

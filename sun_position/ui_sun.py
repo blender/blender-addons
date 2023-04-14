@@ -227,11 +227,9 @@ class SUNPOS_PT_Time(bpy.types.Panel):
         col.separator()
 
         local_time = format_time(sun_props.time,
-                                 sun_props.use_daylight_savings,
-                                 sun_props.longitude)
+                                 sun_props.use_daylight_savings)
         utc_time = format_time(sun_props.time,
                                sun_props.use_daylight_savings,
-                               sun_props.longitude,
                                sun_props.UTC_zone)
 
         col = layout.column(align=True)
