@@ -6,7 +6,7 @@ from bl_operators.presets import AddPresetBase
 import os
 from math import degrees
 
-from .sun_calc import (format_lat_long, format_time, format_hms, sun)
+from .sun_calc import format_lat_long, format_time, format_hms, sun
 
 
 # -------------------------------------------------------------------
@@ -169,17 +169,11 @@ class SUNPOS_PT_Location(bpy.types.Panel):
 
         col = flow.column(align=True)
         col.prop(sp, "latitude")
-        if p.show_dms:
-            row = col.row()
-            row.alignment = 'RIGHT'
-            row.label(text=format_lat_long(sp.latitude, True))
-
-        col = flow.column(align=True)
         col.prop(sp, "longitude")
         if p.show_dms:
             row = col.row()
             row.alignment = 'RIGHT'
-            row.label(text=format_lat_long(sp.longitude, False))
+            row.label(text=format_lat_long(sp.latitude, sp.longitude))
         col.separator()
 
         if p.show_overlays:

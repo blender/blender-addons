@@ -243,21 +243,23 @@ def format_hms(the_time):
     return (hh + ":" + mm + ":" + ss)
 
 
-def format_lat_long(lat_long, is_latitude):
-    hh = str(abs(int(lat_long)))
-    min = abs((lat_long - int(lat_long)) * 60)
-    sec = abs(int((min - int(min)) * 60))
-    mm = "0" + str(int(min)) if min < 10 else str(int(min))
-    ss = "0" + str(sec) if sec < 10 else str(sec)
-    if lat_long == 0:
-        coord_tag = " "
-    else:
-        if is_latitude:
-            coord_tag = " N" if lat_long > 0 else " S"
-        else:
-            coord_tag = " E" if lat_long > 0 else " W"
+def format_lat_long(latitude, longitude):
+    coordinates = ""
 
-    return hh + "° " + mm + "' " + ss + '"' + coord_tag
+    for i, co in enumerate((latitude, longitude)):
+        dd = abs(int(co))
+        mm = abs(co - int(co)) * 60.0
+        ss = abs(mm - int(mm)) * 60.0
+        if co == 0:
+            direction = ""
+        elif i == 0:
+            direction = "N" if co > 0 else "S"
+        else:
+            direction = "E" if co > 0 else "W"
+
+        coordinates += f"{dd:02d}°{int(mm):02d}′{ss:05.2f}″{direction} "
+
+    return coordinates.strip(" ")
 
 
 def get_sun_coordinates(local_time, latitude, longitude,
