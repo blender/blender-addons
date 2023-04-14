@@ -283,11 +283,6 @@ class SunPosProperties(PropertyGroup):
 class SunPosAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
-    show_time_place: BoolProperty(
-        name="Time and Place Presets",
-        description="Show time and place presets",
-        default=False)
-
     show_overlays: BoolProperty(
         name="Show Overlays",
         description="Display overlays in the viewport: the direction of the north, analemmas and the Sun surface",
@@ -322,7 +317,6 @@ class SunPosAddonPreferences(AddonPreferences):
 
         col.label(text="Show options or labels:")
         flow = col.grid_flow(columns=0, even_columns=True, even_rows=False, align=False)
-        flow.prop(self, "show_time_place")
         flow.prop(self, "show_refraction")
         flow.prop(self, "show_overlays")
         flow.prop(self, "show_az_el")

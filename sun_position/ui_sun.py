@@ -3,6 +3,7 @@
 import bpy
 from bpy.types import Operator, Menu
 from bl_operators.presets import AddPresetBase
+from bl_ui.utils import PresetPanel
 import os
 from math import degrees
 
@@ -14,11 +15,11 @@ from .sun_calc import format_lat_long, format_time, format_hms, sun
 # -------------------------------------------------------------------
 
 
-class SUNPOS_MT_Presets(Menu):
+class SUNPOS_MT_Presets(PresetPanel, bpy.types.Panel):
     bl_label = "Sun Position Presets"
     preset_subdir = "operator/sun_position"
     preset_operator = "script.execute_preset"
-    draw = Menu.draw_preset
+    preset_add_operator = "world.sunpos_add_preset"
 
 
 class SUNPOS_OT_AddPreset(AddPresetBase, Operator):
@@ -60,6 +61,9 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
     bl_context = "world"
     bl_label = "Sun Position"
     bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header_preset(self, _context):
+        SUNPOS_MT_Presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         sun_props = context.scene.sun_pos_properties
@@ -113,12 +117,6 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         sun_props = context.scene.sun_pos_properties
         addon_prefs = context.preferences.addons[__package__].preferences
         layout = self.layout
-
-        if addon_prefs.show_time_place:
-            row = layout.row(align=True)
-            row.menu(SUNPOS_MT_Presets.__name__, text=SUNPOS_MT_Presets.bl_label)
-            row.operator(SUNPOS_OT_AddPreset.bl_idname, text="", icon='ADD')
-            row.operator(SUNPOS_OT_AddPreset.bl_idname, text="", icon='REMOVE').remove_active = True
 
         col = layout.column(align=True)
         col.prop(sun_props, "sun_object")
