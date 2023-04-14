@@ -15,7 +15,7 @@ from .sun_calc import format_lat_long, format_time, format_hms, sun
 # -------------------------------------------------------------------
 
 
-class SUNPOS_MT_Presets(PresetPanel, bpy.types.Panel):
+class SUNPOS_PT_Presets(PresetPanel, bpy.types.Panel):
     bl_label = "Sun Position Presets"
     preset_subdir = "operator/sun_position"
     preset_operator = "script.execute_preset"
@@ -26,7 +26,7 @@ class SUNPOS_OT_AddPreset(AddPresetBase, Operator):
     '''Add Sun Position preset'''
     bl_idname = "world.sunpos_add_preset"
     bl_label = "Add Sun Position preset"
-    preset_menu = "SUNPOS_MT_Presets"
+    preset_menu = "SUNPOS_PT_Presets"
 
     # variable used for all preset values
     preset_defines = [
@@ -63,7 +63,7 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header_preset(self, _context):
-        SUNPOS_MT_Presets.draw_panel_header(self.layout)
+        SUNPOS_PT_Presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         sun_props = context.scene.sun_pos_properties

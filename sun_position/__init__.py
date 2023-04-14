@@ -41,7 +41,7 @@ from bpy.app.handlers import persistent
 register_classes, unregister_classes = bpy.utils.register_classes_factory(
     (properties.SunPosProperties,
      properties.SunPosAddonPreferences, ui_sun.SUNPOS_OT_AddPreset,
-     ui_sun.SUNPOS_MT_Presets, ui_sun.SUNPOS_PT_Panel,
+     ui_sun.SUNPOS_PT_Presets, ui_sun.SUNPOS_PT_Panel,
      ui_sun.SUNPOS_PT_Location, ui_sun.SUNPOS_PT_Time, hdr.SUNPOS_OT_ShowHdr))
 
 

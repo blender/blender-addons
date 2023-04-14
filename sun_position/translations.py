@@ -81,7 +81,7 @@ translations_tuple = (
                (False, ())),
     ),
     (("*", "Sun Position Presets"),
-     (("bpy.types.SUNPOS_MT_Presets",),
+     (("bpy.types.SUNPOS_PT_Presets",),
       ()),
      ("fr_FR", "Préréglages de position du Soleil",
                (False, ())),
