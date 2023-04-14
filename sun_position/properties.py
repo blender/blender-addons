@@ -299,11 +299,6 @@ class SunPosAddonPreferences(AddonPreferences):
         description="Show azimuth and solar elevation info",
         default=True)
 
-    show_daylight_savings: BoolProperty(
-        name="Daylight Savings",
-        description="Show daylight savings time choice",
-        default=True)
-
     show_rise_set: BoolProperty(
         name="Sunrise and Sunset Info",
         description="Show sunrise and sunset labels",
@@ -320,5 +315,4 @@ class SunPosAddonPreferences(AddonPreferences):
         flow.prop(self, "show_refraction")
         flow.prop(self, "show_overlays")
         flow.prop(self, "show_az_el")
-        flow.prop(self, "show_daylight_savings")
         flow.prop(self, "show_rise_set")
