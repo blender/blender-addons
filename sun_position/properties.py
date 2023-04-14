@@ -293,8 +293,7 @@ class SunPosAddonPreferences(AddonPreferences):
     show_refraction: BoolProperty(
         name="Refraction",
         description="Show Sun Refraction choice",
-        default=True,
-        update=sun_update)
+        default=True)
 
     show_az_el: BoolProperty(
         name="Azimuth and Elevation Info",
@@ -304,8 +303,7 @@ class SunPosAddonPreferences(AddonPreferences):
     show_daylight_savings: BoolProperty(
         name="Daylight Savings",
         description="Show daylight savings time choice",
-        default=True,
-        update=sun_update)
+        default=True)
 
     show_rise_set: BoolProperty(
         name="Sunrise and Sunset Info",
