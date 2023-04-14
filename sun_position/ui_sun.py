@@ -62,29 +62,29 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        sp = context.scene.sun_pos_properties
+        sun_props = context.scene.sun_pos_properties
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.prop(sp, "usage_mode", expand=True)
+        layout.prop(sun_props, "usage_mode", expand=True)
         layout.separator()
 
-        if sp.usage_mode == "HDR":
+        if sun_props.usage_mode == "HDR":
             self.draw_environment_mode_panel(context)
         else:
             self.draw_normal_mode_panel(context)
 
     def draw_environment_mode_panel(self, context):
-        sp = context.scene.sun_pos_properties
+        sun_props = context.scene.sun_pos_properties
         layout = self.layout
 
         col = layout.column(align=True)
-        col.prop_search(sp, "sun_object",
+        col.prop_search(sun_props, "sun_object",
                         context.view_layer, "objects")
         if context.scene.world is not None:
             if context.scene.world.node_tree is not None:
-                col.prop_search(sp, "hdr_texture",
+                col.prop_search(sun_props, "hdr_texture",
                                 context.scene.world.node_tree, "nodes")
             else:
                 col.label(text="Please activate Use Nodes in the World panel.",
@@ -96,44 +96,44 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         layout.use_property_decorate = True
 
         col = layout.column(align=True)
-        col.prop(sp, "bind_to_sun", text="Bind Texture to Sun")
-        col.prop(sp, "hdr_azimuth")
+        col.prop(sun_props, "bind_to_sun", text="Bind Texture to Sun")
+        col.prop(sun_props, "hdr_azimuth")
         row = col.row(align=True)
-        row.active = not sp.bind_to_sun
-        row.prop(sp, "hdr_elevation")
-        col.prop(sp, "sun_distance")
+        row.active = not sun_props.bind_to_sun
+        row.prop(sun_props, "hdr_elevation")
+        col.prop(sun_props, "sun_distance")
         col.separator()
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.enabled = not sp.bind_to_sun
+        row.enabled = not sun_props.bind_to_sun
         row.operator("world.sunpos_show_hdr", icon='LIGHT_SUN')
 
     def draw_normal_mode_panel(self, context):
-        sp = context.scene.sun_pos_properties
-        prefs = context.preferences.addons[__package__].preferences
+        sun_props = context.scene.sun_pos_properties
+        addon_prefs = context.preferences.addons[__package__].preferences
         layout = self.layout
 
-        if prefs.show_time_place:
+        if addon_prefs.show_time_place:
             row = layout.row(align=True)
             row.menu(SUNPOS_MT_Presets.__name__, text=SUNPOS_MT_Presets.bl_label)
             row.operator(SUNPOS_OT_AddPreset.bl_idname, text="", icon='ADD')
             row.operator(SUNPOS_OT_AddPreset.bl_idname, text="", icon='REMOVE').remove_active = True
 
         col = layout.column(align=True)
-        col.prop(sp, "sun_object")
+        col.prop(sun_props, "sun_object")
         col.separator()
 
-        col.prop(sp, "object_collection")
-        if sp.object_collection:
-            col.prop(sp, "object_collection_type")
-            if sp.object_collection_type == 'DIURNAL':
-                col.prop(sp, "time_spread")
+        col.prop(sun_props, "object_collection")
+        if sun_props.object_collection:
+            col.prop(sun_props, "object_collection_type")
+            if sun_props.object_collection_type == 'DIURNAL':
+                col.prop(sun_props, "time_spread")
         col.separator()
 
         if context.scene.world is not None:
             if context.scene.world.node_tree is not None:
-                col.prop_search(sp, "sky_texture",
+                col.prop_search(sun_props, "sky_texture",
                                 context.scene.world.node_tree, "nodes")
             else:
                 col.label(text="Please activate Use Nodes in the World panel.",
@@ -142,15 +142,15 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
             col.label(text="Please select World in the World panel.",
                       icon="ERROR")
 
-        if prefs.show_overlays:
+        if addon_prefs.show_overlays:
             col = layout.column(align=True, heading="Show")
-            col.prop(sp, "show_north", text="North")
-            col.prop(sp, "show_analemmas", text="Analemmas")
-            col.prop(sp, "show_surface", text="Surface")
+            col.prop(sun_props, "show_north", text="North")
+            col.prop(sun_props, "show_analemmas", text="Analemmas")
+            col.prop(sun_props, "show_surface", text="Surface")
 
-        if prefs.show_refraction:
+        if addon_prefs.show_refraction:
             col = layout.column(align=True, heading="Use")
-            col.prop(sp, "use_refraction", text="Refraction")
+            col.prop(sun_props, "use_refraction", text="Refraction")
 
 
 class SUNPOS_PT_Location(bpy.types.Panel):
@@ -162,34 +162,34 @@ class SUNPOS_PT_Location(bpy.types.Panel):
 
     @classmethod
     def poll(self, context):
-        sp = context.scene.sun_pos_properties
-        return sp.usage_mode != "HDR"
+        sun_props = context.scene.sun_pos_properties
+        return sun_props.usage_mode != "HDR"
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
 
-        sp = context.scene.sun_pos_properties
-        prefs = context.preferences.addons[__package__].preferences
+        sun_props = context.scene.sun_pos_properties
+        addon_prefs = context.preferences.addons[__package__].preferences
 
         col = layout.column(align=True)
-        col.prop(sp, "coordinates", icon='URL')
-        col.prop(sp, "latitude")
-        col.prop(sp, "longitude")
+        col.prop(sun_props, "coordinates", icon='URL')
+        col.prop(sun_props, "latitude")
+        col.prop(sun_props, "longitude")
 
         col.separator()
 
         col = layout.column(align=True)
-        col.prop(sp, "north_offset", text="North Offset")
+        col.prop(sun_props, "north_offset", text="North Offset")
 
-        if prefs.show_az_el:
+        if addon_prefs.show_az_el:
             col = layout.column(align=True)
-            col.prop(sp, "sun_elevation", text="Elevation")
-            col.prop(sp, "sun_azimuth", text="Azimuth")
+            col.prop(sun_props, "sun_elevation", text="Elevation")
+            col.prop(sun_props, "sun_azimuth", text="Azimuth")
             col.separator()
 
         col = layout.column()
-        col.prop(sp, "sun_distance")
+        col.prop(sun_props, "sun_distance")
         col.separator()
 
 
@@ -202,40 +202,40 @@ class SUNPOS_PT_Time(bpy.types.Panel):
 
     @classmethod
     def poll(self, context):
-        sp = context.scene.sun_pos_properties
-        return sp.usage_mode != "HDR"
+        sun_props = context.scene.sun_pos_properties
+        return sun_props.usage_mode != "HDR"
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
 
-        sp = context.scene.sun_pos_properties
-        prefs = context.preferences.addons[__package__].preferences
+        sun_props = context.scene.sun_pos_properties
+        addon_prefs = context.preferences.addons[__package__].preferences
 
         col = layout.column(align=True)
-        col.prop(sp, "use_day_of_year")
-        if sp.use_day_of_year:
-            col.prop(sp, "day_of_year")
+        col.prop(sun_props, "use_day_of_year")
+        if sun_props.use_day_of_year:
+            col.prop(sun_props, "day_of_year")
         else:
-            col.prop(sp, "day")
-            col.prop(sp, "month")
-        col.prop(sp, "year")
+            col.prop(sun_props, "day")
+            col.prop(sun_props, "month")
+        col.prop(sun_props, "year")
         col.separator()
 
         col = layout.column(align=True)
-        col.prop(sp, "time", text="Time", text_ctxt="Hour")
-        col.prop(sp, "UTC_zone")
-        if prefs.show_daylight_savings:
-            col.prop(sp, "use_daylight_savings")
+        col.prop(sun_props, "time", text="Time", text_ctxt="Hour")
+        col.prop(sun_props, "UTC_zone")
+        if addon_prefs.show_daylight_savings:
+            col.prop(sun_props, "use_daylight_savings")
         col.separator()
 
-        local_time = format_time(sp.time,
-                                 prefs.show_daylight_savings and sp.use_daylight_savings,
-                                 sp.longitude)
-        utc_time = format_time(sp.time,
-                               prefs.show_daylight_savings and sp.use_daylight_savings,
-                               sp.longitude,
-                               sp.UTC_zone)
+        local_time = format_time(sun_props.time,
+                                 addon_prefs.show_daylight_savings and sun_props.use_daylight_savings,
+                                 sun_props.longitude)
+        utc_time = format_time(sun_props.time,
+                               addon_prefs.show_daylight_savings and sun_props.use_daylight_savings,
+                               sun_props.longitude,
+                               sun_props.UTC_zone)
 
         col = layout.column(align=True)
         col.alignment = 'CENTER'
@@ -251,7 +251,7 @@ class SUNPOS_PT_Time(bpy.types.Panel):
         sub.label(text=utc_time)
         col.separator()
 
-        if prefs.show_rise_set:
+        if addon_prefs.show_rise_set:
             sunrise = format_hms(sun.sunrise)
             sunset = format_hms(sun.sunset)
 
