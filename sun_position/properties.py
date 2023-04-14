@@ -257,21 +257,9 @@ class SunPosAddonPreferences(AddonPreferences):
         description="Show degrees, minutes, seconds labels for the latitude and longitude",
         default=True)
 
-    show_north: BoolProperty(
-        name="Show North",
-        description="Show North offset choice and slider",
-        default=True,
-        update=sun_update)
-
-    show_surface: BoolProperty(
-        name="Show Surface",
-        description="Show Sun surface choice",
-        default=True,
-        update=sun_update)
-
-    show_analemmas: BoolProperty(
-        name="Show Analemmas",
-        description="Show Analemmas choice",
+    show_overlays: BoolProperty(
+        name="Show Overlays",
+        description="Display overlays in the viewport: the direction of the north, analemmas and the Sun surface",
         default=True,
         update=sun_update)
 
@@ -307,10 +295,8 @@ class SunPosAddonPreferences(AddonPreferences):
         flow = col.grid_flow(columns=0, even_columns=True, even_rows=False, align=False)
         flow.prop(self, "show_time_place")
         flow.prop(self, "show_dms")
-        flow.prop(self, "show_north")
-        flow.prop(self, "show_surface")
-        flow.prop(self, "show_analemmas")
         flow.prop(self, "show_refraction")
+        flow.prop(self, "show_overlays")
         flow.prop(self, "show_az_el")
         flow.prop(self, "show_daylight_savings")
         flow.prop(self, "show_rise_set")

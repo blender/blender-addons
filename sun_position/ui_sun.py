@@ -182,18 +182,16 @@ class SUNPOS_PT_Location(bpy.types.Panel):
             row.label(text=format_lat_long(sp.longitude, False))
         col.separator()
 
-        if p.show_north:
+        if p.show_overlays:
             col = flow.column(align=True)
             col.prop(sp, "show_north", toggle=True)
             col.prop(sp, "north_offset")
             col.separator()
 
-        if p.show_surface or p.show_analemmas:
+        if p.show_overlays:
             col = flow.column(align=True)
-            if p.show_surface:
-                col.prop(sp, "show_surface", toggle=True)
-            if p.show_analemmas:
-                col.prop(sp, "show_analemmas", toggle=True)
+            col.prop(sp, "show_surface", toggle=True)
+            col.prop(sp, "show_analemmas", toggle=True)
             col.separator()
 
         if p.show_az_el:

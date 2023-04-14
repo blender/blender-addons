@@ -95,7 +95,7 @@ else:
         sun_props = context.scene.sun_pos_properties
         addon_prefs = context.preferences.addons[__package__].preferences
 
-        if addon_prefs.show_north and sun_props.show_north:
+        if addon_prefs.show_overlays and sun_props.show_north:
             _north_handle = bpy.types.SpaceView3D.draw_handler_add(north_draw, (), 'WINDOW', 'POST_VIEW')
         elif _north_handle is not None:
             bpy.types.SpaceView3D.draw_handler_remove(_north_handle, 'WINDOW')
@@ -114,7 +114,7 @@ else:
         sun_props = context.scene.sun_pos_properties
         addon_prefs = context.preferences.addons[__package__].preferences
 
-        if addon_prefs.show_analemmas and sun_props.show_analemmas:
+        if addon_prefs.show_overlays and sun_props.show_analemmas:
             coords = []
             indices = []
             coord_offset = 0
@@ -154,7 +154,7 @@ else:
         sun_props = context.scene.sun_pos_properties
         addon_prefs = context.preferences.addons[__package__].preferences
 
-        if addon_prefs.show_surface and sun_props.show_surface:
+        if addon_prefs.show_overlays and sun_props.show_surface:
             coords = calc_surface(context)
             shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
             batch = batch_for_shader(shader, 'TRIS', {"pos": coords})
