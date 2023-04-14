@@ -63,26 +63,25 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
 
     def draw(self, context):
         sp = context.scene.sun_pos_properties
-        p = context.preferences.addons[__package__].preferences
-        layout = self.layout
-        self.draw_panel(context, sp, p, layout)
-
-    def draw_panel(self, context, sp, p, layout):
-        col = self.layout.column(align=True)
-        col.label(text="Usage Mode")
-        row = col.row()
-        row.prop(sp, "usage_mode", expand=True)
-        col.separator()
-        if sp.usage_mode == "HDR":
-            self.draw_environ_mode_panel(context, sp, p, layout)
-        else:
-            self.draw_normal_mode_panel(context, sp, p, layout)
-
-    def draw_environ_mode_panel(self, context, sp, p, layout):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        layout.prop(sp, "usage_mode", expand=True)
+        layout.separator()
+
+        if sp.usage_mode == "HDR":
+            self.draw_environment_mode_panel(context)
+        else:
+            self.draw_normal_mode_panel(context)
+
+    def draw_environment_mode_panel(self, context):
+        sp = context.scene.sun_pos_properties
+        layout = self.layout
 
         col = layout.column(align=True)
+        col.prop_search(sp, "sun_object",
+                        context.view_layer, "objects")
         if context.scene.world is not None:
             if context.scene.world.node_tree is not None:
                 col.prop_search(sp, "hdr_texture",
@@ -93,8 +92,8 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         else:
             col.label(text="Please select World in the World panel.",
                       icon="ERROR")
-        col.prop_search(sp, "sun_object",
-                        context.view_layer, "objects")
+
+        layout.use_property_decorate = True
 
         col = layout.column(align=True)
         col.prop(sp, "bind_to_sun", text="Bind Texture to Sun")
@@ -110,16 +109,18 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         row.enabled = not sp.bind_to_sun
         row.operator("world.sunpos_show_hdr", icon='LIGHT_SUN')
 
-    def draw_normal_mode_panel(self, context, sp, p, layout):
-        if p.show_time_place:
+    def draw_normal_mode_panel(self, context):
+        sp = context.scene.sun_pos_properties
+        prefs = context.preferences.addons[__package__].preferences
+        layout = self.layout
+
+        if prefs.show_time_place:
             row = layout.row(align=True)
             row.menu(SUNPOS_MT_Presets.__name__, text=SUNPOS_MT_Presets.bl_label)
             row.operator(SUNPOS_OT_AddPreset.bl_idname, text="", icon='ADD')
             row.operator(SUNPOS_OT_AddPreset.bl_idname, text="", icon='REMOVE').remove_active = True
 
         col = layout.column(align=True)
-        col.use_property_split = True
-        col.use_property_decorate = False
         col.prop(sp, "sun_object")
         col.separator()
 
@@ -141,6 +142,16 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
             col.label(text="Please select World in the World panel.",
                       icon="ERROR")
 
+        if prefs.show_overlays:
+            col = layout.column(align=True, heading="Show")
+            col.prop(sp, "show_north", text="North")
+            col.prop(sp, "show_analemmas", text="Analemmas")
+            col.prop(sp, "show_surface", text="Surface")
+
+        if prefs.show_refraction:
+            col = layout.column(align=True, heading="Use")
+            col.prop(sp, "use_refraction", text="Refraction")
+
 
 class SUNPOS_PT_Location(bpy.types.Panel):
     bl_space_type = "PROPERTIES"
@@ -156,48 +167,28 @@ class SUNPOS_PT_Location(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+
         sp = context.scene.sun_pos_properties
-        p = context.preferences.addons[__package__].preferences
+        prefs = context.preferences.addons[__package__].preferences
 
         col = layout.column(align=True)
-
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-
-        col = flow.column(align=True)
-        col.label(text="Enter Coordinates")
-        col.prop(sp, "coordinates", text="", icon='URL')
+        col.prop(sp, "coordinates", icon='URL')
         col.prop(sp, "latitude")
         col.prop(sp, "longitude")
+
         col.separator()
 
-        if p.show_overlays:
-            col = flow.column(align=True)
-            col.prop(sp, "show_north", toggle=True)
-            col.prop(sp, "north_offset")
+        col = layout.column(align=True)
+        col.prop(sp, "north_offset", text="North Offset")
+
+        if prefs.show_az_el:
+            col = layout.column(align=True)
+            col.prop(sp, "sun_elevation", text="Elevation")
+            col.prop(sp, "sun_azimuth", text="Azimuth")
             col.separator()
 
-        if p.show_overlays:
-            col = flow.column(align=True)
-            col.prop(sp, "show_surface", toggle=True)
-            col.prop(sp, "show_analemmas", toggle=True)
-            col.separator()
-
-        if p.show_az_el:
-            col = flow.column(align=True)
-            split = col.split(factor=0.4, align=True)
-            split.label(text="Azimuth:")
-            split.label(text=str(round(degrees(sun.azimuth), 3)) + "°")
-            split = col.split(factor=0.4, align=True)
-            split.label(text="Elevation:")
-            split.label(text=str(round(degrees(sun.elevation), 3)) + "°")
-            col.separator()
-
-        if p.show_refraction:
-            col = flow.column()
-            col.prop(sp, "use_refraction")
-            col.separator()
-
-        col = flow.column()
+        col = layout.column()
         col.prop(sp, "sun_distance")
         col.separator()
 
@@ -216,14 +207,13 @@ class SUNPOS_PT_Time(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+
         sp = context.scene.sun_pos_properties
-        p = context.preferences.addons[__package__].preferences
+        prefs = context.preferences.addons[__package__].preferences
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-
-        col = flow.column(align=True)
-        col.prop(sp, "use_day_of_year",
-                 icon='SORTTIME')
+        col = layout.column(align=True)
+        col.prop(sp, "use_day_of_year")
         if sp.use_day_of_year:
             col.prop(sp, "day_of_year")
         else:
@@ -232,42 +222,50 @@ class SUNPOS_PT_Time(bpy.types.Panel):
         col.prop(sp, "year")
         col.separator()
 
-        col = flow.column(align=True)
+        col = layout.column(align=True)
         col.prop(sp, "time", text="Time", text_ctxt="Hour")
         col.prop(sp, "UTC_zone")
-        if p.show_daylight_savings:
+        if prefs.show_daylight_savings:
             col.prop(sp, "use_daylight_savings")
         col.separator()
 
-        col = flow.column(align=True)
-        lt = format_time(sp.time,
-                         p.show_daylight_savings and sp.use_daylight_savings,
-                         sp.longitude)
-        ut = format_time(sp.time,
-                         p.show_daylight_savings and sp.use_daylight_savings,
-                         sp.longitude,
-                         sp.UTC_zone)
+        local_time = format_time(sp.time,
+                                 prefs.show_daylight_savings and sp.use_daylight_savings,
+                                 sp.longitude)
+        utc_time = format_time(sp.time,
+                               prefs.show_daylight_savings and sp.use_daylight_savings,
+                               sp.longitude,
+                               sp.UTC_zone)
+
+        col = layout.column(align=True)
         col.alignment = 'CENTER'
 
         split = col.split(factor=0.5, align=True)
-        split.label(text="Local:", icon='TIME')
-        split.label(text=lt)
-        split = col.split(factor=0.5, align=True)
-        split.label(text="UTC:", icon='PREVIEW_RANGE')
-        split.label(text=ut)
+        sub = split.column(align=True)
+        sub.alignment = 'RIGHT'
+        sub.label(text="Time Local:")
+        sub.label(text="UTC:")
+
+        sub = split.column(align=True)
+        sub.label(text=local_time)
+        sub.label(text=utc_time)
         col.separator()
 
-        col = flow.column(align=True)
-        col.alignment = 'CENTER'
-        if p.show_rise_set:
-            sr = format_hms(sun.sunrise)
-            ss = format_hms(sun.sunset)
+        if prefs.show_rise_set:
+            sunrise = format_hms(sun.sunrise)
+            sunset = format_hms(sun.sunset)
+
+            col = layout.column(align=True)
+            col.alignment = 'CENTER'
 
             split = col.split(factor=0.5, align=True)
-            split.label(text="Sunrise:", icon='LIGHT_SUN')
-            split.label(text=sr)
-            split = col.split(factor=0.5, align=True)
-            split.label(text="Sunset:", icon='SOLO_ON')
-            split.label(text=ss)
+            sub = split.column(align=True)
+            sub.alignment = 'RIGHT'
+            sub.label(text="Sunrise:")
+            sub.label(text="Sunset:")
+
+            sub = split.column(align=True)
+            sub.label(text=sunrise)
+            sub.label(text=sunset)
 
         col.separator()

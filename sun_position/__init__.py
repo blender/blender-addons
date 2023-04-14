@@ -48,9 +48,14 @@ register_classes, unregister_classes = bpy.utils.register_classes_factory(
 @persistent
 def sun_scene_handler(scene):
     sun_props = bpy.context.scene.sun_pos_properties
+
+    # Force drawing update
     sun_props.show_surface = sun_props.show_surface
     sun_props.show_analemmas = sun_props.show_analemmas
     sun_props.show_north = sun_props.show_north
+
+    # Force coordinates update
+    sun_props.latitude = sun_props.latitude
 
 
 def register():

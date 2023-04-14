@@ -200,29 +200,23 @@ def sun_handler(scene):
     move_sun(bpy.context)
 
 
-def format_time(the_time, daylight_savings, longitude, UTC_zone=None):
+def format_time(time, daylight_savings, longitude, UTC_zone=None):
     if UTC_zone is not None:
         if daylight_savings:
             UTC_zone += 1
-        the_time -= UTC_zone
+        time -= UTC_zone
 
-    the_time %= 24
+    time %= 24
 
-    hh = int(the_time)
-    mm = (the_time - int(the_time)) * 60
-    ss = int((mm - int(mm)) * 60)
-
-    return ("%02i:%02i:%02i" % (hh, mm, ss))
+    return format_hms(time)
 
 
-def format_hms(the_time):
-    hh = str(int(the_time))
-    min = (the_time - int(the_time)) * 60
-    sec = int((min - int(min)) * 60)
-    mm = "0" + str(int(min)) if min < 10 else str(int(min))
-    ss = "0" + str(sec) if sec < 10 else str(sec)
+def format_hms(time):
+    hh = int(time)
+    mm = (time % 1.0) * 60
+    ss = (mm % 1.0) * 60
 
-    return (hh + ":" + mm + ":" + ss)
+    return f"{hh:02d}:{int(mm):02d}:{int(ss):02d}"
 
 
 def format_lat_long(latitude, longitude):

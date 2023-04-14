@@ -145,19 +145,23 @@ class SunPosProperties(PropertyGroup):
         default=0.0,
         get=lambda _: sun.sunset)
 
-    sun_azimuth: FloatProperty(
-        name="Sun Azimuth",
-        description="Rotation angle of the Sun from the direction of the north",
-        soft_min=-pi, soft_max=pi,
-        default=0.0,
-        get=lambda _: sun.azimuth)
-
     sun_elevation: FloatProperty(
         name="Sun Elevation",
         description="Elevation angle of the Sun",
         soft_min=-pi/2, soft_max=pi/2,
+        precision=3,
         default=0.0,
+        unit="ROTATION",
         get=lambda _: sun.elevation)
+
+    sun_azimuth: FloatProperty(
+        name="Sun Azimuth",
+        description="Rotation angle of the Sun from the direction of the north",
+        soft_min=-pi, soft_max=pi,
+        precision=3,
+        default=0.0,
+        unit="ROTATION",
+        get=lambda _: sun.azimuth - bpy.context.scene.sun_pos_properties.north_offset)
 
     month: IntProperty(
         name="Month",
