@@ -574,7 +574,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             new_chunk.bytes_read += SZ_3FLOAT
             keyframe_data[nframe] = data
         return keyframe_data
-                return data
 
     def read_track_angle(temp_chunk):
         keyframe_angle = {}
