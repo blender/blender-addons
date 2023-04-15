@@ -553,6 +553,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                                     (uoffset, voffset, 0), angle, tintcolor, mapto)
 
     def read_track_data(temp_chunk):
+        keyframe_data = {}
         new_chunk.bytes_read += SZ_U_SHORT * 5
         temp_data = file.read(SZ_U_SHORT * 5)
         temp_data = file.read(SZ_U_INT)
@@ -565,27 +566,18 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             temp_data = file.read(SZ_U_SHORT)
             nflags = struct.unpack('<H', temp_data)[0]
             new_chunk.bytes_read += SZ_U_SHORT
-            if nflags > 0:
+            if nflags > 0:  # Check for spline terms
                 temp_data = file.read(SZ_FLOAT)
                 new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_3FLOAT)
             data = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
-            if nkeys > 1:  # Read keyframe data
-                for i in range(nkeys - 1):
-                    temp_data = file.read(SZ_U_INT)
-                    kframe = struct.unpack('<I', temp_data)[0]
-                    new_chunk.bytes_read += SZ_U_INT
-                    temp_data = file.read(SZ_U_SHORT)
-                    kflags = struct.unpack('<H', temp_data)[0]
-                    new_chunk.bytes_read += SZ_U_SHORT
-                    temp_data = file.read(SZ_3FLOAT)
-                    kdata = struct.unpack('<3f', temp_data)
-                    new_chunk.bytes_read += SZ_3FLOAT
-            if nframe == 0:
+            keyframe_data[nframe] = data
+        return keyframe_data
                 return data
 
     def read_track_angle(temp_chunk):
+        keyframe_angle = {}
         new_chunk.bytes_read += SZ_U_SHORT * 5
         temp_data = file.read(SZ_U_SHORT * 5)
         temp_data = file.read(SZ_U_INT)
@@ -598,25 +590,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             temp_data = file.read(SZ_U_SHORT)
             nflags = struct.unpack('<H', temp_data)[0]
             new_chunk.bytes_read += SZ_U_SHORT
-            if nflags > 0:
+            if nflags > 0:  # Check for spline terms
                 temp_data = file.read(SZ_FLOAT)
                 new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_FLOAT)
             angle = struct.unpack('<f', temp_data)[0]
             new_chunk.bytes_read += SZ_FLOAT
-            if nkeys > 1:  # Read keyframe data
-                for i in range(nkeys - 1):
-                    temp_data = file.read(SZ_U_INT)
-                    kframe = struct.unpack('<I', temp_data)[0]
-                    new_chunk.bytes_read += SZ_U_INT
-                    temp_data = file.read(SZ_U_SHORT)
-                    kflags = struct.unpack('<H', temp_data)[0]
-                    new_chunk.bytes_read += SZ_U_SHORT
-                    temp_data = file.read(SZ_FLOAT)
-                    kangle = struct.unpack('<f', temp_data)[0]
-                    new_chunk.bytes_read += SZ_FLOAT
-            if nframe == 0:
-                return math.radians(angle)
+            keyframe_angle[nframe] = math.radians(angle)
+        return keyframe_angle
 
     dirname = os.path.dirname(file.name)
 
@@ -1043,12 +1024,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             child.data.auto_smooth_angle = math.radians(smooth_angle)
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'AMBIENT':  # Ambient
-            child.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_track_data(temp_chunk)
+            child.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_track_data(temp_chunk)[0]
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG:  # Translation
-            child.location = read_track_data(temp_chunk)
+            child.location = read_track_data(temp_chunk)[0]
 
         elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and child.type == 'MESH':  # Rotation
+            keyframe_rotation = {}
             new_chunk.bytes_read += SZ_U_SHORT * 5
             temp_data = file.read(SZ_U_SHORT * 5)
             temp_data = file.read(SZ_U_INT)
@@ -1065,34 +1047,23 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     temp_data = file.read(SZ_FLOAT)
                     new_chunk.bytes_read += SZ_FLOAT
                 temp_data = file.read(SZ_4FLOAT)
-                rad, axis_x, axis_y, axis_z = struct.unpack("<4f", temp_data)
+                rotation = struct.unpack("<4f", temp_data)
                 new_chunk.bytes_read += SZ_4FLOAT
-                if nkeys > 1:  # Read keyframe data
-                    for i in range(nkeys - 1):
-                        temp_data = file.read(SZ_U_INT)
-                        kframe = struct.unpack('<I', temp_data)[0]
-                        new_chunk.bytes_read += SZ_U_INT
-                        temp_data = file.read(SZ_U_SHORT)
-                        kflags = struct.unpack('<H', temp_data)[0]
-                        new_chunk.bytes_read += SZ_U_SHORT
-                        temp_data = file.read(SZ_4FLOAT)
-                        rotation = struct.unpack('<4f', temp_data)
-                        new_chunk.bytes_read += SZ_4FLOAT
-                if nframe == 0:
-                    child.rotation_euler = mathutils.Quaternion(
-                        (axis_x, axis_y, axis_z), -rad).to_euler()   # why negative?
+                keyframe_rotation[nframe] = rotation
+            rad, axis_x, axis_y, axis_z = keyframe_rotation[0]
+            child.rotation_euler = mathutils.Quaternion((axis_x, axis_y, axis_z), -rad).to_euler()  # Why negative?
 
         elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and child.type == 'MESH':  # Scale
-            child.scale = read_track_data(temp_chunk)
+            child.scale = read_track_data(temp_chunk)[0]
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'LIGHT':  # Color
-            child.data.color = read_track_data(temp_chunk)
+            child.data.color = read_track_data(temp_chunk)[0]
 
         elif KEYFRAME and new_chunk.ID == FOV_TRACK_TAG and child.type == 'CAMERA':  # Field of view
-            child.data.angle = read_track_angle(temp_chunk)
+            child.data.angle = read_track_angle(temp_chunk)[0]
 
         elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and child.type == 'CAMERA':  # Roll angle
-            child.rotation_euler[1] = read_track_angle(temp_chunk)
+            child.rotation_euler[1] = read_track_angle(temp_chunk)[0]
 
         else:
             buffer_size = new_chunk.length - new_chunk.bytes_read
