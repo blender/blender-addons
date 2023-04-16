@@ -978,10 +978,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             new_chunk.bytes_read += 4
             context.scene.frame_current = current
 
-        # including these here means their EK_OB_NODE_HEADER are scanned
+        # including these here means their OB_NODE_HDR are scanned
         # another object is being processed
-        elif new_chunk.ID in {KFDATA_AMBIENT, KFDATA_OBJECT, KFDATA_CAMERA, KFDATA_LIGHT}:
+        elif new_chunk.ID in {KFDATA_AMBIENT, KFDATA_OBJECT}:
             tracking = 'OBJECT'
+            child = None
+
+        elif new_chunk.ID in {KFDATA_CAMERA, KFDATA_LIGHT}:
+            tracking = 'STUDIO'
             child = None
 
         elif new_chunk.ID in {KFDATA_TARGET, KFDATA_L_TARGET}:
@@ -1008,7 +1012,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     context.view_layer.active_layer_collection.collection.objects.link(child)
                     imported_objects.append(child)
 
-            if object_name != '$AMBIENT$':
+            if tracking not in {'STUDIO', 'TARGET'} and object_name != '$AMBIENT$':
                 object_list.append(child)
                 object_parent.append(hierarchy)
                 pivot_list.append(mathutils.Vector((0.0, 0.0, 0.0)))
