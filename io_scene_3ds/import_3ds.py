@@ -558,6 +558,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         temp_data = file.read(SZ_U_INT)
         nkeys = struct.unpack('<I', temp_data)[0]
         new_chunk.bytes_read += SZ_U_INT
+        if nkeys == 0:
+            keyframe_data[0] = (0.1, 0.1, 0.1)
         for i in range(nkeys):
             temp_data = file.read(SZ_U_INT)
             nframe = struct.unpack('<I', temp_data)[0]
@@ -580,6 +582,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         temp_data = file.read(SZ_U_INT)
         nkeys = struct.unpack('<I', temp_data)[0]
         new_chunk.bytes_read += SZ_U_INT
+        if nkeys == 0:
+            keyframe_angle[0] = 0.0
         for i in range(nkeys):
             temp_data = file.read(SZ_U_INT)
             nframe = struct.unpack('<I', temp_data)[0]
@@ -1076,6 +1080,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             temp_data = file.read(SZ_U_INT)
             nkeys = struct.unpack('<I', temp_data)[0]
             new_chunk.bytes_read += SZ_U_INT
+            if nkeys == 0:
+                keyframe_data[0] = child.rotation_axis_angle[:]
             for i in range(nkeys):
                 temp_data = file.read(SZ_U_INT)
                 nframe = struct.unpack('<I', temp_data)[0]
