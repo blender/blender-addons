@@ -1047,7 +1047,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             keyframe_data = {}
             child.data.color = read_track_data(temp_chunk)[0]
 
-        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking == 'OBJECT':  # Translation
+        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Translation
             keyframe_data = {}
             trackposition = {}
             child.location = read_track_data(temp_chunk)[0]
@@ -1077,7 +1077,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
                     child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and tracking == 'OBJECT':  # Rotation
+        elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Rotation
             keyframe_rotation = {}
             new_chunk.bytes_read += SZ_U_SHORT * 5
             temp_data = file.read(SZ_U_SHORT * 5)
@@ -1108,7 +1108,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     child.rotation_euler = mathutils.Quaternion((axis_x, axis_y, axis_z), -rad).to_euler()
                     child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and tracking == 'OBJECT':  # Scale
+        elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Scale
             keyframe_data = {}
             child.scale = read_track_data(temp_chunk)[0]
             for keydata in keyframe_data.items():
@@ -1116,7 +1116,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     child.scale = keydata[1]
                     child.keyframe_insert(data_path="scale", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracking == 'OBJECT':  # Roll angle
+        elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Roll angle
             keyframe_angle = {}
             child.rotation_euler[1] = read_track_angle(temp_chunk)[0]
             for keydata in keyframe_angle.items():
