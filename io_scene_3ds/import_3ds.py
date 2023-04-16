@@ -1109,6 +1109,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracking == 'OBJECT':  # Roll angle
             keyframe_angle = {}
             child.rotation_euler[1] = read_track_angle(temp_chunk)[0]
+            for keydata in keyframe_angle.items():
+                if keydata[0] > 0:
+                    child.rotation_euler[1] = keydata[1]
+                    child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == FOV_TRACK_TAG and child.type == 'CAMERA':  # Field of view
             keyframe_angle = {}
