@@ -121,7 +121,7 @@ KFDATA_LIGHT = 0xB005
 KFDATA_L_TARGET = 0xB006
 KFDATA_SPOTLIGHT = 0xB007
 KFDATA_KFSEG = 0xB008
-# KFDATA_CURTIME = 0xB009
+KFDATA_CURTIME = 0xB009
 # KFDATA_KFHDR = 0xB00A
 # >------ sub defines of KEYFRAME_NODE
 OBJECT_NODE_HDR = 0xB010
@@ -553,7 +553,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                                     (uoffset, voffset, 0), angle, tintcolor, mapto)
 
     def read_track_data(temp_chunk):
-        keyframe_data = {}
         new_chunk.bytes_read += SZ_U_SHORT * 5
         temp_data = file.read(SZ_U_SHORT * 5)
         temp_data = file.read(SZ_U_INT)
@@ -576,7 +575,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         return keyframe_data
 
     def read_track_angle(temp_chunk):
-        keyframe_angle = {}
         new_chunk.bytes_read += SZ_U_SHORT * 5
         temp_data = file.read(SZ_U_SHORT * 5)
         temp_data = file.read(SZ_U_INT)
@@ -970,6 +968,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             new_chunk.bytes_read += 4
             context.scene.frame_end = stop
 
+        elif KEYFRAME and new_chunk.ID == KFDATA_CURTIME:
+            temp_data = file.read(SZ_U_INT)
+            current = struct.unpack('<I', temp_data)[0]
+            new_chunk.bytes_read += 4
+            context.scene.frame_current = current
+
         # including these here means their EK_OB_NODE_HEADER are scanned
         # another object is being processed
         elif new_chunk.ID in {KFDATA_OBJECT, KFDATA_AMBIENT, KFDATA_CAMERA, KFDATA_OBJECT, KFDATA_TARGET, KFDATA_LIGHT, KFDATA_L_TARGET, }:
@@ -1023,10 +1027,16 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             child.data.auto_smooth_angle = math.radians(smooth_angle)
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'AMBIENT':  # Ambient
+            keyframe_data = {}
             child.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_track_data(temp_chunk)[0]
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG:  # Translation
+            keyframe_data = {}
             child.location = read_track_data(temp_chunk)[0]
+            for keydata in keyframe_data.items():
+                if keydata[0] > 0:
+                    child.location = keydata[1]
+                    child.keyframe_insert(data_path="location", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and child.type == 'MESH':  # Rotation
             keyframe_rotation = {}
@@ -1051,17 +1061,30 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 keyframe_rotation[nframe] = rotation
             rad, axis_x, axis_y, axis_z = keyframe_rotation[0]
             child.rotation_euler = mathutils.Quaternion((axis_x, axis_y, axis_z), -rad).to_euler()  # Why negative?
+            for keydata in keyframe_data.items():
+                if keydata[0] > 0:
+                    rad, axis_x, axis_y, axis_z = keydata[1]
+                    child.rotation_euler = mathutils.Quaternion((axis_x, axis_y, axis_z), -rad).to_euler()
+                    child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and child.type == 'MESH':  # Scale
+            keyframe_data = {}
             child.scale = read_track_data(temp_chunk)[0]
+            for keydata in keyframe_data.items():
+                if keydata[0] > 0:
+                    child.scale = keydata[1]
+                    child.keyframe_insert(data_path="scale", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'LIGHT':  # Color
+            keyframe_data = {}
             child.data.color = read_track_data(temp_chunk)[0]
 
         elif KEYFRAME and new_chunk.ID == FOV_TRACK_TAG and child.type == 'CAMERA':  # Field of view
+            keyframe_angle = {}
             child.data.angle = read_track_angle(temp_chunk)[0]
 
         elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and child.type == 'CAMERA':  # Roll angle
+            keyframe_angle = {}
             child.rotation_euler[1] = read_track_angle(temp_chunk)[0]
 
         else:
