@@ -98,9 +98,8 @@ OBJECT_LIGHT_OUTER_RANGE = 0x465A
 OBJECT_LIGHT_MULTIPLIER = 0x465B
 OBJECT_LIGHT_AMBIENT_LIGHT = 0x4680
 
-OBJECT_CAMERA = 0x4700  # This lets un know we are reading a camera object
-
 # >------ sub defines of CAMERA
+OBJECT_CAMERA = 0x4700  # This lets un know we are reading a camera object
 OBJECT_CAM_RANGES = 0x4720  # The camera range values
 
 # >------ sub defines of OBJECT_MESH
@@ -123,6 +122,7 @@ KFDATA_SPOTLIGHT = 0xB007
 KFDATA_KFSEG = 0xB008
 KFDATA_CURTIME = 0xB009
 # KFDATA_KFHDR = 0xB00A
+
 # >------ sub defines of KEYFRAME_NODE
 OBJECT_NODE_HDR = 0xB010
 OBJECT_INSTANCE_NAME = 0xB011
@@ -976,7 +976,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         # including these here means their EK_OB_NODE_HEADER are scanned
         # another object is being processed
-        elif new_chunk.ID in {KFDATA_OBJECT, KFDATA_AMBIENT, KFDATA_CAMERA, KFDATA_OBJECT, KFDATA_TARGET, KFDATA_LIGHT, KFDATA_L_TARGET, }:
+        elif new_chunk.ID in {KFDATA_AMBIENT, KFDATA_OBJECT, KFDATA_CAMERA, KFDATA_LIGHT}:
+            tracking = 'OBJECT'
+            child = None
+
+        elif new_chunk.ID in {KFDATA_TARGET, KFDATA_L_TARGET}:
+            tracking = 'TARGET'
             child = None
 
         elif new_chunk.ID == OBJECT_NODE_HDR:
@@ -1030,15 +1035,41 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             keyframe_data = {}
             child.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_track_data(temp_chunk)[0]
 
-        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG:  # Translation
+        elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'LIGHT':  # Color
             keyframe_data = {}
+            child.data.color = read_track_data(temp_chunk)[0]
+
+        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking == 'OBJECT':  # Translation
+            keyframe_data = {}
+            trackposition = {}
             child.location = read_track_data(temp_chunk)[0]
             for keydata in keyframe_data.items():
                 if keydata[0] > 0:
                     child.location = keydata[1]
+                    trackposition[keydata[0]] = keydata[1]
                     child.keyframe_insert(data_path="location", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and child.type == 'MESH':  # Rotation
+        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking == 'TARGET':  # Target position
+            keyframe_data = {}
+            target = read_track_data(temp_chunk)[0]
+            pos = child.location + mathutils.Vector(target)  # Target triangulation
+            foc = math.copysign(math.sqrt(pow(pos[1],2)+pow(pos[0],2)),pos[1])
+            hyp = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[1])
+            tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
+            child.rotation_euler[0] = -1*math.copysign(tilt, pos[1])
+            child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
+            for keydata in keyframe_data.items():
+                if keydata[0] > 0:
+                    target = keydata[1]
+                    pos = mathutils.Vector(trackposition[keydata[0]]) + mathutils.Vector(target)
+                    foc = math.copysign(math.sqrt(pow(pos[1],2)+pow(pos[0],2)),pos[1])
+                    hyp = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[1])
+                    tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
+                    child.rotation_euler[0] = -1*math.copysign(tilt, pos[1])
+                    child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
+                    child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
+
+        elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and tracking == 'OBJECT':  # Rotation
             keyframe_rotation = {}
             new_chunk.bytes_read += SZ_U_SHORT * 5
             temp_data = file.read(SZ_U_SHORT * 5)
@@ -1067,7 +1098,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     child.rotation_euler = mathutils.Quaternion((axis_x, axis_y, axis_z), -rad).to_euler()
                     child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and child.type == 'MESH':  # Scale
+        elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and tracking == 'OBJECT':  # Scale
             keyframe_data = {}
             child.scale = read_track_data(temp_chunk)[0]
             for keydata in keyframe_data.items():
@@ -1075,17 +1106,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     child.scale = keydata[1]
                     child.keyframe_insert(data_path="scale", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'LIGHT':  # Color
-            keyframe_data = {}
-            child.data.color = read_track_data(temp_chunk)[0]
+        elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracking == 'OBJECT':  # Roll angle
+            keyframe_angle = {}
+            child.rotation_euler[1] = read_track_angle(temp_chunk)[0]
 
         elif KEYFRAME and new_chunk.ID == FOV_TRACK_TAG and child.type == 'CAMERA':  # Field of view
             keyframe_angle = {}
             child.data.angle = read_track_angle(temp_chunk)[0]
-
-        elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and child.type == 'CAMERA':  # Roll angle
-            keyframe_angle = {}
-            child.rotation_euler[1] = read_track_angle(temp_chunk)[0]
 
         else:
             buffer_size = new_chunk.length - new_chunk.bytes_read
