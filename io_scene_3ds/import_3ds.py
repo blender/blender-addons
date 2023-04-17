@@ -559,7 +559,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         nkeys = struct.unpack('<I', temp_data)[0]
         new_chunk.bytes_read += SZ_U_INT
         if nkeys == 0:
-            keyframe_data[0] = (0.1, 0.1, 0.1)
+            keyframe_data[0] = default_data
         for i in range(nkeys):
             temp_data = file.read(SZ_U_INT)
             nframe = struct.unpack('<I', temp_data)[0]
@@ -583,7 +583,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         nkeys = struct.unpack('<I', temp_data)[0]
         new_chunk.bytes_read += SZ_U_INT
         if nkeys == 0:
-            keyframe_angle[0] = 0.0
+            keyframe_angle[0] = default_value
         for i in range(nkeys):
             temp_data = file.read(SZ_U_INT)
             nframe = struct.unpack('<I', temp_data)[0]
@@ -1041,15 +1041,18 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'AMBIENT':  # Ambient
             keyframe_data = {}
+            default_data = child.color[:]
             child.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_track_data(temp_chunk)[0]
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'LIGHT':  # Color
             keyframe_data = {}
+            default_data = child.data.color[:]
             child.data.color = read_track_data(temp_chunk)[0]
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Translation
             keyframe_data = {}
             trackposition = {}
+            default_data = child.location[:]
             child.location = read_track_data(temp_chunk)[0]
             for keydata in keyframe_data.items():
                 if keydata[0] > 0:
@@ -1085,7 +1088,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             nkeys = struct.unpack('<I', temp_data)[0]
             new_chunk.bytes_read += SZ_U_INT
             if nkeys == 0:
-                keyframe_data[0] = child.rotation_axis_angle[:]
+                keyframe_rotation[0] = child.rotation_axis_angle[:]
             for i in range(nkeys):
                 temp_data = file.read(SZ_U_INT)
                 nframe = struct.unpack('<I', temp_data)[0]
@@ -1110,6 +1113,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Scale
             keyframe_data = {}
+            default_data = child.scale[:]
             child.scale = read_track_data(temp_chunk)[0]
             for keydata in keyframe_data.items():
                 if keydata[0] > 0:
@@ -1118,6 +1122,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Roll angle
             keyframe_angle = {}
+            default_value = child.rotation_euler[1]
             child.rotation_euler[1] = read_track_angle(temp_chunk)[0]
             for keydata in keyframe_angle.items():
                 if keydata[0] > 0:
@@ -1126,6 +1131,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif KEYFRAME and new_chunk.ID == FOV_TRACK_TAG and child.type == 'CAMERA':  # Field of view
             keyframe_angle = {}
+            default_value = child.data.angle
             child.data.angle = read_track_angle(temp_chunk)[0]
 
         else:
