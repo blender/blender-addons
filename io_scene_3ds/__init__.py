@@ -16,11 +16,11 @@ import bpy
 bl_info = {
     "name": "Autodesk 3DS format",
     "author": "Bob Holcomb, Campbell Barton, Andreas Atteneder, Sebastian Schrand",
-    "version": (2, 3, 2),
+    "version": (2, 3, 4),
     "blender": (3, 6, 0),
     "location": "File > Import",
     "description": "3DS Import/Export meshes, UVs, materials, textures, "
-                   "cameras & lamps",
+                   "cameras, lamps & animation",
     "warning": "Images must be in file folder, "
                "filenames are limited to DOS 8.3 format",
     "doc_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
