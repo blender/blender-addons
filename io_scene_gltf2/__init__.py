@@ -450,7 +450,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
 
     export_hierarchy_flatten_bones: BoolProperty(
         name='Flatten Bone Hierarchy',
-        description='Flatten Bone Hierarchy. Usefull in case of non decomposable TRS matrix',
+        description='Flatten Bone Hierarchy. Useful in case of non decomposable transformation matrix',
         default=False
     )
 
@@ -466,7 +466,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
     export_optimize_animation_keep_anim_armature: BoolProperty(
         name='Force keeping channel for armature / bones',
         description=(
-            "if all keyframes are identical in a rig "
+            "If all keyframes are identical in a rig, "
             "force keeping the minimal animation"
         ),
         default=True
@@ -475,7 +475,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
     export_optimize_animation_keep_anim_object: BoolProperty(
         name='Force keeping channel for objects',
         description=(
-            "if all keyframes are identical for object transformations "
+            "If all keyframes are identical for object transformations, "
             "force keeping the minimal animation"
         ),
         default=False
@@ -488,7 +488,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         ('CROP', 'Crop',
         'Keep only frames above frame 0'),
         ),
-        description='Negative Frames are slided or cropped',
+        description='Negative Frames are slid or cropped',
         default='SLIDE'
     )
 
@@ -496,7 +496,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         name='Set all glTF Animation starting at 0',
         description=(
             "Set all glTF animation starting at 0.0s. "
-            "Can be usefull for looping animations"
+            "Can be useful for looping animations"
         ),
         default=False
     )
@@ -505,7 +505,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         name='Bake All Objects Animations',
         description=(
             "Force exporting animation on every objects. "
-            "Can be usefull when using constraints or driver. "
+            "Can be useful when using constraints or driver. "
             "Also useful when exporting only selection"
         ),
         default=False
