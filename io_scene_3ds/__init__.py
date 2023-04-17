@@ -18,7 +18,7 @@ bl_info = {
     "author": "Bob Holcomb, Campbell Barton, Andreas Atteneder, Sebastian Schrand",
     "version": (2, 3, 4),
     "blender": (3, 6, 0),
-    "location": "File > Import",
+    "location": "File > Import-Export",
     "description": "3DS Import/Export meshes, UVs, materials, textures, "
                    "cameras, lamps & animation",
     "warning": "Images must be in file folder, "
