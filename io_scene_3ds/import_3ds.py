@@ -1051,12 +1051,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Translation
             keyframe_data = {}
-            trackposition = {}
             default_data = child.location[:]
             child.location = read_track_data(temp_chunk)[0]
             for keydata in keyframe_data.items():
                 child.location = keydata[1]
-                trackposition[keydata[0]] = keydata[1]
                 child.keyframe_insert(data_path="location", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking == 'TARGET':  # Target position
@@ -1070,7 +1068,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
             for keydata in keyframe_data.items():
                 target = keydata[1]
-                pos = mathutils.Vector(trackposition[keydata[0]]) + mathutils.Vector(target)
+                pos = child.location + mathutils.Vector(target)
                 foc = math.copysign(math.sqrt(pow(pos[1],2)+pow(pos[0],2)),pos[1])
                 hyp = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[1])
                 tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
