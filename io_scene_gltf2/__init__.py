@@ -4,7 +4,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (3, 6, 14),
+    "version": (3, 6, 15),
     'blender': (3, 5, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -457,17 +457,19 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
     export_optimize_animation_size: BoolProperty(
         name='Optimize Animation Size',
         description=(
-            "Reduce exported file size by removing duplicate keyframes "
-            "(can cause problems with stepped animation)"
+            "Reduce exported file size by removing duplicate keyframes"
         ),
         default=True
     )
 
     export_optimize_animation_keep_anim_armature: BoolProperty(
-        name='Force keeping channel for armature / bones',
+        name='Force keeping channels for bones',
         description=(
-            "If all keyframes are identical in a rig, "
-            "force keeping the minimal animation"
+            "if all keyframes are identical in a rig, "
+            "force keeping the minimal animation. "
+            "When off, all possible channels for "
+            "the bones will be exported, even if empty "
+            "(minimal animation, 2 keyframes)"
         ),
         default=True
     )
@@ -1225,11 +1227,38 @@ class GLTF_PT_export_animation(bpy.types.Panel):
         row.active = operator.export_morph is True
         row.prop(operator, 'export_morph_animation')
         row = layout.row()
-        row.active = operator.export_force_sampling
+        row.active = operator.export_force_sampling and operator.export_animation_mode in ['ACTIONS', 'ACTIVE_ACTIONS']
         row.prop(operator, 'export_bake_animation')
         if operator.export_animation_mode == "SCENE":
             layout.prop(operator, 'export_anim_scene_split_object')
 
+class GLTF_PT_export_animation_notes(bpy.types.Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOL_PROPS'
+    bl_label = "Notes"
+    bl_parent_id = "GLTF_PT_export_animation"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sfile = context.space_data
+        operator = sfile.active_operator
+
+        return operator.bl_idname == "EXPORT_SCENE_OT_gltf" and \
+            operator.export_animation_mode in ["NLA_TRACKS", "SCENE"]
+
+    def draw(self, context):
+        operator = context.space_data.active_operator
+        layout = self.layout
+        if operator.export_animation_mode == "SCENE":
+            layout.label(text="Scene mode uses full bake mode:")
+            layout.label(text="- sampling is active")
+            layout.label(text="- baking all objects is active")
+            layout.label(text="- Using scene frame range")
+        elif operator.export_animation_mode == "NLA_TRACKS":
+            layout.label(text="Track mode uses full bake mode:")
+            layout.label(text="- sampling is active")
+            layout.label(text="- baking all objects is active")
 
 class GLTF_PT_export_animation_ranges(bpy.types.Panel):
     bl_space_type = 'FILE_BROWSER'
@@ -1256,8 +1285,12 @@ class GLTF_PT_export_animation_ranges(bpy.types.Panel):
         layout.active = operator.export_animations
 
         layout.prop(operator, 'export_current_frame')
-        layout.prop(operator, 'export_frame_range')
+        row = layout.row()
+        row.active = operator.export_animation_mode in ['ACTIONS', 'ACTIVE_ACTIONS', 'NLA_TRACKS']
+        row.prop(operator, 'export_frame_range')
         layout.prop(operator, 'export_anim_slide_to_zero')
+        row = layout.row()
+        row.active = operator.export_animation_mode in ['ACTIONS', 'ACTIVE_ACTIONS', 'NLA_TRACKS']
         layout.prop(operator, 'export_negative_frame')
 
 class GLTF_PT_export_animation_armature(bpy.types.Panel):
@@ -1304,7 +1337,7 @@ class GLTF_PT_export_animation_sampling(bpy.types.Panel):
     def draw_header(self, context):
         sfile = context.space_data
         operator = sfile.active_operator
-        self.layout.active = operator.export_animations
+        self.layout.active = operator.export_animations and operator.export_animation_mode in ['ACTIONS', 'ACTIVE_ACTIONS']
         self.layout.prop(operator, "export_force_sampling", text="")
 
     def draw(self, context):
@@ -1347,11 +1380,9 @@ class GLTF_PT_export_animation_optimize(bpy.types.Panel):
         layout.prop(operator, 'export_optimize_animation_size')
 
         row = layout.row()
-        row.active = operator.export_optimize_animation_size
         row.prop(operator, 'export_optimize_animation_keep_anim_armature')
 
         row = layout.row()
-        row.active = operator.export_optimize_animation_size
         row.prop(operator, 'export_optimize_animation_keep_anim_object')
 
 
@@ -1641,6 +1672,7 @@ classes = (
     GLTF_PT_export_data_lighting,
     GLTF_PT_export_data_compression,
     GLTF_PT_export_animation,
+    GLTF_PT_export_animation_notes,
     GLTF_PT_export_animation_ranges,
     GLTF_PT_export_animation_armature,
     GLTF_PT_export_animation_sampling,
