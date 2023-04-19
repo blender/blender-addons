@@ -898,16 +898,16 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             CreateBlenderObject = False
             CreateLightObject = True
 
-        elif CreateLightObject and new_chunk.ID == COLOR_F:  # color
+        elif CreateLightObject and new_chunk.ID == COLOR_F:  # Light color
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.color = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
-        elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_MULTIPLIER:  # intensity
+        elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_MULTIPLIER:  # Intensity
             temp_data = file.read(SZ_FLOAT)
             contextLamp.data.energy = (float(struct.unpack('f', temp_data)[0]) * 1000)
             new_chunk.bytes_read += SZ_FLOAT
 
-        elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_SPOT:  # spotlight
+        elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_SPOT:  # Spotlight
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.type = 'SPOT'
             spot = mathutils.Vector(struct.unpack('<3f', temp_data))
@@ -918,15 +918,15 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             contextLamp.rotation_euler[0] = -1 * math.copysign(angle, aim[1])
             contextLamp.rotation_euler[2] = -1 * (math.radians(90) - math.acos(aim[0] / hypo))
             new_chunk.bytes_read += SZ_3FLOAT
-            temp_data = file.read(SZ_FLOAT)  # hotspot
+            temp_data = file.read(SZ_FLOAT)  # Hotspot
             hotspot = float(struct.unpack('f', temp_data)[0])
             new_chunk.bytes_read += SZ_FLOAT
-            temp_data = file.read(SZ_FLOAT)  # angle
+            temp_data = file.read(SZ_FLOAT)  # Beam angle
             beam_angle = float(struct.unpack('f', temp_data)[0])
             contextLamp.data.spot_size = math.radians(beam_angle)
             contextLamp.data.spot_blend = (1.0 - (hotspot / beam_angle)) * 2
             new_chunk.bytes_read += SZ_FLOAT
-        elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_ROLL:  # roll
+        elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_ROLL:  # Roll
             temp_data = file.read(SZ_FLOAT)
             contextLamp.rotation_euler[1] = float(struct.unpack('f', temp_data)[0])
             new_chunk.bytes_read += SZ_FLOAT
@@ -1043,11 +1043,17 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             keyframe_data = {}
             default_data = child.color[:]
             child.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_track_data(temp_chunk)[0]
+            for keydata in keyframe_data.items():
+                child.node_tree.nodes['Background'].inputs[0].default_value[:3] = keydata[1]
+                child.node_tree.keyframe_insert(data_path="nodes[\"Background\"].inputs[0].default_value", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'LIGHT':  # Color
             keyframe_data = {}
             default_data = child.data.color[:]
             child.data.color = read_track_data(temp_chunk)[0]
+            for keydata in keyframe_data.items():
+                child.data.color = keydata[1]
+                child.data.keyframe_insert(data_path="color", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Translation
             keyframe_data = {}
@@ -1126,6 +1132,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             keyframe_angle = {}
             default_value = child.data.angle
             child.data.angle = read_track_angle(temp_chunk)[0]
+            for keydata in keyframe_angle.items():
+                child.data.lens = (ob.data.sensor_width/2)/math.tan(keydata[1]/2)
+                child.keyframe_insert(data_path="lens", frame=keydata[0])
 
         else:
             buffer_size = new_chunk.length - new_chunk.bytes_read
