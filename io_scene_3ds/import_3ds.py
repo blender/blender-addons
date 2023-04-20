@@ -137,10 +137,10 @@ FOV_TRACK_TAG = 0xB023
 ROLL_TRACK_TAG = 0xB024
 COL_TRACK_TAG = 0xB025
 # MORPH_TRACK_TAG = 0xB026
-# HOTSPOT_TRACK_TAG = 0xB027
-# FALLOFF_TRACK_TAG = 0xB028
+HOTSPOT_TRACK_TAG = 0xB027
+FALLOFF_TRACK_TAG = 0xB028
 # HIDE_TRACK_TAG = 0xB029
-# OBJECT_NODE_ID = 0xB030
+OBJECT_NODE_ID = 0xB030
 
 ROOT_OBJECT = 0xFFFF
 
@@ -337,6 +337,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
     SZ_4U_SHORT = struct.calcsize('4H')
     SZ_4x3MAT = struct.calcsize('ffffffffffff')
 
+    object_dict = {}  # object identities
     object_list = []  # for hierarchy
     object_parent = []  # index of parent in hierarchy, 0xFFFF = no parent
     pivot_list = []  # pivots with hierarchy handling
@@ -980,17 +981,19 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         # including these here means their OB_NODE_HDR are scanned
         # another object is being processed
-        elif new_chunk.ID in {KFDATA_AMBIENT, KFDATA_OBJECT}:
+        elif new_chunk.ID in {KFDATA_AMBIENT, KFDATA_OBJECT, KFDATA_CAMERA, KFDATA_LIGHT}:
+            object_id = ROOT_OBJECT
             tracking = 'OBJECT'
-            child = None
-
-        elif new_chunk.ID in {KFDATA_CAMERA, KFDATA_LIGHT}:
-            tracking = 'STUDIO'
             child = None
 
         elif new_chunk.ID in {KFDATA_TARGET, KFDATA_L_TARGET}:
             tracking = 'TARGET'
             child = None
+
+        elif new_chunk.ID == OBJECT_NODE_ID:
+            temp_data = file.read(SZ_U_SHORT)
+            object_id = struct.unpack('<H', temp_data)[0]
+            new_chunk.bytes_read += 2
 
         elif new_chunk.ID == OBJECT_NODE_HDR:
             object_name, read_str_len = read_string(file)
@@ -1012,7 +1015,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     context.view_layer.active_layer_collection.collection.objects.link(child)
                     imported_objects.append(child)
 
-            if tracking not in {'STUDIO', 'TARGET'} and object_name != '$AMBIENT$':
+            if tracking != 'TARGET' and object_name != '$AMBIENT$':
+                object_dict[object_id] = child
                 object_list.append(child)
                 object_parent.append(hierarchy)
                 pivot_list.append(mathutils.Vector((0.0, 0.0, 0.0)))
@@ -1055,7 +1059,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 child.data.color = keydata[1]
                 child.data.keyframe_insert(data_path="color", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Translation
+        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking == 'OBJECT':  # Translation
             keyframe_data = {}
             default_data = child.location[:]
             child.location = read_track_data(temp_chunk)[0]
@@ -1082,7 +1086,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
                 child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Rotation
+        elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and tracking == 'OBJECT':  # Rotation
             keyframe_rotation = {}
             new_chunk.bytes_read += SZ_U_SHORT * 5
             temp_data = file.read(SZ_U_SHORT * 5)
@@ -1112,7 +1116,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 child.rotation_euler = mathutils.Quaternion((axis_x, axis_y, axis_z), -rad).to_euler()
                 child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Scale
+        elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and tracking == 'OBJECT':  # Scale
             keyframe_data = {}
             default_data = child.scale[:]
             child.scale = read_track_data(temp_chunk)[0]
@@ -1120,13 +1124,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 child.scale = keydata[1]
                 child.keyframe_insert(data_path="scale", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracking in {'OBJECT', 'STUDIO'}:  # Roll angle
+        elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracking == 'OBJECT':  # Roll angle
             keyframe_angle = {}
             default_value = child.rotation_euler[1]
             child.rotation_euler[1] = read_track_angle(temp_chunk)[0]
             for keydata in keyframe_angle.items():
                 child.rotation_euler[1] = keydata[1]
-                child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
+                child.keyframe_insert(data_path="rotation_euler", index=1, frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == FOV_TRACK_TAG and child.type == 'CAMERA':  # Field of view
             keyframe_angle = {}
@@ -1134,7 +1138,25 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             child.data.angle = read_track_angle(temp_chunk)[0]
             for keydata in keyframe_angle.items():
                 child.data.lens = (ob.data.sensor_width/2)/math.tan(keydata[1]/2)
-                child.keyframe_insert(data_path="lens", frame=keydata[0])
+                child.data.keyframe_insert(data_path="lens", frame=keydata[0])
+
+        elif new_chunk.ID == HOTSPOT_TRACK_TAG and child.type == 'LIGHT' and child.data.type == 'SPOT':  # Hotspot
+            keyframe_angle = {}
+            cone_angle = math.degrees(child.data.spot_size)
+            default_value = cone_angle-(ob.data.spot_blend*math.floor(cone_angle))   
+            hot_spot = math.radians(read_track_angle(temp_chunk)[0])
+            child.data.spot_blend = 1.0 - (hot_spot/cone_angle)
+            for keydata in keyframe_angle.items():
+                child.data.spot_blend = 1.0 - (keydata[1]/cone_angle)
+                child.data.keyframe_insert(data_path="spot_blend", frame=keydata[0])
+
+        elif new_chunk.ID == FALLOFF_TRACK_TAG and child.type == 'LIGHT' and child.data.type == 'SPOT':  # Falloff
+            keyframe_angle = {}
+            default_value = math.degrees(child.data.spot_size)
+            child.data.spot_size = math.radians(read_track_angle(temp_chunk)[0])
+            for keydata in keyframe_angle.items():
+                child.data.spot_size = math.radians(keydata[1])
+                child.data.keyframe_insert(data_path="spot_size", frame=keydata[0])
 
         else:
             buffer_size = new_chunk.length - new_chunk.bytes_read
@@ -1169,11 +1191,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             if ob.parent is not None:
                 ob.parent = None
         else:
-            if ob.parent != object_list[parent]:
-                if ob == object_list[parent]:
+            if ob.parent != object_dict[parent]:
+                if ob == object_dict[parent]:
                     print('   warning: Cannot assign self to parent ', ob)
                 else:
-                    ob.parent = object_list[parent]
+                    ob.parent = object_dict[parent]
 
             # pivot_list[ind] += pivot_list[parent]  # XXX, not sure this is correct, should parent space matrix be applied before combining?
     # fix pivots
