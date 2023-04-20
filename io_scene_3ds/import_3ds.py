@@ -308,7 +308,7 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
     contextWrapper._grid_to_location(1, 0, dst_node=contextWrapper.node_out, ref_node=shader)
 
 
-def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME):
+def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAIN_BOUNDS, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME):
     from bpy_extras.image_utils import load_image
 
     contextObName = None
@@ -635,7 +635,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         # is it an object info chunk?
         elif new_chunk.ID == OBJECTINFO:
-            process_next_chunk(context, file, new_chunk, imported_objects, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME)
+            process_next_chunk(context, file, new_chunk, imported_objects, CONSTRAIN_BOUNDS, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME)
 
             # keep track of how much we read in the main chunk
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -1064,7 +1064,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             default_data = child.location[:]
             child.location = read_track_data(temp_chunk)[0]
             for keydata in keyframe_data.items():
-                child.location = keydata[1]
+                child.location = mathutils.Vector(keydata[1]) * (CONSTRAIN_BOUNDS * 0.1)
                 child.keyframe_insert(data_path="location", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking == 'TARGET':  # Target position
@@ -1121,7 +1121,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             default_data = child.scale[:]
             child.scale = read_track_data(temp_chunk)[0]
             for keydata in keyframe_data.items():
-                child.scale = keydata[1]
+                child.scale = mathutils.Vector(keydata[1]) * (CONSTRAIN_BOUNDS * 0.1)
                 child.keyframe_insert(data_path="scale", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracking == 'OBJECT':  # Roll angle
@@ -1210,7 +1210,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
 def load_3ds(filepath,
              context,
-             IMPORT_CONSTRAIN_BOUNDS=10.0,
+             CONSTRAIN_BOUNDS=10.0,
              IMAGE_SEARCH=True,
              WORLD_MATRIX=False,
              KEYFRAME=True,
@@ -1241,7 +1241,7 @@ def load_3ds(filepath,
         file.close()
         return
 
-    if IMPORT_CONSTRAIN_BOUNDS:
+    if CONSTRAIN_BOUNDS:
         BOUNDS_3DS[:] = [1 << 30, 1 << 30, 1 << 30, -1 << 30, -1 << 30, -1 << 30]
     else:
         del BOUNDS_3DS[:]
@@ -1255,7 +1255,7 @@ def load_3ds(filepath,
     scn = context.scene
 
     imported_objects = []  # Fill this list with objects
-    process_next_chunk(context, file, current_chunk, imported_objects, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME)
+    process_next_chunk(context, file, current_chunk, imported_objects, CONSTRAIN_BOUNDS, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME)
 
     # fixme, make unglobal
     object_dictionary.clear()
@@ -1314,7 +1314,7 @@ def load_3ds(filepath,
 
     axis_min = [1000000000] * 3
     axis_max = [-1000000000] * 3
-    global_clamp_size = IMPORT_CONSTRAIN_BOUNDS
+    global_clamp_size = CONSTRAIN_BOUNDS
     if global_clamp_size != 0.0:
         # Get all object bounds
         for ob in imported_objects:
@@ -1358,7 +1358,7 @@ def load(operator,
 
     load_3ds(filepath,
              context,
-             IMPORT_CONSTRAIN_BOUNDS=constrain_size,
+             CONSTRAIN_BOUNDS=constrain_size,
              IMAGE_SEARCH=use_image_search,
              WORLD_MATRIX=use_world_matrix,
              KEYFRAME=read_keyframe,
