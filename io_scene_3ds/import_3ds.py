@@ -1137,7 +1137,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             default_value = child.data.angle
             child.data.angle = read_track_angle(temp_chunk)[0]
             for keydata in keyframe_angle.items():
-                child.data.lens = (ob.data.sensor_width/2)/math.tan(keydata[1]/2)
+                child.data.lens = (child.data.sensor_width/2)/math.tan(keydata[1]/2)
                 child.data.keyframe_insert(data_path="lens", frame=keydata[0])
 
         elif new_chunk.ID == HOTSPOT_TRACK_TAG and child.type == 'LIGHT' and child.data.type == 'SPOT':  # Hotspot
