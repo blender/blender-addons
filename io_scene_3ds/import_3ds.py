@@ -1064,7 +1064,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             default_data = child.location[:]
             child.location = read_track_data(temp_chunk)[0]
             for keydata in keyframe_data.items():
-                child.location = mathutils.Vector(keydata[1]) * (CONSTRAIN_BOUNDS * 0.1)
+                child.location = mathutils.Vector(keydata[1]) * (CONSTRAIN_BOUNDS * 0.1) if CONSTRAIN_BOUNDS != 0.0 else keydata[1]
                 child.keyframe_insert(data_path="location", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking == 'TARGET':  # Target position
@@ -1121,7 +1121,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             default_data = child.scale[:]
             child.scale = read_track_data(temp_chunk)[0]
             for keydata in keyframe_data.items():
-                child.scale = mathutils.Vector(keydata[1]) * (CONSTRAIN_BOUNDS * 0.1)
+                child.scale = mathutils.Vector(keydata[1]) * (CONSTRAIN_BOUNDS * 0.1) if CONSTRAIN_BOUNDS != 0.0 else keydata[1]
                 child.keyframe_insert(data_path="scale", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracking == 'OBJECT':  # Roll angle
