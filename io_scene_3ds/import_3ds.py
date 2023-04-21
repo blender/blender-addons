@@ -1193,11 +1193,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         else:
             if ob.parent != object_list[parent]:
                 if ob.parent not in object_dict:
-                    if ob.parent != object_list[parent]:
-                        if ob == object_list[parent]:
-                            print('   warning: Cannot assign self to parent ', ob)
-                        else:
-                            ob.parent = object_list[parent]
+                    if ob == object_list[parent]:
+                        print('   warning: Cannot assign self to parent ', ob)
+                    else:
+                        ob.parent = object_list[parent]
                 else:
                     if ob.parent != object_dict[parent]:
                         if ob == object_dict[parent]:
