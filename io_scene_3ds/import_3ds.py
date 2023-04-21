@@ -1144,7 +1144,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             keyframe_angle = {}
             cone_angle = math.degrees(child.data.spot_size)
             default_value = cone_angle-(ob.data.spot_blend*math.floor(cone_angle))   
-            hot_spot = math.radians(read_track_angle(temp_chunk)[0])
+            hot_spot = read_track_angle(temp_chunk)[0]
             child.data.spot_blend = 1.0 - (hot_spot/cone_angle)
             for keydata in keyframe_angle.items():
                 child.data.spot_blend = 1.0 - (keydata[1]/cone_angle)
@@ -1153,9 +1153,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == FALLOFF_TRACK_TAG and child.type == 'LIGHT' and child.data.type == 'SPOT':  # Falloff
             keyframe_angle = {}
             default_value = math.degrees(child.data.spot_size)
-            child.data.spot_size = math.radians(read_track_angle(temp_chunk)[0])
+            child.data.spot_size = read_track_angle(temp_chunk)[0]
             for keydata in keyframe_angle.items():
-                child.data.spot_size = math.radians(keydata[1])
+                child.data.spot_size = keydata[1]
                 child.data.keyframe_insert(data_path="spot_size", frame=keydata[0])
 
         else:
