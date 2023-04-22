@@ -76,30 +76,32 @@ MAT_MAP_BCOL = 0xA368  # Blue mapping
 
 # >------ sub defines of OBJECT
 OBJECT_MESH = 0x4100  # This lets us know that we are reading a new object
-OBJECT_LIGHT = 0x4600  # This lets un know we are reading a light object
-OBJECT_LIGHT_SPOT = 0x4610  # The light is a spotloght.
-OBJECT_LIGHT_OFF = 0x4620  # The light off.
-OBJECT_LIGHT_ATTENUATE = 0x4625
-OBJECT_LIGHT_RAYSHADE = 0x4627
-OBJECT_LIGHT_SHADOWED = 0x4630
-OBJECT_LIGHT_LOCAL_SHADOW = 0x4640
-OBJECT_LIGHT_LOCAL_SHADOW2 = 0x4641
-OBJECT_LIGHT_SEE_CONE = 0x4650
-OBJECT_LIGHT_SPOT_RECTANGULAR = 0x4651
-OBJECT_LIGHT_SPOT_OVERSHOOT = 0x4652
-OBJECT_LIGHT_SPOT_PROJECTOR = 0x4653
-OBJECT_LIGHT_EXCLUDE = 0x4654
-OBJECT_LIGHT_RANGE = 0x4655
-OBJECT_LIGHT_ROLL = 0x4656
-OBJECT_LIGHT_SPOT_ASPECT = 0x4657
-OBJECT_LIGHT_RAY_BIAS = 0x4658
-OBJECT_LIGHT_INNER_RANGE = 0x4659
-OBJECT_LIGHT_OUTER_RANGE = 0x465A
-OBJECT_LIGHT_MULTIPLIER = 0x465B
-OBJECT_LIGHT_AMBIENT_LIGHT = 0x4680
+OBJECT_LIGHT = 0x4600  # This lets us know we are reading a light object
+OBJECT_CAMERA = 0x4700  # This lets us know we are reading a camera object
+
+#>------ Sub defines of LIGHT
+LIGHT_SPOTLIGHT = 0x4610  # The target of a spotlight
+LIGHT_OFF = 0x4620  # The light is off
+LIGHT_ATTENUATE = 0x4625  # Light attenuate flag
+LIGHT_RAYSHADE = 0x4627  # Light rayshading flag
+LIGHT_SPOT_SHADOWED  = 0x4630  # Light spot shadow flag
+LIGHT_LOCAL_SHADOW = 0x4640  # Light shadow values 1
+LIGHT_LOCAL_SHADOW2 = 0x4641  # Light shadow values 2
+LIGHT_SPOT_SEE_CONE  = 0x4650  # Light spot cone flag
+LIGHT_SPOT_RECTANGLE = 0x4651  # Light spot rectangle flag
+LIGHT_SPOT_OVERSHOOT = 0x4652 # Light spot overshoot flag
+LIGHT_SPOT_PROJECTOR = 0x4653 # Light spot bitmap name
+LIGHT_EXCLUDE = 0x4654  # Light excluded objects
+LIGHT_RANGE = 0x4655  # Light range
+LIGHT_SPOT_ROLL = 0x4656  # The roll angle of the spot
+LIGHT_SPOT_ASPECT = 0x4657  # Light spot aspect flag
+LIGHT_RAY_BIAS = 0x4658  # Light ray bias value
+LIGHT_INNER_RANGE = 0x4659  # The light inner range
+LIGHT_OUTER_RANGE = 0x465A  # The light outer range
+LIGHT_MULTIPLIER = 0x465B  # The light energy factor
+LIGHT_AMBIENT_LIGHT = 0x4680  # Light ambient flag
 
 # >------ sub defines of CAMERA
-OBJECT_CAMERA = 0x4700  # This lets un know we are reading a camera object
 OBJECT_CAM_RANGES = 0x4720  # The camera range values
 
 # >------ sub defines of OBJECT_MESH
@@ -112,15 +114,15 @@ OBJECT_SMOOTH = 0x4150  # The Object smooth groups
 OBJECT_TRANS_MATRIX = 0x4160  # The Object Matrix
 
 # >------ sub defines of EDITKEYFRAME
-KFDATA_AMBIENT = 0xB001
-KFDATA_OBJECT = 0xB002
-KFDATA_CAMERA = 0xB003
-KFDATA_TARGET = 0xB004
-KFDATA_LIGHT = 0xB005
-KFDATA_L_TARGET = 0xB006
-KFDATA_SPOTLIGHT = 0xB007
-KFDATA_KFSEG = 0xB008
-KFDATA_CURTIME = 0xB009
+KFDATA_AMBIENT = 0xB001  # Keyframe ambient node
+KFDATA_OBJECT = 0xB002  # Keyframe object node
+KFDATA_CAMERA = 0xB003  # Keyframe camera node
+KFDATA_TARGET = 0xB004  # Keyframe target node
+KFDATA_LIGHT  = 0xB005  # Keyframe light node
+KFDATA_LTARGET = 0xB006  # Keyframe light target node
+KFDATA_SPOTLIGHT = 0xB007  # Keyframe spotlight node
+KFDATA_KFSEG = 0xB008  # Keyframe start and stop
+KFDATA_KFCURTIME = 0xB009  # Keyframe current frame
 # KFDATA_KFHDR = 0xB00A
 
 # >------ sub defines of KEYFRAME_NODE
@@ -903,12 +905,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.color = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
-        elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_MULTIPLIER:  # Intensity
+        elif CreateLightObject and new_chunk.ID == LIGHT_MULTIPLIER:  # Intensity
             temp_data = file.read(SZ_FLOAT)
             contextLamp.data.energy = (float(struct.unpack('f', temp_data)[0]) * 1000)
             new_chunk.bytes_read += SZ_FLOAT
 
-        elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_SPOT:  # Spotlight
+        elif CreateLightObject and new_chunk.ID == LIGHT_SPOTLIGHT:  # Spotlight
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.type = 'SPOT'
             spot = mathutils.Vector(struct.unpack('<3f', temp_data))
@@ -927,10 +929,16 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextLamp.data.spot_size = math.radians(beam_angle)
             contextLamp.data.spot_blend = (1.0 - (hotspot / beam_angle)) * 2
             new_chunk.bytes_read += SZ_FLOAT
-        elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_ROLL:  # Roll
+        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_ROLL:  # Roll
             temp_data = file.read(SZ_FLOAT)
             contextLamp.rotation_euler[1] = float(struct.unpack('f', temp_data)[0])
             new_chunk.bytes_read += SZ_FLOAT
+        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_SHADOWED:  # Shadow
+            newLight.use_shadow = True
+        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_SEE_CONE:  # Cone
+            newLight.show_cone = True
+        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_RECTANGLE:  # Square
+            newLight.use_square = True
 
         elif contextObName and new_chunk.ID == OBJECT_CAMERA and CreateCameraObject is False:  # Basic camera support
             camera = bpy.data.cameras.new("Camera")
@@ -954,7 +962,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextCamera.rotation_euler[2] = -1 * (math.radians(90) - math.acos(cam[0] / focus))
             new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_FLOAT)
-            contextCamera.data.lens = float(struct.unpack('f', temp_data)[0])
+            contextCamera.data.lens = float(struct.unpack('f', temp_data)[0])  # Focus
             new_chunk.bytes_read += SZ_FLOAT
             contextMatrix = None  # Reset matrix
             CreateBlenderObject = False
