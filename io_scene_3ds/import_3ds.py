@@ -413,8 +413,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         imported_objects.append(ob)
 
         if myContextMesh_flag:
-            # Bit 0 (0x1) sets edge CA visible, Bit 1 (0x2) sets edge BC visible and Bit 2 (0x4) sets edge AB visible
-            # In Blender we use sharp edges for those flags
+            """Bit 0 (0x1) sets edge CA visible, Bit 1 (0x2) sets edge BC visible and Bit 2 (0x4) sets edge AB visible
+               In Blender we use sharp edges for those flags"""
             for f, pl in enumerate(bmesh.polygons):
                 face = myContextMesh_facels[f]
                 faceflag = myContextMesh_flag[f]
@@ -423,25 +423,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 edge_ca = bmesh.edges[bmesh.loops[pl.loop_start + 2].edge_index]
                 if face[2] == 0:
                     edge_ab, edge_bc, edge_ca = edge_ca, edge_ab, edge_bc
-                if faceflag == 1:
+                if faceflag & 0x1:
                     edge_ca.use_edge_sharp = True
-                elif faceflag == 2:
+                if faceflag & 0x2:
                     edge_bc.use_edge_sharp = True
-                elif faceflag == 3:
-                    edge_ca.use_edge_sharp = True
-                    edge_bc.use_edge_sharp = True
-                elif faceflag == 4:
+                if faceflag & 0x4:
                     edge_ab.use_edge_sharp = True
-                elif faceflag == 5:
-                    edge_ca.use_edge_sharp = True
-                    edge_ab.use_edge_sharp = True
-                elif faceflag == 6:
-                    edge_bc.use_edge_sharp = True
-                    edge_ab.use_edge_sharp = True
-                elif faceflag == 7:
-                    edge_bc.use_edge_sharp = True
-                    edge_ab.use_edge_sharp = True
-                    edge_ca.use_edge_sharp = True
 
         if myContextMesh_smooth:
             for f, pl in enumerate(bmesh.polygons):
