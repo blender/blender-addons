@@ -817,11 +817,11 @@ def extract_triangles(mesh):
 
         faceflag = 0
         if c_a.use_edge_sharp:
-            faceflag = faceflag + 0x1
+            faceflag |= 0x1
         if b_c.use_edge_sharp:
-            faceflag = faceflag + 0x2
+            faceflag |= 0x2
         if a_b.use_edge_sharp:
-            faceflag = faceflag + 0x4
+            faceflag |= 0x4
 
         smoothgroup = polygroup[face.polygon_index]
 
