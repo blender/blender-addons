@@ -122,7 +122,7 @@ KFDATA_LIGHT  = 0xB005  # Keyframe light node
 KFDATA_LTARGET = 0xB006  # Keyframe light target node
 KFDATA_SPOTLIGHT = 0xB007  # Keyframe spotlight node
 KFDATA_KFSEG = 0xB008  # Keyframe start and stop
-KFDATA_KFCURTIME = 0xB009  # Keyframe current frame
+KFDATA_CURTIME = 0xB009  # Keyframe current frame
 # KFDATA_KFHDR = 0xB00A
 
 # >------ sub defines of KEYFRAME_NODE
