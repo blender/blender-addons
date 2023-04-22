@@ -507,6 +507,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 voffset = read_float(temp_chunk)
 
             elif temp_chunk.ID == MAT_MAP_TILING:
+                """Control bit flags, where 0x1 activates decaling, 0x2 activates mirror,
+                0x8 activates inversion, 0x10 deactivates tiling, 0x20 activates summed area sampling,
+                0x40 activates alpha source, 0x80 activates tinting, 0x100 ignores alpha, and 0x200 activates RGB tint.
+                Bits 0x80, 0x100, and 0x200 are only used with DIFFUSEMAP, TEXMAP, and SPECMAP chunks.
+                0x40, when used with a DIFFUSEMAP, TEXMAP, or SPECMAP chunk must be accompanied with a tint bit, either 0x100 or 0x200"""
                 tiling = read_short(temp_chunk)
                 if tiling & 0x1:
                     extend = 'decal'
@@ -516,15 +521,15 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                     extend = 'invert'
                 elif tiling & 0x10:
                     extend = 'noWrap'
-                elif tiling & 0x20:
+                if tiling & 0x20:
                     alpha = 'sat'
-                elif tiling & 0x40:
+                if tiling & 0x40:
                     alpha = 'alpha'
-                elif tiling & 0x80:
+                if tiling & 0x80:
                     tint = 'tint'
-                elif tiling & 0x100:
+                if tiling & 0x100:
                     tint = 'noAlpha'
-                elif tiling & 0x200:
+                if tiling & 0x200:
                     tint = 'RGBtint'
 
             elif temp_chunk.ID == MAT_MAP_ANG:
