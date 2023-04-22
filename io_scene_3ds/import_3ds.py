@@ -212,7 +212,6 @@ def process_next_object_chunk(file, previous_chunk):
         # read the next chunk
         read_chunk(file, new_chunk)
 
-
 def skip_to_end(file, skip_chunk):
     buffer_size = skip_chunk.length - skip_chunk.bytes_read
     binary_format = "%ic" % buffer_size
@@ -511,7 +510,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 0x8 activates inversion, 0x10 deactivates tiling, 0x20 activates summed area sampling,
                 0x40 activates alpha source, 0x80 activates tinting, 0x100 ignores alpha, and 0x200 activates RGB tint.
                 Bits 0x80, 0x100, and 0x200 are only used with DIFFUSEMAP, TEXMAP, and SPECMAP chunks.
-                0x40, when used with a DIFFUSEMAP, TEXMAP, or SPECMAP chunk must be accompanied with a tint bit, either 0x100 or 0x200"""
+                0x40, when used with a DIFFUSEMAP, TEXMAP, or SPECMAP chunk must be accompanied with a tinting bit,
+                either 0x100 or 0x200, tintcolor will be processed if colorchunks are present"""
                 tiling = read_short(temp_chunk)
                 if tiling & 0x1:
                     extend = 'decal'
@@ -534,7 +534,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
             elif temp_chunk.ID == MAT_MAP_ANG:
                 angle = read_float(temp_chunk)
-                print("\nwarning: UV angle mapped to z-rotation")
 
             elif temp_chunk.ID == MAT_MAP_COL1:
                 tintcolor = read_byte_color(temp_chunk)
