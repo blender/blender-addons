@@ -989,7 +989,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         # including these here means their OB_NODE_HDR are scanned
         # another object is being processed
-        elif new_chunk.ID in {KFDATA_AMBIENT, KFDATA_OBJECT, KFDATA_CAMERA, KFDATA_LIGHT}:
+        elif new_chunk.ID in {KFDATA_AMBIENT, KFDATA_OBJECT, KFDATA_CAMERA, KFDATA_LIGHT, KFDATA_SPOTLIGHT}:
             object_id = ROOT_OBJECT
             tracking = 'OBJECT'
             child = None
