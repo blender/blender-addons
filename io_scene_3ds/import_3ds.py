@@ -921,11 +921,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextLamp.rotation_euler[1] = float(struct.unpack('f', temp_data)[0])
             new_chunk.bytes_read += SZ_FLOAT
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_SHADOWED:  # Shadow
-            newLight.use_shadow = True
+            contextLamp.data.use_shadow = True
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_SEE_CONE:  # Cone
-            newLight.show_cone = True
+            contextLamp.data.show_cone = True
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_RECTANGLE:  # Square
-            newLight.use_square = True
+            contextLamp.data.use_square = True
 
         elif contextObName and new_chunk.ID == OBJECT_CAMERA and CreateCameraObject is False:  # Basic camera support
             camera = bpy.data.cameras.new("Camera")
