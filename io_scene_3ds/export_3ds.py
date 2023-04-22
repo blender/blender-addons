@@ -85,7 +85,10 @@ OBJECT_CAMERA = 0x4700  # This lets us know we are reading a camera object
 # >------ Sub defines of LIGHT
 LIGHT_MULTIPLIER = 0x465B  # The light energy factor
 LIGHT_SPOTLIGHT = 0x4610  # The target of a spotlight
-LIGHT_SPOTROLL = 0x4656  # The roll angle of the spot
+LIGHT_SPOT_ROLL = 0x4656  # Light spot roll angle
+LIGHT_SPOT_SHADOWED = 0x4630  # Light spot shadow flag
+LIGHT_SPOT_SEE_CONE = 0x4650  # Light spot show cone flag
+LIGHT_SPOT_RECTANGLE = 0x4651  # Light spot rectangle flag
 
 # >------ sub defines of CAMERA
 OBJECT_CAM_RANGES = 0x4720  # The camera range values
@@ -106,20 +109,35 @@ KFDATA_KFCURTIME = 0xB009
 KFDATA_OBJECT_NODE_TAG = 0xB002
 
 # >------ sub defines of OBJECT_NODE_TAG
-OBJECT_NODE_ID = 0xB030
-OBJECT_NODE_HDR = 0xB010
-OBJECT_PIVOT = 0xB013
-OBJECT_INSTANCE_NAME = 0xB011
-POS_TRACK_TAG = 0xB020
-ROT_TRACK_TAG = 0xB021
-SCL_TRACK_TAG = 0xB022
+AMBIENT_NODE_TAG = 0xB001  # Ambient node tag
+OBJECT_NODE_TAG = 0xB002  # Object tree tag
+CAMERA_NODE_TAG = 0xB003  # Camera object tag
+TARGET_NODE_TAG = 0xB004  # Camera target tag
+LIGHT_NODE_TAG = 0xB005  # Light object tag
+LTARGET_NODE_TAG = 0xB006  # Light target tag
+SPOT_NODE_TAG = 0xB007  # Spotlight tag
+OBJECT_NODE_ID = 0xB030  # Object hierachy ID
+OBJECT_NODE_HDR = 0xB010  # Hierachy tree header
+OBJECT_INSTANCE_NAME = 0xB011  # Object instance name
+OBJECT_PIVOT = 0xB013  # Object pivot position
+OBJECT_BOUNDBOX = 0xB014  # Object boundbox
+OBJECT_MORPH_SMOOTH = 0xB015  # Object smooth angle
+POS_TRACK_TAG = 0xB020  # Position transform tag
+ROT_TRACK_TAG = 0xB021  # Rotation transform tag
+SCL_TRACK_TAG = 0xB022  # Scale transform tag
+FOV_TRACK_TAG = 0xB023  # Field of view tag
+ROLL_TRACK_TAG = 0xB024  # Roll transform tag
+COL_TRACK_TAG = 0xB025  # Color transform tag
+HOTSPOT_TRACK_TAG = 0xB027  # Hotspot transform tag
+FALLOFF_TRACK_TAG = 0xB028  # Falloff transform tag
+
+ROOT_OBJECT          = 0xFFFF  # Root object
 
 
 # So 3ds max can open files, limit names to 12 in length
 # this is very annoying for filenames!
 name_unique = []  # stores str, ascii only
 name_mapping = {}  # stores {orig: byte} mapping
-
 
 def sane_name(name):
     name_fixed = name_mapping.get(name)
@@ -143,12 +161,10 @@ def sane_name(name):
 def uv_key(uv):
     return round(uv[0], 6), round(uv[1], 6)
 
-
 # size defines:
 SZ_SHORT = 2
 SZ_INT = 4
 SZ_FLOAT = 4
-
 
 class _3ds_ushort(object):
     """Class representing a short (2-byte integer) for a 3ds file.
@@ -1362,7 +1378,7 @@ def save(operator,
         object_chunk.add_variable("light", _3ds_string(sane_name(ob.name)))
         light_chunk.add_variable("location", _3ds_point_3d(ob.location))
         color_float_chunk.add_variable("color", _3ds_float_color(ob.data.color))
-        energy_factor.add_variable("energy", _3ds_float(ob.data.energy * .001))
+        energy_factor.add_variable("energy", _3ds_float(ob.data.energy * 0.001))
         light_chunk.add_subchunk(color_float_chunk)
         light_chunk.add_subchunk(energy_factor)
 
@@ -1374,12 +1390,18 @@ def save(operator,
             pos_y = ob.location[1] + (ob.location[0] * math.tan(math.radians(90) - ob.rotation_euler[2]))
             pos_z = hypo * math.tan(math.radians(90) - ob.rotation_euler[0])
             spotlight_chunk = _3ds_chunk(LIGHT_SPOTLIGHT)
-            spot_roll_chunk = _3ds_chunk(LIGHT_SPOTROLL)
+            spot_roll_chunk = _3ds_chunk(LIGHT_SPOT_ROLL)
             spotlight_chunk.add_variable("target", _3ds_point_3d((pos_x, pos_y, pos_z)))
             spotlight_chunk.add_variable("hotspot", _3ds_float(round(hotspot, 4)))
             spotlight_chunk.add_variable("angle", _3ds_float(round(cone_angle, 4)))
             spot_roll_chunk.add_variable("roll", _3ds_float(round(ob.rotation_euler[1], 6)))
             spotlight_chunk.add_subchunk(spot_roll_chunk)
+            if ob.data.show_cone:
+                spot_cone_chunk = _3ds_chunk(LIGHT_SPOT_SEE_CONE)
+                spotlight_chunk.add_subchunk(spot_cone_chunk)
+            if ob.data.use_square:
+                spot_square_chunk = _3ds_chunk(LIGHT_SPOT_RECTANGLE)
+                spotlight_chunk.add_subchunk(spot_square_chunk)
             light_chunk.add_subchunk(spotlight_chunk)
 
         # Add light to object info
