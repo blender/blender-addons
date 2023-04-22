@@ -1190,21 +1190,20 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         if parent == ROOT_OBJECT:
             if ob.parent is not None:
                 ob.parent = None
-        else:
+        elif parent not in object_dict:
             if ob.parent != object_list[parent]:
-                if ob.parent not in object_dict:
-                    if ob == object_list[parent]:
-                        print('   warning: Cannot assign self to parent ', ob)
-                    else:
-                        ob.parent = object_list[parent]
+                if ob == object_list[parent]:
+                    print('   warning: Cannot assign self to parent ', ob)
                 else:
-                    if ob.parent != object_dict[parent]:
-                        if ob == object_dict[parent]:
-                            print('   warning: Cannot assign self to parent ', ob)
-                        else:
-                            ob.parent = object_dict[parent]
+                    ob.parent = object_list[parent]    
+        else:
+            if ob.parent != object_dict[parent]:
+                if ob == object_dict[parent]:
+                    print('   warning: Cannot assign self to parent ', ob)
+                else:
+                    ob.parent = object_dict[parent]
 
-                #pivot_list[ind] += pivot_list[parent]  # Not sure this is correct, should parent space matrix be applied before combining?
+        #pivot_list[ind] += pivot_list[parent]  # Not sure this is correct, should parent space matrix be applied before combining?
 
     # fix pivots
     for ind, ob in enumerate(object_list):
