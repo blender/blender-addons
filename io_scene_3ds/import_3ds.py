@@ -449,6 +449,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     CreateBlenderObject = False
     CreateLightObject = False
     CreateCameraObject = False
+    CreateTrackData = False
 
     def read_float_color(temp_chunk):
         temp_data = file.read(SZ_3FLOAT)
@@ -959,7 +960,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif new_chunk.ID == EDITKEYFRAME:
             trackposition = {}
-            TrackData = False
 
         elif KEYFRAME and new_chunk.ID == KFDATA_KFSEG:
             temp_data = file.read(SZ_U_INT)
@@ -984,7 +984,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             tracking = 'OBJECT'
             child = None
 
-        elif new_chunk.ID in {KFDATA_TARGET, KFDATA_L_TARGET}:
+        elif CreateTrackData and new_chunk.ID in {KFDATA_TARGET, KFDATA_L_TARGET}:
             tracking = 'TARGET'
             child = None
 
@@ -1063,13 +1063,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             child.location = read_track_data(temp_chunk)[0]
             if child.type in {'LIGHT', 'CAMERA'}:
                 trackposition[0] = child.location
-                TrackData = True
+                CreateTrackData = True
             for keydata in keyframe_data.items():
                 trackposition[keydata[0]] = keydata[1]  # Keep track to position for target calculation
                 child.location = mathutils.Vector(keydata[1]) * (CONSTRAIN * 0.1) if hierarchy == ROOT_OBJECT and CONSTRAIN != 0.0 else keydata[1]
                 child.keyframe_insert(data_path="location", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and TrackData and tracking == 'TARGET':  # Target position
+        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking == 'TARGET':  # Target position
             keyframe_data = {}
             target = read_track_data(temp_chunk)[0]
             pos = child.location + mathutils.Vector(target)  # Target triangulation
