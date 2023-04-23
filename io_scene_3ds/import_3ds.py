@@ -84,10 +84,10 @@ LIGHT_SPOTLIGHT = 0x4610  # The target of a spotlight
 LIGHT_OFF = 0x4620  # The light is off
 LIGHT_ATTENUATE = 0x4625  # Light attenuate flag
 LIGHT_RAYSHADE = 0x4627  # Light rayshading flag
-LIGHT_SPOT_SHADOWED  = 0x4630  # Light spot shadow flag
+LIGHT_SPOT_SHADOWED = 0x4630  # Light spot shadow flag
 LIGHT_LOCAL_SHADOW = 0x4640  # Light shadow values 1
 LIGHT_LOCAL_SHADOW2 = 0x4641  # Light shadow values 2
-LIGHT_SPOT_SEE_CONE  = 0x4650  # Light spot cone flag
+LIGHT_SPOT_SEE_CONE = 0x4650  # Light spot cone flag
 LIGHT_SPOT_RECTANGLE = 0x4651  # Light spot rectangle flag
 LIGHT_SPOT_OVERSHOOT = 0x4652 # Light spot overshoot flag
 LIGHT_SPOT_PROJECTOR = 0x4653 # Light spot bitmap name
@@ -108,41 +108,41 @@ OBJECT_CAM_RANGES = 0x4720  # The camera range values
 OBJECT_VERTICES = 0x4110  # The objects vertices
 OBJECT_VERTFLAGS = 0x4111  # The objects vertex flags
 OBJECT_FACES = 0x4120  # The objects faces
-OBJECT_MATERIAL = 0x4130  # This is found if the object has a material, either texture map or color
-OBJECT_UV = 0x4140  # The UV texture coordinates
-OBJECT_SMOOTH = 0x4150  # The Object smooth groups
-OBJECT_TRANS_MATRIX = 0x4160  # The Object Matrix
+OBJECT_MATERIAL = 0x4130  # The objects face material
+OBJECT_UV = 0x4140  # The vertex UV texture coordinates
+OBJECT_SMOOTH = 0x4150  # The objects face smooth groups
+OBJECT_TRANS_MATRIX = 0x4160  # The objects Matrix
 
 # >------ sub defines of EDITKEYFRAME
 KFDATA_AMBIENT = 0xB001  # Keyframe ambient node
 KFDATA_OBJECT = 0xB002  # Keyframe object node
 KFDATA_CAMERA = 0xB003  # Keyframe camera node
 KFDATA_TARGET = 0xB004  # Keyframe target node
-KFDATA_LIGHT  = 0xB005  # Keyframe light node
+KFDATA_LIGHT = 0xB005  # Keyframe light node
 KFDATA_LTARGET = 0xB006  # Keyframe light target node
 KFDATA_SPOTLIGHT = 0xB007  # Keyframe spotlight node
 KFDATA_KFSEG = 0xB008  # Keyframe start and stop
 KFDATA_CURTIME = 0xB009  # Keyframe current frame
-# KFDATA_KFHDR = 0xB00A
+KFDATA_KFHDR = 0xB00A  # Keyframe node header
 
 # >------ sub defines of KEYFRAME_NODE
-OBJECT_NODE_HDR = 0xB010
-OBJECT_INSTANCE_NAME = 0xB011
-# OBJECT_PRESCALE = 0xB012
-OBJECT_PIVOT = 0xB013
-# OBJECT_BOUNDBOX =   0xB014
-MORPH_SMOOTH = 0xB015
-POS_TRACK_TAG = 0xB020
-ROT_TRACK_TAG = 0xB021
-SCL_TRACK_TAG = 0xB022
-FOV_TRACK_TAG = 0xB023
-ROLL_TRACK_TAG = 0xB024
-COL_TRACK_TAG = 0xB025
-# MORPH_TRACK_TAG = 0xB026
-HOTSPOT_TRACK_TAG = 0xB027
-FALLOFF_TRACK_TAG = 0xB028
-# HIDE_TRACK_TAG = 0xB029
-OBJECT_NODE_ID = 0xB030
+OBJECT_NODE_HDR = 0xB010  # Keyframe object node header
+OBJECT_INSTANCE_NAME = 0xB011  # Keyframe object name for dummy objects
+OBJECT_PRESCALE = 0xB012  # Keyframe object prescale
+OBJECT_PIVOT = 0xB013  # Keyframe object pivot position
+OBJECT_BOUNDBOX = 0xB014  # Keyframe object boundbox
+MORPH_SMOOTH = 0xB015  # Auto smooth angle for keyframe mesh objects
+POS_TRACK_TAG = 0xB020  # Keyframe object position track
+ROT_TRACK_TAG = 0xB021  # Keyframe object rotation track
+SCL_TRACK_TAG = 0xB022  # Keyframe object scale track
+FOV_TRACK_TAG = 0xB023  # Keyframe camera field of view track
+ROLL_TRACK_TAG = 0xB024  # Keyframe camera roll track
+COL_TRACK_TAG = 0xB025  # Keyframe light color track
+MORPH_TRACK_TAG = 0xB026  # Keyframe object morph smooth track
+HOTSPOT_TRACK_TAG = 0xB027  # Keyframe spotlight hotspot track
+FALLOFF_TRACK_TAG = 0xB028  # Keyframe spotlight falloff track
+HIDE_TRACK_TAG = 0xB029  # Keyframe object hide track
+OBJECT_NODE_ID = 0xB030  # Keyframe object node id
 
 ROOT_OBJECT = 0xFFFF
 
@@ -508,9 +508,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             elif temp_chunk.ID == MAT_MAP_TILING:
                 """Control bit flags, where 0x1 activates decaling, 0x2 activates mirror,
                 0x8 activates inversion, 0x10 deactivates tiling, 0x20 activates summed area sampling,
-                0x40 activates alpha source, 0x80 activates tinting, 0x100 ignores alpha, and 0x200 activates RGB tint.
-                Bits 0x80, 0x100, and 0x200 are only used with DIFFUSEMAP, TEXMAP, and SPECMAP chunks.
-                0x40, when used with a DIFFUSEMAP, TEXMAP, or SPECMAP chunk must be accompanied with a tinting bit,
+                0x40 activates alpha source, 0x80 activates tinting, 0x100 ignores alpha, 0x200 activates RGB tint.
+                Bits 0x80, 0x100, and 0x200 are only used with TEXMAP, TEX2MAP, and SPECMAP chunks.
+                0x40, when used with a TEXMAP, TEX2MAP, or SPECMAP chunk must be accompanied with a tint bit,
                 either 0x100 or 0x200, tintcolor will be processed if colorchunks are present"""
                 tiling = read_short(temp_chunk)
                 if tiling & 0x1:
@@ -666,7 +666,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif new_chunk.ID == MAT_NAME:
             material_name, read_str_len = read_string(file)
-
             # plus one for the null character that ended the string
             new_chunk.bytes_read += read_str_len
             contextMaterial.name = material_name.rstrip()  # remove trailing  whitespace
@@ -751,7 +750,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextMaterial.diffuse_color[3] = 1 - float(struct.unpack('f', temp_data)[0])
             else:
-                print("Cannot read material transparency")
+                skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
 
         elif new_chunk.ID == MAT_SELF_ILPCT:
@@ -891,7 +890,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextMatrix = None  # Reset matrix
             CreateBlenderObject = False
             CreateLightObject = True
-
         elif CreateLightObject and new_chunk.ID == COLOR_F:  # Light color
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.color = struct.unpack('<3f', temp_data)
@@ -918,7 +916,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_FLOAT)  # Beam angle
             beam_angle = float(struct.unpack('f', temp_data)[0])
             contextLamp.data.spot_size = math.radians(beam_angle)
-            contextLamp.data.spot_blend = (1.0 - (hotspot / beam_angle)) * 2
+            contextLamp.data.spot_blend = 1.0 - (hotspot / beam_angle)
             new_chunk.bytes_read += SZ_FLOAT
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_ROLL:  # Roll
             temp_data = file.read(SZ_FLOAT)
@@ -1222,10 +1220,6 @@ def load_3ds(filepath,
              KEYFRAME=True,
              APPLY_MATRIX=True,
              global_matrix=None):
-    #    global SCN
-    # XXX
-    #   if BPyMessages.Error_NoFile(filepath):
-    #       return
 
     print("importing 3DS: %r..." % (filepath), end="")
 
@@ -1233,14 +1227,10 @@ def load_3ds(filepath,
         bpy.ops.object.select_all(action='DESELECT')
 
     time1 = time.time()
-#   time1 = Blender.sys.time()
-
     current_chunk = Chunk()
-
     file = open(filepath, 'rb')
 
     # here we go!
-    # print 'reading the first chunk'
     read_chunk(file, current_chunk)
     if current_chunk.ID != PRIMARY:
         print('\tFatal Error:  Not a valid 3ds file: %r' % filepath)
@@ -1251,8 +1241,6 @@ def load_3ds(filepath,
         BOUNDS_3DS[:] = [1 << 30, 1 << 30, 1 << 30, -1 << 30, -1 << 30, -1 << 30]
     else:
         del BOUNDS_3DS[:]
-
-    # IMAGE_SEARCH
 
     # fixme, make unglobal, clear in case
     object_dictionary.clear()
@@ -1266,11 +1254,6 @@ def load_3ds(filepath,
     # fixme, make unglobal
     object_dictionary.clear()
     object_matrix.clear()
-
-    # Link the objects into this scene.
-    # Layers = scn.Layers
-
-    # REMOVE DUMMYVERT, - remove this in the next release when blenders internal are fixed.
 
     if APPLY_MATRIX:
         for ob in imported_objects:
@@ -1290,7 +1273,6 @@ def load_3ds(filepath,
             bpy.ops.object.rotation_clear()
             bpy.ops.object.location_clear()
 
-    # Done DUMMYVERT
     """
     if IMPORT_AS_INSTANCE:
         name = filepath.split('\\')[-1].split('/')[-1]
