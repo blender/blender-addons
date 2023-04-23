@@ -41,6 +41,12 @@ from .fbx_utils import (
     nors_transformed,
     parray_as_ndarray,
     astype_view_signedness,
+    MESH_ATTRIBUTE_MATERIAL_INDEX,
+    MESH_ATTRIBUTE_POSITION,
+    MESH_ATTRIBUTE_EDGE_VERTS,
+    MESH_ATTRIBUTE_CORNER_VERT,
+    MESH_ATTRIBUTE_SHARP_FACE,
+    MESH_ATTRIBUTE_SHARP_EDGE,
 )
 
 # global singleton, assign on execution
@@ -1458,6 +1464,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     tot_edges = len(fbx_edges)
 
     mesh = bpy.data.meshes.new(name=elem_name_utf8)
+    attributes = mesh.attributes
 
     if tot_verts:
         if geom_mat_co is not None:

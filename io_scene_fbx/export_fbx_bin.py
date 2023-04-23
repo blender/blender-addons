@@ -49,6 +49,9 @@ from .fbx_utils import (
     units_blender_to_fbx_factor, units_convertor, units_convertor_iter,
     matrix4_to_array, similar_values, shape_difference_exclude_similar, astype_view_signedness, fast_first_axis_unique,
     fast_first_axis_flat,
+    # Attribute helpers.
+    MESH_ATTRIBUTE_CORNER_EDGE, MESH_ATTRIBUTE_SHARP_EDGE, MESH_ATTRIBUTE_EDGE_VERTS, MESH_ATTRIBUTE_CORNER_VERT,
+    MESH_ATTRIBUTE_SHARP_FACE, MESH_ATTRIBUTE_POSITION, MESH_ATTRIBUTE_MATERIAL_INDEX,
     # Mesh transform helpers.
     vcos_transformed, nors_transformed,
     # UUID from key.
@@ -887,6 +890,8 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
             write_crease = last_subsurf.use_creases
 
     elem_data_single_int32(geom, b"GeometryVersion", FBX_GEOMETRY_VERSION)
+
+    attributes = me.attributes
 
     # Vertex cos.
     co_bl_dtype = np.single
