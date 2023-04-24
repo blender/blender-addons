@@ -12,9 +12,9 @@ from bpy_extras.node_shader_utils import PrincipledBSDFWrapper
 BOUNDS_3DS = []
 
 
-######################################################
-# Data Structures
-######################################################
+###################
+# Data Structures #
+###################
 
 # Some of the chunks that we will see
 # ----- Primary Chunk, at the beginning of each file
@@ -653,7 +653,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 contextMesh_flag = None
                 contextMesh_smooth = None
                 contextMeshUV = None
-                # Reset matrix
                 contextMatrix = None
 
             CreateBlenderObject = True
@@ -819,7 +818,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MAT_TEX2_MAP:
             read_texture(new_chunk, temp_chunk, "Tex", "TEXTURE")
 
-        # mesh chunk
+        # If mesh chunk
         elif new_chunk.ID == OBJECT_MESH:
             pass
 
@@ -987,7 +986,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             tracking = 'OBJECT'
             child = None
 
-        elif CreateTrackData and new_chunk.ID in {KFDATA_TARGET, KFDATA_L_TARGET}:
+        elif CreateTrackData and new_chunk.ID in {KFDATA_TARGET, KFDATA_LTARGET}:
             tracking = 'TARGET'
             child = None
 
