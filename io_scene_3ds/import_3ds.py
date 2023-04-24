@@ -200,10 +200,10 @@ def read_string(file):
     # print("read string", s)
     return str(b''.join(s), "utf-8", "replace"), len(s) + 1
 
-######################################################
-# IMPORT
-######################################################
 
+##########
+# IMPORT #
+##########
 
 def process_next_object_chunk(file, previous_chunk):
     new_chunk = Chunk()
@@ -669,12 +669,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             material_name, read_str_len = read_string(file)
             # plus one for the null character that ended the string
             new_chunk.bytes_read += read_str_len
-            contextMaterial.name = material_name.rstrip()  # remove trailing  whitespace
+            contextMaterial.name = material_name.rstrip()  # remove trailing whitespace
             MATDICT[material_name] = contextMaterial
 
         elif new_chunk.ID == MAT_AMBIENT:
             read_chunk(file, temp_chunk)
-            # only available color is emission color
+            # to not loose this data, ambient color is stored in line color
             if temp_chunk.ID == COLOR_F:
                 contextMaterial.line_color[:3] = read_float_color(temp_chunk)
             elif temp_chunk.ID == COLOR_24:
@@ -695,7 +695,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif new_chunk.ID == MAT_SPECULAR:
             read_chunk(file, temp_chunk)
-            # Specular color is available
             if temp_chunk.ID == COLOR_F:
                 contextMaterial.specular_color = read_float_color(temp_chunk)
             elif temp_chunk.ID == COLOR_24:
@@ -831,7 +830,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             new_chunk.bytes_read += 2
             contextMesh_vertls = struct.unpack('<%df' % (num_verts * 3), file.read(SZ_3FLOAT * num_verts))
             new_chunk.bytes_read += SZ_3FLOAT * num_verts
-            # dummyvert is not used atm!
 
         elif new_chunk.ID == OBJECT_FACES:
             temp_data = file.read(SZ_U_SHORT)
@@ -877,9 +875,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextMatrix = mathutils.Matrix(
                 (data[:3] + [0], data[3:6] + [0], data[6:9] + [0], data[9:] + [1])).transposed()
 
-        elif contextObName and new_chunk.ID == OBJECT_LIGHT:  # Basic lamp support.
-            # no lamp in dict that would be confusing
-            # ...why not? just set CreateBlenderObject to False
+        elif contextObName and new_chunk.ID == OBJECT_LIGHT:  # Basic lamp support
             newLamp = bpy.data.lights.new("Lamp", 'POINT')
             contextLamp = bpy.data.objects.new(contextObName, newLamp)
             context.view_layer.active_layer_collection.collection.objects.link(contextLamp)
@@ -946,10 +942,17 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             new_chunk.bytes_read += SZ_3FLOAT
             temp_data = file.read(SZ_FLOAT)   # triangulating camera angles
             direction = math.copysign(math.sqrt(pow(focus, 2) + pow(target[2], 2)), cam[1])
-            pitch = math.radians(90) - math.copysign(math.acos(focus / direction), cam[2])
-            contextCamera.rotation_euler[0] = -1 * math.copysign(pitch, cam[1])
-            contextCamera.rotation_euler[1] = float(struct.unpack('f', temp_data)[0])
-            contextCamera.rotation_euler[2] = -1 * (math.radians(90) - math.acos(cam[0] / focus))
+            if contextCamera.location[0] and contextCamera.location[1] > 0:
+                contextCamera.rotation_euler[0] = math.copysign(tilt, cam[1])
+                contextCamera.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(cam[0]/focus), cam[0])
+            elif contextCamera.location[0] <= 0 and newCamera.location[1] > 0:
+                contextCamera.rotation_euler[0] = math.copysign(tilt, cam[1])
+                contextCamera.rotation_euler[2] = math.radians(180)+math.copysign(math.atan(cam[0]/focus), cam[0])
+            else:
+                pitch = math.radians(90)-math.copysign(math.acos(focus/direction), cam[2])
+                contextCamera.rotation_euler[0] = -1*(math.copysign(pitch, cam[1]))
+                contextCamera.rotation_euler[2] = -1*(math.radians(90)-math.acos(cam[0]/focus))
+            contextCamera.rotation_euler[1] = float(struct.unpack('f', temp_data)[0])  # Roll
             new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_FLOAT)
             contextCamera.data.lens = float(struct.unpack('f', temp_data)[0])  # Focus
@@ -1075,17 +1078,31 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             pos = child.location + mathutils.Vector(target)  # Target triangulation
             foc = math.copysign(math.sqrt(pow(pos[1],2)+pow(pos[0],2)),pos[1])
             hyp = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[1])
-            tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
-            child.rotation_euler[0] = -1*math.copysign(tilt, pos[1])
-            child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
+            if child.location[0] and child.location[1] > 0:
+                child.rotation_euler[0] = math.copysign(tilt, pos[1])
+                child.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(pos[0]/foc), pos[0])
+            elif child.location[0] <= 0 and child.location[1] > 0:
+                child.rotation_euler[0] = math.copysign(tilt, pos[1])
+                child.rotation_euler[2] = math.radians(180)+math.copysign(math.atan(pos[0]/foc), pos[0])
+            else:
+                tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
+                child.rotation_euler[0] = -1*(math.copysign(tilt, pos[1]))
+                child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
             for keydata in keyframe_data.items():
                 target = keydata[1]
                 pos = mathutils.Vector(trackposition[keydata[0]]) + mathutils.Vector(target)
                 foc = math.copysign(math.sqrt(pow(pos[1],2)+pow(pos[0],2)),pos[1])
                 hyp = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[1])
-                tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
-                child.rotation_euler[0] = -1*math.copysign(tilt, pos[1])
-                child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
+                if trackposition[keydata[0]][0] and trackposition[keydata[0]][1] > 0:
+                    child.rotation_euler[0] = math.copysign(tilt, pos[1])
+                    child.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(pos[0]/foc), pos[0])
+                elif trackposition[keydata[0]][0] <= 0 and trackposition[keydata[0]][1] > 0:
+                    child.rotation_euler[0] = math.copysign(tilt, pos[1])
+                    child.rotation_euler[2] = math.radians(180)+math.copysign(math.atan(pos[0]/foc), pos[0])
+                else:
+                    tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
+                    child.rotation_euler[0] = -1*(math.copysign(tilt, pos[1]))
+                    child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
                 child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and tracking == 'OBJECT':  # Rotation
