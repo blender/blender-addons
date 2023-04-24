@@ -1235,7 +1235,7 @@ def blen_read_geom_layer_uv(fbx_obj, mesh):
                       "" % (layer_id, fbx_layer_name, mesh.name))
                 continue
 
-            blen_data = uv_lay.data
+            blen_data = uv_lay.uv
 
             # some valid files omit this data
             if fbx_layer_data is None:
@@ -1243,7 +1243,7 @@ def blen_read_geom_layer_uv(fbx_obj, mesh):
                 continue
 
             blen_read_geom_array_mapped_polyloop(
-                mesh, blen_data, "uv", np.single,
+                mesh, blen_data, "vector", np.single,
                 fbx_layer_data, fbx_layer_index,
                 fbx_layer_mapping, fbx_layer_ref,
                 2, 2, layer_id,

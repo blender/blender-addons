@@ -1347,7 +1347,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
             elem_data_single_string(lay_uv, b"MappingInformationType", b"ByPolygonVertex")
             elem_data_single_string(lay_uv, b"ReferenceInformationType", b"IndexToDirect")
 
-            uvlayer.data.foreach_get("uv", t_luv)
+            uvlayer.uv.foreach_get("vector", t_luv)
 
             # t_luv_fast_pair_view is a view in a dtype that compares elements by individual bytes, but float types have
             # separate byte representations of positive and negative zero. For uniqueness, these should be considered
