@@ -942,12 +942,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_FLOAT)   # triangulating camera angles
             direction = math.copysign(math.sqrt(pow(focus, 2) + pow(target[2], 2)), cam[1])
             pitch = math.radians(90)-math.copysign(math.acos(focus/direction), cam[2])
-            if newCamera.location[1] > target[1]:
-                newCamera.rotation_euler[0] = math.copysign(pitch, cam[1])
-                newCamera.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(cam[0]/focus), cam[0])
+            if contextCamera.location[1] > target[1]:
+                contextCamera.rotation_euler[0] = math.copysign(pitch, cam[1])
+                contextCamera.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(cam[0]/focus), cam[0])
             else:
-                newCamera.rotation_euler[0] = -1*(math.copysign(pitch, cam[1]))
-                newCamera.rotation_euler[2] = -1*(math.radians(90)-math.acos(cam[0]/focus))
+                contextCamera.rotation_euler[0] = -1*(math.copysign(pitch, cam[1]))
+                contextCamera.rotation_euler[2] = -1*(math.radians(90)-math.acos(cam[0]/focus))
             contextCamera.rotation_euler[1] = float(struct.unpack('f', temp_data)[0])  # Roll
             new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_FLOAT)
