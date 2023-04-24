@@ -941,16 +941,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             new_chunk.bytes_read += SZ_3FLOAT
             temp_data = file.read(SZ_FLOAT)   # triangulating camera angles
             direction = math.copysign(math.sqrt(pow(focus, 2) + pow(target[2], 2)), cam[1])
-            if contextCamera.location[0] and contextCamera.location[1] > 0:
-                contextCamera.rotation_euler[0] = math.copysign(tilt, cam[1])
-                contextCamera.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(cam[0]/focus), cam[0])
-            elif contextCamera.location[0] <= 0 and newCamera.location[1] > 0:
-                contextCamera.rotation_euler[0] = math.copysign(tilt, cam[1])
-                contextCamera.rotation_euler[2] = math.radians(180)+math.copysign(math.atan(cam[0]/focus), cam[0])
+            pitch = math.radians(90)-math.copysign(math.acos(focus/direction), cam[2])
+            if newCamera.location[1] > target[1]:
+                newCamera.rotation_euler[0] = math.copysign(pitch, cam[1])
+                newCamera.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(cam[0]/focus), cam[0])
             else:
-                pitch = math.radians(90)-math.copysign(math.acos(focus/direction), cam[2])
-                contextCamera.rotation_euler[0] = -1*(math.copysign(pitch, cam[1]))
-                contextCamera.rotation_euler[2] = -1*(math.radians(90)-math.acos(cam[0]/focus))
+                newCamera.rotation_euler[0] = -1*(math.copysign(pitch, cam[1]))
+                newCamera.rotation_euler[2] = -1*(math.radians(90)-math.acos(cam[0]/focus))
             contextCamera.rotation_euler[1] = float(struct.unpack('f', temp_data)[0])  # Roll
             new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_FLOAT)
@@ -1077,14 +1074,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             pos = child.location + mathutils.Vector(target)  # Target triangulation
             foc = math.copysign(math.sqrt(pow(pos[1],2)+pow(pos[0],2)),pos[1])
             hyp = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[1])
-            if child.location[0] and child.location[1] > 0:
+            tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
+            if child.location[0] > target[1]:
                 child.rotation_euler[0] = math.copysign(tilt, pos[1])
                 child.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(pos[0]/foc), pos[0])
-            elif child.location[0] <= 0 and child.location[1] > 0:
-                child.rotation_euler[0] = math.copysign(tilt, pos[1])
-                child.rotation_euler[2] = math.radians(180)+math.copysign(math.atan(pos[0]/foc), pos[0])
             else:
-                tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
                 child.rotation_euler[0] = -1*(math.copysign(tilt, pos[1]))
                 child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
             for keydata in keyframe_data.items():
@@ -1092,14 +1086,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 pos = mathutils.Vector(trackposition[keydata[0]]) + mathutils.Vector(target)
                 foc = math.copysign(math.sqrt(pow(pos[1],2)+pow(pos[0],2)),pos[1])
                 hyp = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[1])
-                if trackposition[keydata[0]][0] and trackposition[keydata[0]][1] > 0:
+                tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
+                if trackposition[keydata[0]][1] > target[1]:
                     child.rotation_euler[0] = math.copysign(tilt, pos[1])
                     child.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(pos[0]/foc), pos[0])
-                elif trackposition[keydata[0]][0] <= 0 and trackposition[keydata[0]][1] > 0:
-                    child.rotation_euler[0] = math.copysign(tilt, pos[1])
-                    child.rotation_euler[2] = math.radians(180)+math.copysign(math.atan(pos[0]/foc), pos[0])
                 else:
-                    tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
                     child.rotation_euler[0] = -1*(math.copysign(tilt, pos[1]))
                     child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
                 child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
