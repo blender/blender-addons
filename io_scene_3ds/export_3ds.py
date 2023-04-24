@@ -13,9 +13,9 @@ import mathutils
 import bpy_extras
 from bpy_extras import node_shader_utils
 
-######################################################
-# Data Structures
-######################################################
+###################
+# Data Structures #
+###################
 
 # Some of the chunks that we will export
 # ----- Primary Chunk, at the beginning of each file
@@ -131,7 +131,7 @@ COL_TRACK_TAG = 0xB025  # Color transform tag
 HOTSPOT_TRACK_TAG = 0xB027  # Hotspot transform tag
 FALLOFF_TRACK_TAG = 0xB028  # Falloff transform tag
 
-ROOT_OBJECT          = 0xFFFF  # Root object
+ROOT_OBJECT = 0xFFFF  # Root object
 
 
 # So 3ds max can open files, limit names to 12 in length
@@ -483,9 +483,9 @@ class _3ds_chunk(object):
             subchunk.dump(indent + 1)
 
 
-######################################################
-# EXPORT
-######################################################
+##########
+# EXPORT #
+##########
 
 def get_material_image(material):
     """ Get images from paint slots."""
@@ -586,12 +586,12 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
 
         if socket == 'Alpha':
             mat_sub_alpha = _3ds_chunk(MAP_TILING)
-            alphaflag = 0x40  # summed area sampling 0x20
+            alphaflag |= 0x40  # summed area sampling 0x20
             mat_sub_alpha.add_variable("alpha", _3ds_ushort(alphaflag))
             mat_sub.add_subchunk(mat_sub_alpha)
             if texslot.socket_dst.identifier in {'Base Color', 'Specular'}:
                 mat_sub_tint = _3ds_chunk(MAP_TILING)  # RGB tint 0x200
-                tint = 0x80 if texslot.image.colorspace_settings.name == 'Non-Color' else 0x200
+                tint |= 0x80 if texslot.image.colorspace_settings.name == 'Non-Color' else 0x200
                 mat_sub_tint.add_variable("tint", _3ds_ushort(tint))
                 mat_sub.add_subchunk(mat_sub_tint)
 
