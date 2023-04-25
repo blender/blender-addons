@@ -959,9 +959,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextCamera.location = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
             temp_data = file.read(SZ_3FLOAT)
-            target = mathutils.Vector(struct.unpack('<3f', temp_data))
-            cam = contextCamera.location + target
-            focus = math.copysign(math.sqrt(pow(cam[1], 2) + pow(cam[0], 2)), cam[1])
+            focus = mathutils.Vector(struct.unpack('<3f', temp_data))
             direction = calc_target(contextCamera.location, focus)  # Target
             new_chunk.bytes_read += SZ_3FLOAT
             temp_data = file.read(SZ_FLOAT)
