@@ -1085,7 +1085,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 child.location = mathutils.Vector(keydata[1]) * (CONSTRAIN * 0.1) if hierarchy == ROOT_OBJECT and CONSTRAIN != 0.0 else keydata[1]
                 child.keyframe_insert(data_path="location", frame=keydata[0])
 
-        elif new_chunk.ID == POS_TRACK_TAG and tracking == 'TARGET':  # Target position
+        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking == 'TARGET':  # Target position
             keyframe_data = {}
             location = child.location
             target = mathutils.Vector(read_track_data(temp_chunk)[0])
@@ -1154,7 +1154,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 child.data.lens = (child.data.sensor_width/2)/math.tan(keydata[1]/2)
                 child.data.keyframe_insert(data_path="lens", frame=keydata[0])
 
-        elif new_chunk.ID == HOTSPOT_TRACK_TAG and child.type == 'LIGHT' and child.data.type == 'SPOT':  # Hotspot
+        elif KEYFRAME and new_chunk.ID == HOTSPOT_TRACK_TAG and child.type == 'LIGHT' and child.data.type == 'SPOT':  # Hotspot
             keyframe_angle = {}
             cone_angle = math.degrees(child.data.spot_size)
             default_value = cone_angle-(child.data.spot_blend*math.floor(cone_angle))   
@@ -1164,7 +1164,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 child.data.spot_blend = 1.0 - (math.degrees(keydata[1])/cone_angle)
                 child.data.keyframe_insert(data_path="spot_blend", frame=keydata[0])
 
-        elif new_chunk.ID == FALLOFF_TRACK_TAG and child.type == 'LIGHT' and child.data.type == 'SPOT':  # Falloff
+        elif KEYFRAME and new_chunk.ID == FALLOFF_TRACK_TAG and child.type == 'LIGHT' and child.data.type == 'SPOT':  # Falloff
             keyframe_angle = {}
             default_value = math.degrees(child.data.spot_size)
             child.data.spot_size = read_track_angle(temp_chunk)[0]
