@@ -547,6 +547,31 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             add_texture_to_material(img, contextWrapper, pct, extend, alpha, (uscale, vscale, 1),
                                     (uoffset, voffset, 0), angle, tintcolor, mapto)
 
+    def calc_target(location, target):
+        pos = location + target  # Target triangulation
+        if abs(location[0] - target[0]) > abs(location[1] - target[1]):
+            foc = math.copysign(math.sqrt(pow(pos[0],2)+pow(pos[1],2)),pos[0])
+            dia = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[0])
+            pitch = math.radians(90)-math.copysign(math.acos(foc/dia), pos[2])
+            if location[0] > target[0]:
+                tilt = math.copysign(pitch, pos[0])
+                pan = math.radians(90)+math.atan(pos[1]/foc)
+            else:
+                tilt = -1*(math.copysign(pitch, pos[0]))
+                pan = -1*(math.radians(90)-math.atan(pos[1]/foc))
+        else:
+            foc = math.copysign(math.sqrt(pow(pos[1],2)+pow(pos[0],2)),pos[1])
+            dia = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[1])
+            pitch = math.radians(90)-math.copysign(math.acos(foc/dia), pos[2])
+            if location[1] > target[1]:
+                tilt = math.copysign(pitch, pos[1])
+                pan = math.radians(90)+math.acos(pos[0]/foc)
+            else:
+                tilt = -1*(math.copysign(pitch, pos[1]))
+                pan = -1*(math.radians(90)-math.acos(pos[0]/foc))
+        direction = tilt, pan
+        return direction
+
     def read_track_data(temp_chunk):
         new_chunk.bytes_read += SZ_U_SHORT * 5
         temp_data = file.read(SZ_U_SHORT * 5)
@@ -874,6 +899,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextMatrix = mathutils.Matrix(
                 (data[:3] + [0], data[3:6] + [0], data[6:9] + [0], data[9:] + [1])).transposed()
 
+        # If light chunk
         elif contextObName and new_chunk.ID == OBJECT_LIGHT:  # Basic lamp support
             newLamp = bpy.data.lights.new("Lamp", 'POINT')
             contextLamp = bpy.data.objects.new(contextObName, newLamp)
@@ -899,12 +925,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.type = 'SPOT'
             spot = mathutils.Vector(struct.unpack('<3f', temp_data))
-            aim = contextLamp.location + spot
-            hypo = math.copysign(math.sqrt(pow(aim[1], 2) + pow(aim[0], 2)), aim[1])
-            track = math.copysign(math.sqrt(pow(hypo, 2) + pow(spot[2], 2)), aim[1])
-            angle = math.radians(90) - math.copysign(math.acos(hypo / track), aim[2])
-            contextLamp.rotation_euler[0] = -1 * math.copysign(angle, aim[1])
-            contextLamp.rotation_euler[2] = -1 * (math.radians(90) - math.acos(aim[0] / hypo))
+            aim = calc_target(contextLamp.location, spot)  # Target
+            contextLamp.rotation_euler[0] = aim[0]
+            contextLamp.rotation_euler[2] = aim[1]
             new_chunk.bytes_read += SZ_3FLOAT
             temp_data = file.read(SZ_FLOAT)  # Hotspot
             hotspot = float(struct.unpack('f', temp_data)[0])
@@ -925,6 +948,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_RECTANGLE:  # Square
             contextLamp.data.use_square = True
 
+        # If camera chunk
         elif contextObName and new_chunk.ID == OBJECT_CAMERA and CreateCameraObject is False:  # Basic camera support
             camera = bpy.data.cameras.new("Camera")
             contextCamera = bpy.data.objects.new(contextObName, camera)
@@ -938,17 +962,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             target = mathutils.Vector(struct.unpack('<3f', temp_data))
             cam = contextCamera.location + target
             focus = math.copysign(math.sqrt(pow(cam[1], 2) + pow(cam[0], 2)), cam[1])
+            direction = calc_target(contextCamera.location, focus)  # Target
             new_chunk.bytes_read += SZ_3FLOAT
-            temp_data = file.read(SZ_FLOAT)   # triangulating camera angles
-            direction = math.copysign(math.sqrt(pow(focus, 2) + pow(target[2], 2)), cam[1])
-            pitch = math.radians(90)-math.copysign(math.acos(focus/direction), cam[2])
-            if contextCamera.location[1] > target[1]:
-                contextCamera.rotation_euler[0] = math.copysign(pitch, cam[1])
-                contextCamera.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(cam[0]/focus), cam[0])
-            else:
-                contextCamera.rotation_euler[0] = -1*(math.copysign(pitch, cam[1]))
-                contextCamera.rotation_euler[2] = -1*(math.radians(90)-math.acos(cam[0]/focus))
+            temp_data = file.read(SZ_FLOAT)
+            contextCamera.rotation_euler[0] = direction[0]
             contextCamera.rotation_euler[1] = float(struct.unpack('f', temp_data)[0])  # Roll
+            contextCamera.rotation_euler[2] = direction[1]
             new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_FLOAT)
             contextCamera.data.lens = float(struct.unpack('f', temp_data)[0])  # Focus
@@ -1068,31 +1087,19 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 child.location = mathutils.Vector(keydata[1]) * (CONSTRAIN * 0.1) if hierarchy == ROOT_OBJECT and CONSTRAIN != 0.0 else keydata[1]
                 child.keyframe_insert(data_path="location", frame=keydata[0])
 
-        elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking == 'TARGET':  # Target position
+        elif new_chunk.ID == POS_TRACK_TAG and tracking == 'TARGET':  # Target position
             keyframe_data = {}
-            target = read_track_data(temp_chunk)[0]
-            pos = child.location + mathutils.Vector(target)  # Target triangulation
-            foc = math.copysign(math.sqrt(pow(pos[1],2)+pow(pos[0],2)),pos[1])
-            hyp = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[1])
-            tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
-            if child.location[0] > target[1]:
-                child.rotation_euler[0] = math.copysign(tilt, pos[1])
-                child.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(pos[0]/foc), pos[0])
-            else:
-                child.rotation_euler[0] = -1*(math.copysign(tilt, pos[1]))
-                child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
+            location = child.location
+            target = mathutils.Vector(read_track_data(temp_chunk)[0])
+            direction = calc_target(location, target)
+            child.rotation_euler[0] = direction[0]
+            child.rotation_euler[2] = direction[1]
             for keydata in keyframe_data.items():
-                target = keydata[1]
-                pos = mathutils.Vector(trackposition[keydata[0]]) + mathutils.Vector(target)
-                foc = math.copysign(math.sqrt(pow(pos[1],2)+pow(pos[0],2)),pos[1])
-                hyp = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[1])
-                tilt = math.radians(90)-math.copysign(math.acos(foc/hyp), pos[2])
-                if trackposition[keydata[0]][1] > target[1]:
-                    child.rotation_euler[0] = math.copysign(tilt, pos[1])
-                    child.rotation_euler[2] = math.radians(180)-math.copysign(math.atan(pos[0]/foc), pos[0])
-                else:
-                    child.rotation_euler[0] = -1*(math.copysign(tilt, pos[1]))
-                    child.rotation_euler[2] = -1*(math.radians(90)-math.acos(pos[0]/foc))
+                location = mathutils.Vector(trackposition[keydata[0]])
+                target = mathutils.Vector(keydata[1])
+                direction = calc_target(location, target)
+                child.rotation_euler[0] = direction[0]
+                child.rotation_euler[2] = direction[1]
                 child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and tracking == 'OBJECT':  # Rotation
