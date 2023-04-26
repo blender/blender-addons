@@ -894,12 +894,10 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     attributes = me.attributes
 
     # Vertex cos.
-    co_bl_dtype = np.single
-    co_fbx_dtype = np.float64
-    t_co = np.empty(len(me.vertices) * 3, dtype=co_bl_dtype)
-    me.vertices.foreach_get("co", t_co)
-    elem_data_single_float64_array(geom, b"Vertices", vcos_transformed(t_co, geom_mat_co, co_fbx_dtype))
-    del t_co
+    pos_fbx_dtype = np.float64
+    t_pos = MESH_ATTRIBUTE_POSITION.to_ndarray(attributes)
+    elem_data_single_float64_array(geom, b"Vertices", vcos_transformed(t_pos, geom_mat_co, pos_fbx_dtype))
+    del t_pos
 
     # Polygon indices.
     #
@@ -2662,10 +2660,10 @@ def fbx_data_from_scene(scene, depsgraph, settings):
         # Get and cache only the cos that we need
         @cache
         def sk_cos(shape_key):
-            _cos = np.empty(len(me.vertices) * 3, dtype=co_bl_dtype)
             if shape_key == sk_base:
-                me.vertices.foreach_get("co", _cos)
+                _cos = MESH_ATTRIBUTE_POSITION.to_ndarray(me.attributes)
             else:
+                _cos = np.empty(len(me.vertices) * 3, dtype=co_bl_dtype)
                 shape_key.data.foreach_get("co", _cos)
             return vcos_transformed(_cos, geom_mat_co, co_fbx_dtype)
 

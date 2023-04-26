@@ -1452,8 +1452,6 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     fbx_polys = elem_prop_first(elem_find_first(fbx_obj, b'PolygonVertexIndex'))
     fbx_edges = elem_prop_first(elem_find_first(fbx_obj, b'Edges'))
 
-    bl_vcos_dtype = np.single
-
     # The dtypes when empty don't matter, but are set to what the fbx arrays are expected to be.
     fbx_verts = parray_as_ndarray(fbx_verts) if fbx_verts else np.empty(0, dtype=data_types.ARRAY_FLOAT64)
     fbx_polys = parray_as_ndarray(fbx_polys) if fbx_polys else np.empty(0, dtype=data_types.ARRAY_INT32)
@@ -1474,12 +1472,12 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
 
     if tot_verts:
         if geom_mat_co is not None:
-            fbx_verts = vcos_transformed(fbx_verts, geom_mat_co, bl_vcos_dtype)
+            fbx_verts = vcos_transformed(fbx_verts, geom_mat_co, MESH_ATTRIBUTE_POSITION.dtype)
         else:
-            fbx_verts = fbx_verts.astype(bl_vcos_dtype, copy=False)
+            fbx_verts = fbx_verts.astype(MESH_ATTRIBUTE_POSITION.dtype, copy=False)
 
         mesh.vertices.add(tot_verts)
-        mesh.vertices.foreach_set("co", fbx_verts.ravel())
+        MESH_ATTRIBUTE_POSITION.foreach_set(attributes, fbx_verts.ravel())
 
     if tot_loops:
         bl_loop_start_dtype = bl_loop_vertex_index_dtype = np.uintc
@@ -1596,9 +1594,7 @@ def blen_read_shapes(fbx_tmpl, fbx_data, objects, me, scene):
         # No shape key data. Nothing to do.
         return
 
-    bl_vcos_dtype = np.single
-    me_vcos = np.empty(len(me.vertices) * 3, dtype=bl_vcos_dtype)
-    me.vertices.foreach_get("co", me_vcos)
+    me_vcos = MESH_ATTRIBUTE_POSITION.to_ndarray(me.attributes)
     me_vcos_vector_view = me_vcos.reshape(-1, 3)
 
     objects = list({node.bl_obj for node in objects})
@@ -3530,19 +3526,18 @@ def load(operator, context, filepath="",
                 if fbx_obj.props[-1] == b'Mesh':
                     mesh = fbx_item[1]
 
-                    if decal_offset != 0.0:
+                    num_verts = len(mesh.vertices)
+                    if decal_offset != 0.0 and num_verts > 0:
                         for material in mesh.materials:
                             if material in material_decals:
-                                num_verts = len(mesh.vertices)
-                                blen_cos_dtype = blen_norm_dtype = np.single
-                                vcos = np.empty(num_verts * 3, dtype=blen_cos_dtype)
+                                blen_norm_dtype = np.single
+                                vcos = MESH_ATTRIBUTE_POSITION.to_ndarray(mesh.attributes)
                                 vnorm = np.empty(num_verts * 3, dtype=blen_norm_dtype)
-                                mesh.vertices.foreach_get("co", vcos)
                                 mesh.vertex_normals.foreach_get("vector", vnorm)
 
                                 vcos += vnorm * decal_offset
 
-                                mesh.vertices.foreach_set("co", vcos)
+                                MESH_ATTRIBUTE_POSITION.foreach_set(mesh.attributes, vcos)
                                 break
 
                     for obj in (obj for obj in bpy.data.objects if obj.data == mesh):
