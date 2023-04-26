@@ -1315,25 +1315,29 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
             print("warning skipping sharp edges data, no valid edges...")
             return False
 
-        blen_data = mesh.edges
+        blen_data = MESH_ATTRIBUTE_SHARP_EDGE.ensure(mesh.attributes).data
+        fbx_item_size = 1
+        assert(fbx_item_size == MESH_ATTRIBUTE_SHARP_EDGE.item_size)
         blen_read_geom_array_mapped_edge(
-            mesh, blen_data, "use_edge_sharp", bool,
+            mesh, blen_data, MESH_ATTRIBUTE_SHARP_EDGE.foreach_attribute, MESH_ATTRIBUTE_SHARP_EDGE.dtype,
             fbx_layer_data, None,
             fbx_layer_mapping, fbx_layer_ref,
-            1, 1, layer_id,
-            xform=np.logical_not,
+            1, fbx_item_size, layer_id,
+            xform=np.logical_not,  # in FBX, 0 (False) is sharp, but in Blender True is sharp.
             )
         # We only set sharp edges here, not face smoothing itself...
         mesh.use_auto_smooth = True
         return False
     elif fbx_layer_mapping == b'ByPolygon':
-        blen_data = mesh.polygons
+        blen_data = MESH_ATTRIBUTE_SHARP_FACE.ensure(mesh.attributes).data
+        fbx_item_size = 1
+        assert(fbx_item_size == MESH_ATTRIBUTE_SHARP_FACE.item_size)
         return blen_read_geom_array_mapped_polygon(
-            mesh, blen_data, "use_smooth", bool,
+            mesh, blen_data, MESH_ATTRIBUTE_SHARP_FACE.foreach_attribute, MESH_ATTRIBUTE_SHARP_FACE.dtype,
             fbx_layer_data, None,
             fbx_layer_mapping, fbx_layer_ref,
-            1, 1, layer_id,
-            xform=lambda s: (s != 0),  # smoothgroup bitflags, treat as booleans for now
+            1, fbx_item_size, layer_id,
+            xform=lambda s: (s == 0),  # smoothgroup bitflags, treat as booleans for now
             )
     else:
         print("warning layer %r mapping type unsupported: %r" % (fbx_layer.id, fbx_layer_mapping))
@@ -1563,7 +1567,9 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
         mesh.loops.foreach_get("normal", clnors)
 
         if not ok_smooth:
-            mesh.polygons.foreach_set("use_smooth", np.full(len(mesh.polygons), True, dtype=bool))
+            sharp_face = MESH_ATTRIBUTE_SHARP_FACE.get(attributes)
+            if sharp_face:
+                attributes.remove(sharp_face)
             ok_smooth = True
 
         # Iterating clnors into a nested tuple first is faster than passing clnors.reshape(-1, 3) directly into
@@ -1575,7 +1581,9 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
         mesh.free_normals_split()
 
     if not ok_smooth:
-        mesh.polygons.foreach_set("use_smooth", np.full(len(mesh.polygons), True, dtype=bool))
+        sharp_face = MESH_ATTRIBUTE_SHARP_FACE.get(attributes)
+        if sharp_face:
+            attributes.remove(sharp_face)
 
     if settings.use_custom_props:
         blen_read_custom_properties(fbx_obj, mesh, settings)
