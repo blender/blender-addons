@@ -548,6 +548,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                                     (uoffset, voffset, 0), angle, tintcolor, mapto)
 
     def calc_target(location, target):
+        pan = 0.0
+        tilt = 0.0
         pos = location + target  # Target triangulation
         if abs(location[0] - target[0]) > abs(location[1] - target[1]):
             foc = math.copysign(math.sqrt(pow(pos[0],2)+pow(pos[1],2)),pos[0])
@@ -559,7 +561,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             else:
                 tilt = -1*(math.copysign(pitch, pos[0]))
                 pan = -1*(math.radians(90)-math.atan(pos[1]/foc))
-        else:
+        elif abs(location[1] - target[1]) > abs(location[0] - target[0]):
             foc = math.copysign(math.sqrt(pow(pos[1],2)+pow(pos[0],2)),pos[1])
             dia = math.copysign(math.sqrt(pow(foc,2)+pow(target[2],2)),pos[1])
             pitch = math.radians(90)-math.copysign(math.acos(foc/dia), pos[2])
@@ -921,6 +923,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextLamp.data.energy = (float(struct.unpack('f', temp_data)[0]) * 1000)
             new_chunk.bytes_read += SZ_FLOAT
 
+        # If spotlight chunk
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOTLIGHT:  # Spotlight
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.type = 'SPOT'
@@ -974,6 +977,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             CreateBlenderObject = False
             CreateCameraObject = True
 
+        # start keyframe section
         elif new_chunk.ID == EDITKEYFRAME:
             trackposition = {}
 
