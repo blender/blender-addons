@@ -1059,7 +1059,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_FLOAT)
             smooth_angle = struct.unpack('<f', temp_data)[0]
             new_chunk.bytes_read += SZ_FLOAT
-            child.data.auto_smooth_angle = math.radians(smooth_angle)
+            child.data.auto_smooth_angle = smooth_angle
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'AMBIENT':  # Ambient
             keyframe_data = {}
@@ -1097,7 +1097,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             child.rotation_euler[0] = direction[0]
             child.rotation_euler[2] = direction[1]
             for keydata in keyframe_data.items():
-                location = mathutils.Vector(trackposition[keydata[0]])
+                track = trackposition.get(keydata[0], child.location)
+                location = mathutils.Vector(track)
                 target = mathutils.Vector(keydata[1])
                 direction = calc_target(location, target)
                 child.rotation_euler[0] = direction[0]
@@ -1210,16 +1211,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 ob.parent = None
         elif parent not in object_dict:
             if ob.parent != object_list[parent]:
-                if ob == object_list[parent]:
-                    print('   warning: Cannot assign self to parent ', ob)
-                else:
-                    ob.parent = object_list[parent]    
+                ob.parent = object_list[parent]
+            else:
+                print('\tWarning: Cannot assign self to parent ', ob)
         else:
             if ob.parent != object_dict[parent]:
-                if ob == object_dict[parent]:
-                    print('   warning: Cannot assign self to parent ', ob)
-                else:
-                    ob.parent = object_dict[parent]
+                ob.parent = object_dict.get(parent)
 
         #pivot_list[ind] += pivot_list[parent]  # Not sure this is correct, should parent space matrix be applied before combining?
 
