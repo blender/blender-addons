@@ -1145,7 +1145,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             default_data = child.scale[:]
             child.scale = read_track_data(temp_chunk)[0]
             for keydata in keyframe_data.items():
-                child.scale = mathutils.Vector(keydata[1]) * (CONSTRAIN * 0.1) if hierarchy == ROOT_OBJECT and CONSTRAIN != 0.0 else keydata[1]
+                child.scale = apply_constrain(keydata[1]) if hierarchy == ROOT_OBJECT else mathutils.Vector(keydata[1])
                 child.keyframe_insert(data_path="scale", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracking == 'OBJECT':  # Roll angle
