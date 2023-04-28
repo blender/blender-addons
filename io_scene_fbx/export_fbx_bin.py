@@ -910,29 +910,26 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
     # dtypes matching the C data. Matching the C datatype avoids iteration and casting of every element in foreach_get's
     # C code.
-    bl_vertex_index_dtype = bl_edge_index_dtype = bl_loop_index_dtype = np.uintc
+    bl_loop_index_dtype = np.uintc
 
-    # Start vertex indices of loops. May contain elements for loops added for the export of loose edges.
-    t_lvi = np.empty(len(me.loops), dtype=bl_vertex_index_dtype)
+    # Start vertex indices of loops (corners). May contain elements for loops added for the export of loose edges.
+    t_lvi = MESH_ATTRIBUTE_CORNER_VERT.to_ndarray(attributes)
 
     # Loop start indices of polygons. May contain elements for the polygons added for the export of loose edges.
     t_ls = np.empty(len(me.polygons), dtype=bl_loop_index_dtype)
 
     # Vertex indices of edges (unsorted, unlike Mesh.edge_keys), flattened into an array twice the length of the number
     # of edges.
-    t_ev = np.empty(len(me.edges) * 2, dtype=bl_vertex_index_dtype)
+    t_ev = MESH_ATTRIBUTE_EDGE_VERTS.to_ndarray(attributes)
     # Each edge has two vertex indices, so it's useful to view the array as 2d where each element on the first axis is a
     # pair of vertex indices
     t_ev_pair_view = t_ev.view()
     t_ev_pair_view.shape = (-1, 2)
 
-    # Edge indices of loops. May contain elements for loops added for the export of loose edges.
-    t_lei = np.empty(len(me.loops), dtype=bl_edge_index_dtype)
+    # Edge indices of loops (corners). May contain elements for loops added for the export of loose edges.
+    t_lei = MESH_ATTRIBUTE_CORNER_EDGE.to_ndarray(attributes)
 
-    me.loops.foreach_get("vertex_index", t_lvi)
     me.polygons.foreach_get("loop_start", t_ls)
-    me.edges.foreach_get("vertices", t_ev)
-    me.loops.foreach_get("edge_index", t_lei)
 
     # Add "fake" faces for loose edges. Each "fake" face consists of two loops creating a new 2-sided polygon.
     if scene_data.settings.use_mesh_edges:

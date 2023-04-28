@@ -1424,8 +1424,7 @@ def blen_read_geom_layer_normal(fbx_obj, mesh, xform=None):
                 mesh.loops.foreach_set("normal", loop_normals.ravel())
             elif blen_data_type == "Vertices":
                 # We have to copy vnors to lnors! Far from elegant, but simple.
-                loop_vertex_indices = np.empty(len(mesh.loops), dtype=np.uintc)
-                mesh.loops.foreach_get("vertex_index", loop_vertex_indices)
+                loop_vertex_indices = MESH_ATTRIBUTE_CORNER_VERT.to_ndarray(mesh.attributes)
                 mesh.loops.foreach_set("normal", bdata[loop_vertex_indices].ravel())
             return True
 
@@ -1480,7 +1479,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
         MESH_ATTRIBUTE_POSITION.foreach_set(attributes, fbx_verts.ravel())
 
     if tot_loops:
-        bl_loop_start_dtype = bl_loop_vertex_index_dtype = np.uintc
+        bl_loop_start_dtype = np.uintc
 
         mesh.loops.add(tot_loops)
         # The end of each polygon is specified by an inverted index.
@@ -1491,7 +1490,8 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
         # Un-invert the loop ends.
         fbx_polys[fbx_loop_end_idx] ^= -1
         # Set loop vertex indices, casting to the Blender C type first for performance.
-        mesh.loops.foreach_set("vertex_index", astype_view_signedness(fbx_polys, bl_loop_vertex_index_dtype))
+        MESH_ATTRIBUTE_CORNER_VERT.foreach_set(
+            attributes, astype_view_signedness(fbx_polys, MESH_ATTRIBUTE_CORNER_VERT.dtype))
 
         poly_loop_starts = np.empty(tot_polys, dtype=bl_loop_start_dtype)
         # The first loop is always a loop start.
@@ -1508,7 +1508,6 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
 
         if tot_edges:
             # edges in fact index the polygons (NOT the vertices)
-            bl_edge_vertex_indices_dtype = np.uintc
 
             # The first vertex index of each edge is the vertex index of the corresponding loop in fbx_polys.
             edges_a = fbx_polys[fbx_edges]
@@ -1532,12 +1531,12 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
             # Stack edges_a and edges_b as individual columns like np.column_stack((edges_a, edges_b)).
             # np.concatenate is used because np.column_stack doesn't allow specifying the dtype of the returned array.
             edges_conv = np.concatenate((edges_a.reshape(-1, 1), edges_b.reshape(-1, 1)),
-                                        axis=1, dtype=bl_edge_vertex_indices_dtype, casting='unsafe')
+                                        axis=1, dtype=MESH_ATTRIBUTE_EDGE_VERTS.dtype, casting='unsafe')
 
             # Add the edges and set their vertex indices.
             mesh.edges.add(len(edges_conv))
             # ravel() because edges_conv must be flat and C-contiguous when passed to foreach_set.
-            mesh.edges.foreach_set("vertices", edges_conv.ravel())
+            MESH_ATTRIBUTE_EDGE_VERTS.foreach_set(attributes, edges_conv.ravel())
     elif tot_edges:
         print("ERROR: No polygons, but edges exist. Ignoring the edges!")
 

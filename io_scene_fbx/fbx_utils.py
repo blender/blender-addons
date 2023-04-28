@@ -414,8 +414,13 @@ def nors_transformed(raw_nors, m=None, dtype=None):
 
 
 def astype_view_signedness(arr, new_dtype):
-    """Unsafely views arr as new_dtype if the itemsize and byteorder of arr matches but the signedness does not,
-    otherwise calls np.ndarray.astype with copy=False.
+    """Unsafely views arr as new_dtype if the itemsize and byteorder of arr matches but the signedness does not.
+
+    Safely views arr as new_dtype if both arr and new_dtype have the same itemsize, byteorder and signedness, but could
+    have a different character code, e.g. 'i' and 'l'. np.ndarray.astype with copy=False does not normally create this
+    view, but Blender can be picky about the character code used, so this function will create the view.
+
+    Otherwise, calls np.ndarray.astype with copy=False.
 
     The benefit of copy=False is that if the array can be safely viewed as the new type, then a view is made, instead of
     a copy with the new type.
@@ -436,13 +441,14 @@ def astype_view_signedness(arr, new_dtype):
     # else is left to .astype.
     arr_kind = arr_dtype.kind
     new_kind = new_dtype.kind
+    # Signed and unsigned int are opposite in terms of signedness. Other types don't have signedness.
+    integer_kinds = {'i', 'u'}
     if (
-        # Signed and unsigned int are opposite in terms of signedness. Other types don't have signedness.
-        ((arr_kind == 'i' and new_kind == 'u') or (arr_kind == 'u' and new_kind == 'i'))
+        arr_kind in integer_kinds and new_kind in integer_kinds
         and arr_dtype.itemsize == new_dtype.itemsize
         and arr_dtype.byteorder == new_dtype.byteorder
     ):
-        # new_dtype has opposite signedness and matching itemsize and byteorder, so return a view of the new type.
+        # arr and new_dtype have signedness and matching itemsize and byteorder, so return a view of the new type.
         return arr.view(new_dtype)
     else:
         return arr.astype(new_dtype, copy=False)
