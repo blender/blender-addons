@@ -7,6 +7,7 @@ import struct
 import bpy
 import math
 import mathutils
+from bpy_extras.image_utils import load_image
 from bpy_extras.node_shader_utils import PrincipledBSDFWrapper
 
 BOUNDS_3DS = []
@@ -310,7 +311,6 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
 
 
 def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAIN, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME):
-    from bpy_extras.image_utils import load_image
 
     contextObName = None
     contextLamp = None
