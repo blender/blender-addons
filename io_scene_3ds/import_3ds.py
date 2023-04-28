@@ -214,7 +214,7 @@ def process_next_object_chunk(file, previous_chunk):
 
 def skip_to_end(file, skip_chunk):
     buffer_size = skip_chunk.length - skip_chunk.bytes_read
-    binary_format = "%ic" % buffer_size
+    binary_format = '%ic' % buffer_size
     file.read(struct.calcsize(binary_format))
     skip_chunk.bytes_read += buffer_size
 
@@ -594,7 +594,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_U_SHORT)
             nflags = struct.unpack('<H', temp_data)[0]
             new_chunk.bytes_read += SZ_U_SHORT
-            for f in range(bin(nflags).count("1")):
+            for f in range(bin(nflags).count('1')):
                 temp_data = file.read(SZ_FLOAT)  # Check for spline terms
                 new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_3FLOAT)
@@ -618,7 +618,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_U_SHORT)
             nflags = struct.unpack('<H', temp_data)[0]
             new_chunk.bytes_read += SZ_U_SHORT
-            for f in range(bin(nflags).count("1")):
+            for f in range(bin(nflags).count('1')):
                 temp_data = file.read(SZ_FLOAT)  # Check for spline terms
                 new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_FLOAT)
@@ -641,7 +641,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             new_chunk.bytes_read += 4  # read the 4 bytes for the version number
             # this loader works with version 3 and below, but may not with 4 and above
             if version > 3:
-                print('\tNon-Fatal Error:  Version greater than 3, may not load correctly: ', version)
+                print("\tNon-Fatal Error:  Version greater than 3, may not load correctly: ", version)
 
         # is it an ambient light chunk?
         elif new_chunk.ID == AMBIENTLIGHT:
@@ -812,20 +812,20 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                     contextWrapper.use_nodes = True
 
         elif new_chunk.ID == MAT_TEXTURE_MAP:
-            read_texture(new_chunk, temp_chunk, "Diffuse", "COLOR")
+            read_texture(new_chunk, temp_chunk, "Diffuse", 'COLOR')
 
         elif new_chunk.ID == MAT_SPECULAR_MAP:
-            read_texture(new_chunk, temp_chunk, "Specular", "SPECULARITY")
+            read_texture(new_chunk, temp_chunk, "Specular", 'SPECULARITY')
 
         elif new_chunk.ID == MAT_OPACITY_MAP:
             contextMaterial.blend_method = 'BLEND'
-            read_texture(new_chunk, temp_chunk, "Opacity", "ALPHA")
+            read_texture(new_chunk, temp_chunk, "Opacity", 'ALPHA')
 
         elif new_chunk.ID == MAT_REFLECTION_MAP:
-            read_texture(new_chunk, temp_chunk, "Reflect", "METALLIC")
+            read_texture(new_chunk, temp_chunk, "Reflect", 'METALLIC')
 
         elif new_chunk.ID == MAT_BUMP_MAP:
-            read_texture(new_chunk, temp_chunk, "Bump", "NORMAL")
+            read_texture(new_chunk, temp_chunk, "Bump", 'NORMAL')
 
         elif new_chunk.ID == MAT_BUMP_PERCENT:
             read_chunk(file, temp_chunk)
@@ -842,13 +842,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             new_chunk.bytes_read += temp_chunk.bytes_read
 
         elif new_chunk.ID == MAT_SHIN_MAP:
-            read_texture(new_chunk, temp_chunk, "Shininess", "ROUGHNESS")
+            read_texture(new_chunk, temp_chunk, "Shininess", 'ROUGHNESS')
 
         elif new_chunk.ID == MAT_SELFI_MAP:
-            read_texture(new_chunk, temp_chunk, "Emit", "EMISSION")
+            read_texture(new_chunk, temp_chunk, "Emit", 'EMISSION')
 
         elif new_chunk.ID == MAT_TEX2_MAP:
-            read_texture(new_chunk, temp_chunk, "Tex", "TEXTURE")
+            read_texture(new_chunk, temp_chunk, "Tex", 'TEXTURE')
 
         # If mesh chunk
         elif new_chunk.ID == OBJECT_MESH:
@@ -880,7 +880,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             new_chunk.bytes_read += SZ_U_SHORT
             temp_data = file.read(SZ_U_SHORT * num_faces_using_mat)
             new_chunk.bytes_read += SZ_U_SHORT * num_faces_using_mat
-            temp_data = struct.unpack("<%dH" % (num_faces_using_mat), temp_data)
+            temp_data = struct.unpack('<%dH' % (num_faces_using_mat), temp_data)
             contextMeshMaterials.append((material_name, temp_data))
             # look up the material in all the materials
 
@@ -1126,11 +1126,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 temp_data = file.read(SZ_U_SHORT)
                 nflags = struct.unpack('<H', temp_data)[0]
                 new_chunk.bytes_read += SZ_U_SHORT
-                for f in range(bin(nflags).count("1")):
+                for f in range(bin(nflags).count('1')):
                     temp_data = file.read(SZ_FLOAT)  # Check for spline term values
                     new_chunk.bytes_read += SZ_FLOAT
                 temp_data = file.read(SZ_4FLOAT)
-                rotation = struct.unpack("<4f", temp_data)
+                rotation = struct.unpack('<4f', temp_data)
                 new_chunk.bytes_read += SZ_4FLOAT
                 keyframe_rotation[nframe] = rotation
             rad, axis_x, axis_y, axis_z = keyframe_rotation[0]
@@ -1184,7 +1184,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         else:
             buffer_size = new_chunk.length - new_chunk.bytes_read
-            binary_format = "%ic" % buffer_size
+            binary_format = '%ic' % buffer_size
             temp_data = file.read(struct.calcsize(binary_format))
             new_chunk.bytes_read += buffer_size
 
@@ -1218,7 +1218,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             if ob.parent != object_list[parent]:
                 ob.parent = object_list[parent]
             else:
-                print('\tWarning: Cannot assign self to parent ', ob)
+                print("\tWarning: Cannot assign self to parent ", ob)
         else:
             if ob.parent != object_dict[parent]:
                 ob.parent = object_dict.get(parent)
@@ -1256,7 +1256,7 @@ def load_3ds(filepath,
     # here we go!
     read_chunk(file, current_chunk)
     if current_chunk.ID != PRIMARY:
-        print('\tFatal Error:  Not a valid 3ds file: %r' % filepath)
+        print("\tFatal Error:  Not a valid 3ds file: %r" % filepath)
         file.close()
         return
 
