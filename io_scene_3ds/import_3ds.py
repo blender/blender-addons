@@ -342,6 +342,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     object_list = []  # for hierarchy
     object_parent = []  # index of parent in hierarchy, 0xFFFF = no parent
     pivot_list = []  # pivots with hierarchy handling
+    trackposition = {}  # keep track to position for target calculation
 
     def putContextMesh(
             context,
@@ -547,6 +548,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             add_texture_to_material(img, contextWrapper, pct, extend, alpha, (uscale, vscale, 1),
                                     (uoffset, voffset, 0), angle, tintcolor, mapto)
 
+    def apply_constrain(vec):
+        consize = mathutils.Vector(vec) * (CONSTRAIN * 0.1) if CONSTRAIN != 0.0 else mathutils.Vector(vec)
+        return consize
+
     def calc_target(location, target):
         pan = 0.0
         tilt = 0.0
@@ -589,8 +594,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_U_SHORT)
             nflags = struct.unpack('<H', temp_data)[0]
             new_chunk.bytes_read += SZ_U_SHORT
-            if nflags > 0:  # Check for spline terms
-                temp_data = file.read(SZ_FLOAT)
+            for f in range(bin(nflags).count("1")):
+                temp_data = file.read(SZ_FLOAT)  # Check for spline terms
                 new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_3FLOAT)
             data = struct.unpack('<3f', temp_data)
@@ -613,8 +618,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_U_SHORT)
             nflags = struct.unpack('<H', temp_data)[0]
             new_chunk.bytes_read += SZ_U_SHORT
-            if nflags > 0:  # Check for spline terms
-                temp_data = file.read(SZ_FLOAT)
+            for f in range(bin(nflags).count("1")):
+                temp_data = file.read(SZ_FLOAT)  # Check for spline terms
                 new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_FLOAT)
             angle = struct.unpack('<f', temp_data)[0]
@@ -952,7 +957,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextLamp.data.use_square = True
 
         # If camera chunk
-        elif contextObName and new_chunk.ID == OBJECT_CAMERA and CreateCameraObject is False:  # Basic camera support
+        elif contextObName and new_chunk.ID == OBJECT_CAMERA:  # Basic camera support
             camera = bpy.data.cameras.new("Camera")
             contextCamera = bpy.data.objects.new(contextObName, camera)
             context.view_layer.active_layer_collection.collection.objects.link(contextCamera)
@@ -979,7 +984,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         # start keyframe section
         elif new_chunk.ID == EDITKEYFRAME:
-            trackposition = {}
+            pass
 
         elif KEYFRAME and new_chunk.ID == KFDATA_KFSEG:
             temp_data = file.read(SZ_U_INT)
@@ -1086,7 +1091,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 CreateTrackData = True
             for keydata in keyframe_data.items():
                 trackposition[keydata[0]] = keydata[1]  # Keep track to position for target calculation
-                child.location = mathutils.Vector(keydata[1]) * (CONSTRAIN * 0.1) if hierarchy == ROOT_OBJECT and CONSTRAIN != 0.0 else keydata[1]
+                child.location = apply_constrain(keydata[1]) if hierarchy == ROOT_OBJECT else mathutils.Vector(keydata[1])
                 child.keyframe_insert(data_path="location", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracking == 'TARGET':  # Target position
@@ -1098,8 +1103,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             child.rotation_euler[2] = direction[1]
             for keydata in keyframe_data.items():
                 track = trackposition.get(keydata[0], child.location)
-                location = mathutils.Vector(track)
-                target = mathutils.Vector(keydata[1])
+                location = apply_constrain(track) if hierarchy == ROOT_OBJECT else mathutils.Vector(track)
+                target = apply_constrain(keydata[1]) if hierarchy == ROOT_OBJECT else mathutils.Vector(keydata[1])
                 direction = calc_target(location, target)
                 child.rotation_euler[0] = direction[0]
                 child.rotation_euler[2] = direction[1]
@@ -1121,8 +1126,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 temp_data = file.read(SZ_U_SHORT)
                 nflags = struct.unpack('<H', temp_data)[0]
                 new_chunk.bytes_read += SZ_U_SHORT
-                if nflags > 0:  # Check for spline term values
-                    temp_data = file.read(SZ_FLOAT)
+                for f in range(bin(nflags).count("1")):
+                    temp_data = file.read(SZ_FLOAT)  # Check for spline term values
                     new_chunk.bytes_read += SZ_FLOAT
                 temp_data = file.read(SZ_4FLOAT)
                 rotation = struct.unpack("<4f", temp_data)
