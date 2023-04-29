@@ -1284,8 +1284,7 @@ def load_3ds(filepath,
     # print(imported_objects)
     if global_matrix:
         for ob in imported_objects:
-            if ob.type == 'MESH' and ob.parent is None:
-                ob.matrix_world = ob.matrix_world @ global_matrix
+            ob.matrix_world = ob.matrix_world @ global_matrix
 
     for ob in imported_objects:
         ob.select_set(True)
