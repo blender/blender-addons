@@ -1194,18 +1194,15 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     # FINISHED LOOP
     # There will be a number of objects still not added
     if CreateBlenderObject:
-        if CreateLightObject or CreateCameraObject:
-            pass
-        else:
-            putContextMesh(
-                context,
-                contextMesh_vertls,
-                contextMesh_facels,
-                contextMesh_flag,
-                contextMeshMaterials,
-                contextMesh_smooth,
-                WORLD_MATRIX
-            )
+        putContextMesh(
+            context,
+            contextMesh_vertls,
+            contextMesh_facels,
+            contextMesh_flag,
+            contextMeshMaterials,
+            contextMesh_smooth,
+            WORLD_MATRIX
+        )
 
     # Assign parents to objects
     # check _if_ we need to assign first because doing so recalcs the depsgraph
