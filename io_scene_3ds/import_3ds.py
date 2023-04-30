@@ -18,29 +18,29 @@ BOUNDS_3DS = []
 ###################
 
 # Some of the chunks that we will see
-# ----- Primary Chunk, at the beginning of each file
+# >----- Primary Chunk, at the beginning of each file
 PRIMARY = 0x4D4D
 
-# ------ Main Chunks
+# >----- Main Chunks
 OBJECTINFO = 0x3D3D  # This gives the version of the mesh and is found right before the material and object information
 VERSION = 0x0002  # This gives the version of the .3ds file
 AMBIENTLIGHT = 0x2100  # The color of the ambient light
 EDITKEYFRAME = 0xB000  # This is the header for all of the key frame info
 
-# ------ Data Chunks, used for various attributes
+# >----- Data Chunks, used for various attributes
 COLOR_F = 0x0010  # color defined as 3 floats
 COLOR_24 = 0x0011  # color defined as 3 bytes
 LIN_COLOR_24 = 0x0012  # linear byte color
 LIN_COLOR_F = 0x0013  # linear float color
 PCT_SHORT = 0x30  # percentage short
 PCT_FLOAT = 0x31  # percentage float
+MASTERSCALE = 0x0100  # Master scale factor
 
-# ------ sub defines of OBJECTINFO
+# >----- sub defines of OBJECTINFO
 MATERIAL = 0xAFFF  # This stored the texture info
 OBJECT = 0x4000  # This stores the faces, vertices, etc...
 
 # >------ sub defines of MATERIAL
-# ------ sub defines of MATERIAL_BLOCK
 MAT_NAME = 0xA000  # This holds the material name
 MAT_AMBIENT = 0xA010  # Ambient color of the object/material
 MAT_DIFFUSE = 0xA020  # This holds the color of the object/material
@@ -49,10 +49,23 @@ MAT_SHINESS = 0xA040  # Roughness of the object/material (percent)
 MAT_SHIN2 = 0xA041  # Shininess of the object/material (percent)
 MAT_SHIN3 = 0xA042  # Reflection of the object/material (percent)
 MAT_TRANSPARENCY = 0xA050  # Transparency value of material (percent)
-MAT_SELF_ILLUM = 0xA080  # Self Illumination value of material
+MAT_XPFALL = 0xA052  # Transparency falloff value
+MAT_REFBLUR = 0xA053  # Reflection blurring value
+MAT_SELF_ILLUM = 0xA080  # # Material self illumination flag
+MAT_TWO_SIDE = 0xA081  # Material is two sided flag
+MAT_DECAL = 0xA082  # Material mapping is decaled flag
+MAT_ADDITIVE = 0xA083  # Material has additive transparency flag
 MAT_SELF_ILPCT = 0xA084  # Self illumination strength (percent)
-MAT_WIRE = 0xA085  # Only render's wireframe
+MAT_WIRE = 0xA085  # Material wireframe rendered flag
+MAT_FACEMAP = 0xA088  # Face mapped textures flag
+MAT_PHONGSOFT = 0xA08C  # Phong soften material flag
+MAT_WIREABS = 0xA08E  # Wire size in units flag
+MAT_WIRESIZE = 0xA087  # Rendered wire size in pixels
 MAT_SHADING = 0xA100  # Material shading method
+MAT_USE_XPFALL = 0xA240  # Transparency falloff flag
+MAT_USE_REFBLUR = 0xA250  # Reflection blurring flag
+
+# >------ sub defines of MATERIAL_MAP
 MAT_TEXTURE_MAP = 0xA200  # This is a header for a new texture map
 MAT_SPECULAR_MAP = 0xA204  # This is a header for a new specular map
 MAT_OPACITY_MAP = 0xA210  # This is a header for a new opacity map
@@ -144,6 +157,7 @@ HOTSPOT_TRACK_TAG = 0xB027  # Keyframe spotlight hotspot track
 FALLOFF_TRACK_TAG = 0xB028  # Keyframe spotlight falloff track
 HIDE_TRACK_TAG = 0xB029  # Keyframe object hide track
 OBJECT_NODE_ID = 0xB030  # Keyframe object node id
+PARENT_NAME = 0x80F0  # Object parent name tree (dot seperated)
 
 ROOT_OBJECT = 0xFFFF
 
@@ -161,7 +175,7 @@ class Chunk:
         "bytes_read",
     )
     # we don't read in the bytes_read, we compute that
-    binary_format = "<HI"
+    binary_format = '<HI'
 
     def __init__(self):
         self.ID = 0
@@ -305,6 +319,7 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
                                 bpy.data.images.remove(imgs)
                 else:
                     links.new(img_wrap.node_image.outputs['Alpha'], img_wrap.socket_dst)
+        contextWrapper.material.blend_method = 'HASHED'
 
     shader.location = (300, 300)
     contextWrapper._grid_to_location(1, 0, dst_node=contextWrapper.node_out, ref_node=shader)
@@ -818,7 +833,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             read_texture(new_chunk, temp_chunk, "Specular", 'SPECULARITY')
 
         elif new_chunk.ID == MAT_OPACITY_MAP:
-            contextMaterial.blend_method = 'BLEND'
             read_texture(new_chunk, temp_chunk, "Opacity", 'ALPHA')
 
         elif new_chunk.ID == MAT_REFLECTION_MAP:
