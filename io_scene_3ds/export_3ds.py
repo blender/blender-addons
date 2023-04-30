@@ -18,14 +18,14 @@ from bpy_extras import node_shader_utils
 ###################
 
 # Some of the chunks that we will export
-# ----- Primary Chunk, at the beginning of each file
+# >----- Primary Chunk, at the beginning of each file
 PRIMARY = 0x4D4D
 
-# ------ Main Chunks
+# >----- Main Chunks
 VERSION = 0x0002  # This gives the version of the .3ds file
 KFDATA = 0xB000  # This is the header for all of the key frame info
 
-# ------ sub defines of OBJECTINFO
+# >----- sub defines of OBJECTINFO
 OBJECTINFO = 0x3D3D  # Main mesh object chunk before the material and object information
 MESHVERSION = 0x3D3E  # This gives the version of the mesh
 AMBIENTLIGHT = 0x2100  # The color of the ambient light
@@ -41,9 +41,16 @@ MATSHINESS = 0xA040  # Specular intensity of the object/material (percent)
 MATSHIN2 = 0xA041  # Reflection of the object/material (percent)
 MATSHIN3 = 0xA042  # metallic/mirror of the object/material (percent)
 MATTRANS = 0xA050  # Transparency value (100-OpacityValue) (percent)
+MATSELFILLUM = 0xA080  # # Material self illumination flag
 MATSELFILPCT = 0xA084  # Self illumination strength (percent)
+MATWIRE = 0xA085  # Material wireframe rendered flag
+MATFACEMAP = 0xA088  # Face mapped textures flag
+MATPHONGSOFT = 0xA08C  # Phong soften material flag
+MATWIREABS = 0xA08E  # Wire size in units flag
+MATWIRESIZE = 0xA087  # Rendered wire size in pixels
 MATSHADING = 0xA100  # Material shading method
 
+# >------ sub defines of MAT_MAP
 MAT_DIFFUSEMAP = 0xA200  # This is a header for a new diffuse texture
 MAT_SPECMAP = 0xA204  # head for specularity map
 MAT_OPACMAP = 0xA210  # head for opacity map
@@ -53,8 +60,6 @@ MAT_BUMP_PERCENT = 0xA252  # Normalmap strength (percent)
 MAT_TEX2MAP = 0xA33A  # head for secondary texture
 MAT_SHINMAP = 0xA33C  # head for roughness map
 MAT_SELFIMAP = 0xA33D  # head for emission map
-
-# >------ sub defines of MAT_MAP
 MATMAPFILE = 0xA300  # This holds the file name of a texture
 MAT_MAP_TILING = 0xa351   # 2nd bit (from LSB) is mirror UV flag
 MAT_MAP_TEXBLUR = 0xA353  # Texture blurring factor
@@ -149,7 +154,7 @@ def sane_name(name):
     i = 0
 
     while new_name in name_unique:
-        new_name = new_name_clean + ".%.3d" % i
+        new_name = new_name_clean + '.%.3d' % i
         i += 1
 
     # note, appending the 'str' version.
@@ -178,7 +183,7 @@ class _3ds_ushort(object):
         return SZ_SHORT
 
     def write(self, file):
-        file.write(struct.pack("<H", self.value))
+        file.write(struct.pack('<H', self.value))
 
     def __str__(self):
         return str(self.value)
@@ -195,7 +200,7 @@ class _3ds_uint(object):
         return SZ_INT
 
     def write(self, file):
-        file.write(struct.pack("<I", self.value))
+        file.write(struct.pack('<I', self.value))
 
     def __str__(self):
         return str(self.value)
@@ -212,7 +217,7 @@ class _3ds_float(object):
         return SZ_FLOAT
 
     def write(self, file):
-        file.write(struct.pack("<f", self.value))
+        file.write(struct.pack('<f', self.value))
 
     def __str__(self):
         return str(self.value)
@@ -230,7 +235,7 @@ class _3ds_string(object):
         return (len(self.value) + 1)
 
     def write(self, file):
-        binary_format = "<%ds" % (len(self.value) + 1)
+        binary_format = '<%ds' % (len(self.value) + 1)
         file.write(struct.pack(binary_format, self.value))
 
     def __str__(self):
@@ -258,19 +263,19 @@ class _3ds_point_3d(object):
 '''
 class _3ds_point_4d(object):
     """Class representing a four-dimensional point for a 3ds file, for instance a quaternion."""
-    __slots__ = "x","y","z","w"
+    __slots__ = "w","x","y","z"
     def __init__(self, point=(0.0,0.0,0.0,0.0)):
-        self.x, self.y, self.z, self.w = point
+        self.w, self.x, self.y, self.z = point
 
     def get_size(self):
         return 4*SZ_FLOAT
 
     def write(self,file):
-        data=struct.pack('<4f', self.x, self.y, self.z, self.w)
+        data=struct.pack('<4f', self.w, self.x, self.y, self.z)
         file.write(data)
 
     def __str__(self):
-        return '(%f, %f, %f, %f)' % (self.x, self.y, self.z, self.w)
+        return '(%f, %f, %f, %f)' % (self.w, self.x, self.y, self.z)
 '''
 
 
@@ -342,7 +347,7 @@ class _3ds_face(object):
 
     def write(self, file):
         # The last short is used for face flags
-        file.write(struct.pack("<4H", self.vindex[0], self.vindex[1], self.vindex[2], self.flag))
+        file.write(struct.pack('<4H', self.vindex[0], self.vindex[1], self.vindex[2], self.flag))
 
     def __str__(self):
         return "[%d %d %d %d]" % (self.vindex[0], self.vindex[1], self.vindex[2], self.flag)
@@ -350,7 +355,6 @@ class _3ds_face(object):
 
 class _3ds_array(object):
     """Class representing an array of variables for a 3ds file.
-
     Consists of a _3ds_ushort to indicate the number of items, followed by the items themselves.
     """
     __slots__ = "values", "size"
@@ -411,7 +415,6 @@ class _3ds_named_variable(object):
 # the chunk class
 class _3ds_chunk(object):
     """Class representing a chunk in a 3ds file.
-
     Chunks contain zero or more variables, followed by zero or more subchunks.
     """
     __slots__ = "ID", "size", "variables", "subchunks"
@@ -424,8 +427,8 @@ class _3ds_chunk(object):
 
     def add_variable(self, name, var):
         """Add a named variable.
-
         The name is mostly for debugging purposes."""
+
         self.variables.append(_3ds_named_variable(name, var))
 
     def add_subchunk(self, chunk):
@@ -434,8 +437,8 @@ class _3ds_chunk(object):
 
     def get_size(self):
         """Calculate the size of the chunk and return it.
-
         The sizes of the variables and subchunks are used to determine this chunk\'s size."""
+
         tmpsize = self.ID.get_size() + self.size.get_size()
         for variable in self.variables:
             tmpsize += variable.get_size()
@@ -459,8 +462,8 @@ class _3ds_chunk(object):
 
     def write(self, file):
         """Write the chunk to a file.
-
         Uses the write function of the variables and the subchunks to do the actual work."""
+
         # write header
         self.ID.write(file)
         self.size.write(file)
@@ -471,12 +474,11 @@ class _3ds_chunk(object):
 
     def dump(self, indent=0):
         """Write the chunk to a file.
-
         Dump is used for debugging purposes, to dump the contents of a chunk to the standard output.
         Uses the dump function of the named variables and the subchunks to do the actual work."""
         print(indent * " ",
-              "ID=%r" % hex(self.ID.value),
-              "size=%r" % self.get_size())
+              'ID=%r' % hex(self.ID.value),
+              'size=%r' % self.get_size())
         for variable in self.variables:
             variable.dump(indent + 1)
         for subchunk in self.subchunks:
@@ -511,7 +513,6 @@ def get_uv_image(ma):
 
 def make_material_subchunk(chunk_id, color):
     """Make a material subchunk.
-
     Used for color subchunks, such as diffuse color or ambient color subchunks."""
     mat_sub = _3ds_chunk(chunk_id)
     col1 = _3ds_chunk(RGB1)
@@ -1089,7 +1090,6 @@ def make_kfdata(start=0, stop=0, curtime=0):
 
 def make_track_chunk(ID, obj):
     """Make a chunk for track data.
-
     Depending on the ID, this will construct a position, rotation or scale track."""
     track_chunk = _3ds_chunk(ID)
     track_chunk.add_variable("track_flags", _3ds_ushort())
@@ -1127,7 +1127,6 @@ def make_track_chunk(ID, obj):
 
 def make_kf_obj_node(obj, name_to_id):
     """Make a node chunk for a Blender object.
-
     Takes the Blender object as a parameter. Object id's are taken from the dictionary name_to_id.
     Blender Empty objects are converted to dummy nodes."""
 
