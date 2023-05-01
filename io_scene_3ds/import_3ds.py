@@ -325,7 +325,7 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
     contextWrapper._grid_to_location(1, 0, dst_node=contextWrapper.node_out, ref_node=shader)
 
 
-def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAIN, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME):
+def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAIN, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE):
 
     contextObName = None
     contextLamp = None
@@ -683,7 +683,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         # is it an object info chunk?
         elif new_chunk.ID == OBJECTINFO:
-            process_next_chunk(context, file, new_chunk, imported_objects, CONSTRAIN, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME)
+            process_next_chunk(context, file, new_chunk, imported_objects, CONSTRAIN, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE)
 
             # keep track of how much we read in the main chunk
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -1120,6 +1120,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             for keydata in keyframe_data.items():
                 trackposition[keydata[0]] = keydata[1]  # Keep track to position for target calculation
                 child.location = apply_constrain(keydata[1]) if hierarchy == ROOT_OBJECT else mathutils.Vector(keydata[1])
+                if hierarchy == ROOT_OBJECT:
+                    child.location.rotate(CONVERSE)
                 if not track_flags[0] & 0x100:  # Flag 0x100 unlinks X axis
                     child.keyframe_insert(data_path="location", index=0, frame=keydata[0])
                 if not track_flags[0] & 0x200:  # Flag 0x200 unlinks Y axis
@@ -1142,6 +1144,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 direction = calc_target(location, target)
                 child.rotation_euler[0] = direction[0]
                 child.rotation_euler[2] = direction[1]
+                if hierarchy == ROOT_OBJECT:
+                    child.rotation_euler.rotate(CONVERSE)
                 child.keyframe_insert(data_path="rotation_euler", frame=keydata[0])
             track_flags.clear()
 
@@ -1183,6 +1187,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             for keydata in keyframe_rotation.items():
                 rad, axis_x, axis_y, axis_z = keydata[1]
                 child.rotation_euler = mathutils.Quaternion((axis_x, axis_y, axis_z), -rad).to_euler()
+                if hierarchy == ROOT_OBJECT:
+                    child.rotation_euler.rotate(CONVERSE)
                 if not tflags & 0x100:  # Flag 0x100 unlinks X axis
                     child.keyframe_insert(data_path="rotation_euler", index=0, frame=keydata[0])
                 if not tflags & 0x200:  # Flag 0x200 unlinks Y axis
@@ -1301,7 +1307,7 @@ def load_3ds(filepath,
              WORLD_MATRIX=False,
              KEYFRAME=True,
              APPLY_MATRIX=True,
-             global_matrix=None):
+             CONVERSE=None):
 
     print("importing 3DS: %r..." % (filepath), end="")
 
@@ -1331,7 +1337,7 @@ def load_3ds(filepath,
     scn = context.scene
 
     imported_objects = []  # Fill this list with objects
-    process_next_chunk(context, file, current_chunk, imported_objects, CONSTRAIN, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME)
+    process_next_chunk(context, file, current_chunk, imported_objects, CONSTRAIN, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE)
 
     # fixme, make unglobal
     object_dictionary.clear()
@@ -1344,9 +1350,10 @@ def load_3ds(filepath,
                 me.transform(ob.matrix_local.inverted())
 
     # print(imported_objects)
-    if global_matrix:
+    if CONVERSE and not KEYFRAME:
         for ob in imported_objects:
-            ob.matrix_world = ob.matrix_world @ global_matrix
+            ob.location.rotate(CONVERSE)
+            ob.rotation_euler.rotate(CONVERSE)
 
     for ob in imported_objects:
         ob.select_set(True)
@@ -1432,7 +1439,7 @@ def load(operator,
              WORLD_MATRIX=use_world_matrix,
              KEYFRAME=read_keyframe,
              APPLY_MATRIX=use_apply_transform,
-             global_matrix=global_matrix,
+             CONVERSE=global_matrix,
              )
 
     return {'FINISHED'}
