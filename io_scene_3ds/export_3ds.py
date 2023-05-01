@@ -108,12 +108,6 @@ OBJECT_SMOOTH = 0x4150  # The objects smooth groups
 OBJECT_TRANS_MATRIX = 0x4160  # The Object Matrix
 
 # >------ sub defines of KFDATA
-KFDATA_KFHDR = 0xB00A
-KFDATA_KFSEG = 0xB008
-KFDATA_KFCURTIME = 0xB009
-KFDATA_OBJECT_NODE_TAG = 0xB002
-
-# >------ sub defines of OBJECT_NODE_TAG
 AMBIENT_NODE_TAG = 0xB001  # Ambient node tag
 OBJECT_NODE_TAG = 0xB002  # Object tree tag
 CAMERA_NODE_TAG = 0xB003  # Camera object tag
@@ -121,6 +115,11 @@ TARGET_NODE_TAG = 0xB004  # Camera target tag
 LIGHT_NODE_TAG = 0xB005  # Light object tag
 LTARGET_NODE_TAG = 0xB006  # Light target tag
 SPOT_NODE_TAG = 0xB007  # Spotlight tag
+KFDATA_KFSEG = 0xB008  # Frame start & end
+KFDATA_KFCURTIME = 0xB009  # Frame current
+KFDATA_KFHDR = 0xB00A  # Keyframe header
+
+# >------ sub defines of OBJECT_NODE_TAG
 OBJECT_NODE_ID = 0xB030  # Object hierachy ID
 OBJECT_NODE_HDR = 0xB010  # Hierachy tree header
 OBJECT_INSTANCE_NAME = 0xB011  # Object instance name
@@ -350,7 +349,7 @@ class _3ds_face(object):
         file.write(struct.pack('<4H', self.vindex[0], self.vindex[1], self.vindex[2], self.flag))
 
     def __str__(self):
-        return "[%d %d %d %d]" % (self.vindex[0], self.vindex[1], self.vindex[2], self.flag)
+        return '[%d %d %d %d]' % (self.vindex[0], self.vindex[1], self.vindex[2], self.flag)
 
 
 class _3ds_array(object):
@@ -1126,7 +1125,7 @@ def make_kf_obj_node(obj, name_to_id):
 
     name = obj.name
     # main object node chunk:
-    kf_obj_node = _3ds_chunk(KFDATA_OBJECT_NODE_TAG)
+    kf_obj_node = _3ds_chunk(OBJECT_NODE_TAG)
     # chunk for the object id:
     obj_id_chunk = _3ds_chunk(OBJECT_NODE_ID)
     # object id is from the name_to_id dictionary:
