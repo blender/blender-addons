@@ -572,29 +572,23 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
         for link in texslot.socket_dst.links:
             socket = link.from_socket.identifier
 
-        maptile = 0
+        ma_sub_mapflags = _3ds_chunk(MAP_TILING)
+        mapflag = 0
 
         # no perfect mapping for mirror modes - 3DS only has uniform mirror w. repeat=2
-        if texslot.extension == 'EXTEND':
-            maptile |= 0x1
+        if tex.extension == 'EXTEND':  # decal flag
+            mapflag |= 0x1
         # CLIP maps to 3DS' decal flag
-        elif texslot.extension == 'CLIP':
-            maptile |= 0x10
-
-        mat_sub_tile = _3ds_chunk(MAT_MAP_TILING)
-        mat_sub_tile.add_variable("tiling", _3ds_ushort(maptile))
-        mat_sub.add_subchunk(mat_sub_tile)
+        if tex.extension == 'CLIP':  # no wrap
+            mapflag |= 0x10
 
         if socket == 'Alpha':
-            mat_sub_alpha = _3ds_chunk(MAP_TILING)
-            alphaflag |= 0x40  # summed area sampling 0x20
-            mat_sub_alpha.add_variable("alpha", _3ds_ushort(alphaflag))
-            mat_sub.add_subchunk(mat_sub_alpha)
-            if texslot.socket_dst.identifier in {'Base Color', 'Specular'}:
-                mat_sub_tint = _3ds_chunk(MAP_TILING)  # RGB tint 0x200
-                tint |= 0x80 if texslot.image.colorspace_settings.name == 'Non-Color' else 0x200
-                mat_sub_tint.add_variable("tint", _3ds_ushort(tint))
-                mat_sub.add_subchunk(mat_sub_tint)
+            mapflag |= 0x40  # summed area sampling 0x20
+            if tex.socket_dst.identifier in {'Base Color', 'Specular'}: 
+                mapflag |= 0x80 if tex.image.colorspace_settings.name=='Non-Color' else 0x200  # RGB tint
+
+        ma_sub_mapflags.add_variable("mapflags", _3ds_ushort(mapflag))
+        ma_sub.add_subchunk(ma_sub_mapflags)
 
         mat_sub_texblur = _3ds_chunk(MAT_MAP_TEXBLUR)  # Based on observation this is usually 1.0
         mat_sub_texblur.add_variable("maptexblur", _3ds_float(1.0))
