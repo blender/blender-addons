@@ -1141,6 +1141,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 track = trackposition.get(keydata[0], child.location)
                 location = apply_constrain(track) if hierarchy == ROOT_OBJECT else mathutils.Vector(track)
                 target = apply_constrain(keydata[1]) if hierarchy == ROOT_OBJECT else mathutils.Vector(keydata[1])
+                if hierarchy == ROOT_OBJECT:
+                    location.rotate(CONVERSE)
                 direction = calc_target(location, target)
                 child.rotation_euler[0] = direction[0]
                 child.rotation_euler[2] = direction[1]
@@ -1222,6 +1224,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             child.rotation_euler[1] = read_track_angle(temp_chunk)[0]
             for keydata in keyframe_angle.items():
                 child.rotation_euler[1] = keydata[1]
+                if hierarchy == ROOT_OBJECT:
+                    child.rotation_euler.rotate(CONVERSE)
                 child.keyframe_insert(data_path="rotation_euler", index=1, frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == FOV_TRACK_TAG and child.type == 'CAMERA':  # Field of view
