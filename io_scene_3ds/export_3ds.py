@@ -575,16 +575,16 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
         mapflags = 0
 
         # no perfect mapping for mirror modes - 3DS only has uniform mirror w. repeat=2
-        if tex.extension == 'EXTEND':  # decal flag
+        if texslot.extension == 'EXTEND':  # decal flag
             mapflags |= 0x1
         # CLIP maps to 3DS' decal flag
-        if tex.extension == 'CLIP':  # no wrap
+        if texslot.extension == 'CLIP':  # no wrap
             mapflags |= 0x10
 
         if socket == 'Alpha':
             mapflags |= 0x40  # summed area sampling 0x20
-            if tex.socket_dst.identifier in {'Base Color', 'Specular'}: 
-                mapflags |= 0x80 if tex.image.colorspace_settings.name=='Non-Color' else 0x200  # RGB tint
+            if texslot.socket_dst.identifier in {'Base Color', 'Specular'}: 
+                mapflags |= 0x80 if image.colorspace_settings.name=='Non-Color' else 0x200  # RGB tint
 
         mat_sub_mapflags.add_variable("mapflags", _3ds_ushort(mapflags))
         mat_sub.add_subchunk(mat_sub_mapflags)
