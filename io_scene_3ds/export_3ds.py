@@ -60,7 +60,7 @@ MAT_BUMP_PERCENT = 0xA252  # Normalmap strength (percent)
 MAT_TEX2MAP = 0xA33A  # head for secondary texture
 MAT_SHINMAP = 0xA33C  # head for roughness map
 MAT_SELFIMAP = 0xA33D  # head for emission map
-MATMAPFILE = 0xA300  # This holds the file name of a texture
+MAT_MAP_FILE = 0xA300  # This holds the file name of a texture
 MAT_MAP_TILING = 0xa351   # 2nd bit (from LSB) is mirror UV flag
 MAT_MAP_TEXBLUR = 0xA353  # Texture blurring factor
 MAT_MAP_USCALE = 0xA354   # U axis scaling
@@ -502,10 +502,10 @@ def get_material_image(material):
 def get_uv_image(ma):
     """ Get image from material wrapper."""
     if ma and ma.use_nodes:
-        ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma)
-        ma_tex = ma_wrap.base_color_texture
-        if ma_tex and ma_tex.image is not None:
-            return ma_tex.image
+        mat_wrap = node_shader_utils.PrincipledBSDFWrapper(ma)
+        mat_tex = mat_wrap.base_color_texture
+        if mat_tex and mat_tex.image is not None:
+            return mat_tex.image
     else:
         return get_material_image(ma)
 
@@ -536,20 +536,20 @@ def make_percent_subchunk(chunk_id, percent):
 def make_texture_chunk(chunk_id, images):
     """Make Material Map texture chunk."""
     # Add texture percentage value (100 = 1.0)
-    ma_sub = make_percent_subchunk(chunk_id, 1)
+    mat_sub = make_percent_subchunk(chunk_id, 1)
     has_entry = False
 
     def add_image(img):
         filename = bpy.path.basename(image.filepath)
-        ma_sub_file = _3ds_chunk(MATMAPFILE)
-        ma_sub_file.add_variable("image", _3ds_string(sane_name(filename)))
-        ma_sub.add_subchunk(ma_sub_file)
+        mat_sub_file = _3ds_chunk(MAT_MAP_FILE)
+        mat_sub_file.add_variable("image", _3ds_string(sane_name(filename)))
+        mat_sub.add_subchunk(mat_sub_file)
 
     for image in images:
         add_image(image)
         has_entry = True
 
-    return ma_sub if has_entry else None
+    return mat_sub if has_entry else None
 
 
 def make_material_texture_chunk(chunk_id, texslots, pct):
@@ -565,13 +565,13 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
         image = texslot.image
 
         filename = bpy.path.basename(image.filepath)
-        mat_sub_file = _3ds_chunk(MATMAPFILE)
+        mat_sub_file = _3ds_chunk(MAT_MAP_FILE)
         mat_sub_file.add_variable("mapfile", _3ds_string(sane_name(filename)))
         mat_sub.add_subchunk(mat_sub_file)
         for link in texslot.socket_dst.links:
             socket = link.from_socket.identifier
 
-        mat_sub_mapflags = _3ds_chunk(MAP_TILING)
+        mat_sub_mapflags = _3ds_chunk(MAT_MAP_TILING)
         mapflags = 0
 
         # no perfect mapping for mirror modes - 3DS only has uniform mirror w. repeat=2
