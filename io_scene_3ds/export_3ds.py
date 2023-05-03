@@ -1245,6 +1245,7 @@ def save(operator,
     else:
         objects = [ob for ob in scene.objects if not ob.hide_viewport]
 
+    empty_objects = [ob for ob in objects if ob.type == 'EMPTY']
     light_objects = [ob for ob in objects if ob.type == 'LIGHT']
     camera_objects = [ob for ob in objects if ob.type == 'CAMERA']
 
@@ -1314,13 +1315,14 @@ def save(operator,
     # Give all objects a unique ID and build a dictionary from object name to object id:
     translation = {}  # collect translation for transformation matrix
     # name_to_id = {}
+
     for ob, data, matrix in mesh_objects:
         translation[ob.name] = ob.location
         # name_to_id[ob.name]= len(name_to_id)
-    """
-    #for ob in empty_objects:
-    #    name_to_id[ob.name]= len(name_to_id)
-    """
+
+    for ob in empty_objects:
+        translation[ob.name] = ob.location
+        # name_to_id[ob.name]= len(name_to_id)
 
     # Create object chunks for all meshes:
     i = 0
