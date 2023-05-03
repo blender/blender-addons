@@ -332,7 +332,7 @@ class _3ds_rgb_color(object):
 
 class _3ds_face(object):
     """Class representing a face for a 3ds file."""
-    __slots__ = ("vindex", "flag")
+    __slots__ = ("vindex", "flag", )
 
     def __init__(self, vindex, flag):
         self.vindex = vindex
@@ -558,9 +558,10 @@ def make_texture_chunk(chunk_id, images):
 
 def make_material_texture_chunk(chunk_id, texslots, pct):
     """Make Material Map texture chunk given a seq. of `MaterialTextureSlot`'s
-        Paint slots are optionally used as image source if no nodes are
-        used. No additional filtering for mapping modes is done, all
-        slots are written "as is"."""
+    Paint slots are optionally used as image source if no nodes are
+    used. No additional filtering for mapping modes is done, all
+    slots are written "as is"."""
+
     # Add texture percentage value
     mat_sub = make_percent_subchunk(chunk_id, pct)
     has_entry = False
@@ -576,19 +577,26 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
             socket = link.from_socket.identifier
 
         mat_sub_mapflags = _3ds_chunk(MAT_MAP_TILING)
+        """Control bit flags, where 0x1 activates decaling, 0x2 activates mirror,
+        0x8 activates inversion, 0x10 deactivates tiling, 0x20 activates summed area sampling,
+        0x40 activates alpha source, 0x80 activates tinting, 0x100 ignores alpha, 0x200 activates RGB tint.
+        Bits 0x80, 0x100, and 0x200 are only used with TEXMAP, TEX2MAP, and SPECMAP chunks.
+        0x40, when used with a TEXMAP, TEX2MAP, or SPECMAP chunk must be accompanied with a tint bit,
+        either 0x100 or 0x200, tintcolor will be processed if colorchunks are present"""
+
         mapflags = 0
 
         # no perfect mapping for mirror modes - 3DS only has uniform mirror w. repeat=2
-        if texslot.extension == 'EXTEND':  # decal flag
+        if texslot.extension == 'EXTEND':
             mapflags |= 0x1
-        # CLIP maps to 3DS' decal flag
-        if texslot.extension == 'CLIP':  # no wrap
+
+        if texslot.extension == 'CLIP':
             mapflags |= 0x10
 
         if socket == 'Alpha':
-            mapflags |= 0x40  # summed area sampling 0x20
+            mapflags |= 0x40
             if texslot.socket_dst.identifier in {'Base Color', 'Specular'}: 
-                mapflags |= 0x80 if image.colorspace_settings.name=='Non-Color' else 0x200  # RGB tint
+                mapflags |= 0x80 if image.colorspace_settings.name=='Non-Color' else 0x200
 
         mat_sub_mapflags.add_variable("mapflags", _3ds_ushort(mapflags))
         mat_sub.add_subchunk(mat_sub_mapflags)
@@ -1021,8 +1029,6 @@ def make_mesh_chunk(ob, mesh, matrix, materialDict, translation):
     if uv_array:
         mesh_chunk.add_subchunk(make_uv_chunk(uv_array))
 
-    # mesh_chunk.add_subchunk(make_matrix_4x3_chunk(matrix))
-
     # create transformation matrix chunk
     matrix_chunk = _3ds_chunk(OBJECT_TRANS_MATRIX)
     obj_matrix = matrix.transposed().to_3x3()
@@ -1186,7 +1192,6 @@ def save(operator,
 
     # Time the export
     duration = time.time()
-    # Blender.Window.WaitCursor(1)
 
     if global_matrix is None:
         global_matrix = mathutils.Matrix()
@@ -1307,8 +1312,9 @@ def save(operator,
         object_info.add_subchunk(make_material_chunk(ma_image[0], ma_image[1]))
 
     # Give all objects a unique ID and build a dictionary from object name to object id:
-    translation = {}  # collect translation for transformation matrix
     # name_to_id = {}
+
+    translation = {}  # collect translation for transformation matrix
 
     for ob, data, matrix in mesh_objects:
         translation[ob.name] = ob.location
@@ -1342,10 +1348,6 @@ def save(operator,
         # make a kf object node for the object:
         kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
         '''
-
-        # if not blender_mesh.users:
-        # bpy.data.meshes.remove(blender_mesh)
-        # blender_mesh.vertices = None
 
         i += i
 
@@ -1421,9 +1423,9 @@ def save(operator,
     '''
 
     # At this point, the chunk hierarchy is completely built.
-
     # Check the size:
     primary.get_size()
+
     # Open the file for writing:
     file = open(filepath, 'wb')
 
@@ -1438,7 +1440,6 @@ def save(operator,
     name_mapping.clear()
 
     # Debugging only: report the exporting time:
-    # Blender.Window.WaitCursor(0)
     print("3ds export time: %.2f" % (time.time() - duration))
 
     # Debugging only: dump the chunk hierarchy:
