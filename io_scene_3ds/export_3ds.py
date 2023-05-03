@@ -530,6 +530,10 @@ def make_percent_subchunk(chunk_id, percent):
     pcti = _3ds_chunk(PCT)
     pcti.add_variable("percent", _3ds_ushort(int(round(percent * 100, 0))))
     pct_sub.add_subchunk(pcti)
+    # optional:
+    # pctf = _3ds_chunk(PCTF)
+    # pctf.add_variable("pctfloat", _3ds_float(round(percent, 6)))
+    # pct_sub.add_subchunk(pctf)
     return pct_sub
 
 
@@ -985,16 +989,6 @@ def make_uv_chunk(uv_array):
     uv_chunk = _3ds_chunk(OBJECT_UV)
     uv_chunk.add_variable("uv coords", uv_array)
     return uv_chunk
-
-
-'''
-def make_matrix_4x3_chunk(matrix):
-    matrix_chunk = _3ds_chunk(OBJECT_TRANS_MATRIX)
-    for vec in matrix.col:
-        for f in vec[:3]:
-            matrix_chunk.add_variable("matrix_f", _3ds_float(f))
-    return matrix_chunk
-'''
 
 
 def make_mesh_chunk(ob, mesh, matrix, materialDict, translation):
