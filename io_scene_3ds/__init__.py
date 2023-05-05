@@ -23,8 +23,7 @@ bl_info = {
                    "cameras, lamps & animation",
     "warning": "Images must be in file folder, "
                "filenames are limited to DOS 8.3 format",
-    "doc_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-               "Scripts/Import-Export/Autodesk_3DS",
+    "doc_url": "{BLENDER_MANUAL_URL}/addons/import_export/scene_3ds.html"
     "category": "Import-Export",
 }
 
