@@ -739,7 +739,7 @@ def make_material_chunk(material, image):
         diffuse = []
 
         for link in wrap.material.node_tree.links:
-            if link.from_node.type == 'TEX_IMAGE' and link.to_node.type == 'MIX_RGB':
+            if link.from_node.type == 'TEX_IMAGE' and link.to_node.type in {'MIX', 'MIX_RGB'}:
                 diffuse = [link.from_node.image]
 
         if diffuse:
