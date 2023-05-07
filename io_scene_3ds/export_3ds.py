@@ -7,6 +7,7 @@ from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 """
 
 import bpy
+import time
 import math
 import struct
 import mathutils
@@ -647,6 +648,7 @@ def make_material_chunk(material, image):
     """Make a material chunk out of a blender material.
     Shading method is required for 3ds max, 0 for wireframe.
     0x1 for flat, 0x2 for gouraud, 0x3 for phong and 0x4 for metal."""
+
     material_chunk = _3ds_chunk(MATERIAL)
     name = _3ds_chunk(MATNAME)
     shading = _3ds_chunk(MATSHADING)
@@ -1033,8 +1035,8 @@ def make_mesh_chunk(ob, mesh, matrix, materialDict, translation):
     matrix_chunk = _3ds_chunk(OBJECT_TRANS_MATRIX)
     obj_matrix = matrix.transposed().to_3x3()
 
-    if ob.parent is None:
-        obj_translate = translation[ob.name]
+    if ob.parent is None or ob.parent.name not in translation:
+        obj_translate = matrix.to_translation()
 
     else:  # Calculate child matrix translation relative to parent
         obj_translate = translation[ob.name].cross(-1 * translation[ob.parent.name])
@@ -1185,13 +1187,13 @@ def save(operator,
          global_matrix=None,
          ):
 
-    import time
-    # from bpy_extras.io_utils import create_derived_objects, free_derived_objects
-
     """Save the Blender scene to a 3ds file."""
-
     # Time the export
     duration = time.time()
+
+    scene = context.scene
+    layer = context.view_layer
+    depsgraph = context.evaluated_depsgraph_get()
 
     if global_matrix is None:
         global_matrix = mathutils.Matrix()
@@ -1199,12 +1201,9 @@ def save(operator,
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    scene = context.scene
-    layer = context.view_layer
-    depsgraph = context.evaluated_depsgraph_get()
-
     # Initialize the main chunk (primary):
     primary = _3ds_chunk(PRIMARY)
+
     # Add version chunk:
     version_chunk = _3ds_chunk(VERSION)
     version_chunk.add_variable("version", _3ds_uint(3))
@@ -1240,9 +1239,9 @@ def save(operator,
     mesh_objects = []
 
     if use_selection:
-        objects = [ob for ob in scene.objects if not ob.hide_viewport and ob.select_get(view_layer=layer)]
+        objects = [ob for ob in scene.objects if ob.visible_get(view_layer=layer) and ob.select_get(view_layer=layer)]
     else:
-        objects = [ob for ob in scene.objects if not ob.hide_viewport]
+        objects = [ob for ob in scene.objects if ob.visible_get(view_layer=layer)]
 
     empty_objects = [ob for ob in objects if ob.type == 'EMPTY']
     light_objects = [ob for ob in objects if ob.type == 'LIGHT']
@@ -1250,7 +1249,6 @@ def save(operator,
 
     for ob in objects:
         # get derived objects
-        # free, derived = create_derived_objects(scene, ob)
         derived_dict = bpy_extras.io_utils.create_derived_objects(depsgraph, [ob])
         derived = derived_dict.get(ob)
 
@@ -1302,19 +1300,16 @@ def save(operator,
                         if f.material_index >= ma_ls_len:
                             f.material_index = 0
 
-                # ob_derived_eval.to_mesh_clear()
-
-        # if free:
-        #     free_derived_objects(ob)
 
     # Make material chunks for all materials used in the meshes:
     for ma_image in materialDict.values():
         object_info.add_subchunk(make_material_chunk(ma_image[0], ma_image[1]))
 
+    # Collect translation for transformation matrix
+    translation = {}
+
     # Give all objects a unique ID and build a dictionary from object name to object id:
     # name_to_id = {}
-
-    translation = {}  # collect translation for transformation matrix
 
     for ob, data, matrix in mesh_objects:
         translation[ob.name] = ob.location
