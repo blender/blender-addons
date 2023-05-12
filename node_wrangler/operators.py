@@ -2875,7 +2875,7 @@ class NWResetNodes(bpy.types.Operator):
     def execute(self, context):
         node_active = context.active_node
         node_selected = context.selected_nodes
-        node_ignore = ["FRAME", "REROUTE", "GROUP"]
+        node_ignore = ["FRAME", "REROUTE", "GROUP", "SIMULATION_INPUT", "SIMULATION_OUTPUT"]
 
         # Check if one node is selected at least
         if not (len(node_selected) > 0):
