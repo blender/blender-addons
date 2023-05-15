@@ -2,10 +2,10 @@
 # Copyright 2005 Bob Holcomb
 
 import os
-import time
-import struct
 import bpy
+import time
 import math
+import struct
 import mathutils
 from bpy_extras.image_utils import load_image
 from bpy_extras.node_shader_utils import PrincipledBSDFWrapper
@@ -293,13 +293,9 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
         img_wrap.rotation[2] = angle
 
     if extend == 'mirror':
-        # 3DS mirror flag can be emulated by these settings (at least so it seems)
         img_wrap.extension = 'MIRROR'
-
     elif extend == 'decal':
-        # 3DS' decal mode maps best to Blenders EXTEND
         img_wrap.extension = 'EXTEND'
-
     elif extend == 'noWrap':
         img_wrap.extension = 'CLIP'
 
