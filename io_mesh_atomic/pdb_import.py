@@ -556,7 +556,7 @@ def camera_light_source(use_camera,
 
     camera_factor = 15.0
 
-    # If chosen a camera is put into the scene.
+    # If chosen, a camera is put into the scene.
     if use_camera == True:
 
         # Assume that the object is put into the global origin. Then, the
@@ -850,7 +850,7 @@ def draw_sticks_dupliverts(all_atoms,
         i = 0
 
         # What follows is school mathematics! :-) We construct equidistant
-        # planes, on which the stcik sections (cylinders) are perpendicular on.
+        # planes, on which the stick sections (cylinders) are perpendicular on.
         for stick in stick_list:
 
             dv = stick[2]
