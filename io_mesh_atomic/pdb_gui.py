@@ -184,7 +184,10 @@ class IMPORT_OT_pdb(Operator, ImportHelper):
             col = row.column()
             col.active = self.use_sticks_one_object
             col.prop(self, "use_sticks_one_object_nr")
-
+            row = box.row()
+            row.active = self.use_sticks and self.use_sticks_bonds
+            row.label(text="Distance")
+            row.prop(self, "sticks_dist")
 
     def execute(self, context):
         # Switch to 'OBJECT' mode when in 'EDIT' mode.
