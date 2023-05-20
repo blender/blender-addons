@@ -112,7 +112,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
     write_keyframe: BoolProperty(
         name="Write Keyframe",
         description="Write the keyframe data",
-        default=True,
+        default=False,
     )
 
     def execute(self, context):
