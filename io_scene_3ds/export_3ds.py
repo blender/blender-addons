@@ -121,6 +121,7 @@ KFDATA_KFCURTIME = 0xB009  # Frame current
 KFDATA_KFHDR = 0xB00A  # Keyframe header
 
 # >------ sub defines of OBJECT_NODE_TAG
+PARENT_NAME = 0x80F0  # Object parent name tree
 OBJECT_NODE_ID = 0xB030  # Object hierachy ID
 OBJECT_NODE_HDR = 0xB010  # Hierachy tree header
 OBJECT_INSTANCE_NAME = 0xB011  # Object instance name
@@ -166,7 +167,7 @@ def sane_name(name):
 def uv_key(uv):
     return round(uv[0], 6), round(uv[1], 6)
 
-# size defines:
+# size defines
 SZ_SHORT = 2
 SZ_INT = 4
 SZ_FLOAT = 4
@@ -239,7 +240,7 @@ class _3ds_string(object):
         file.write(struct.pack(binary_format, self.value))
 
     def __str__(self):
-        return str(self.value)
+        return str((self.value).decode("ASCII"))
 
 
 class _3ds_point_3d(object):
@@ -260,15 +261,15 @@ class _3ds_point_3d(object):
 
 
 # Used for writing a track
-'''
 class _3ds_point_4d(object):
     """Class representing a four-dimensional point for a 3ds file, for instance a quaternion."""
-    __slots__ = "w","x","y","z"
-    def __init__(self, point=(0.0,0.0,0.0,0.0)):
+    __slots__ = "w", "x", "y", "z"
+
+    def __init__(self, point):
         self.w, self.x, self.y, self.z = point
 
     def get_size(self):
-        return 4*SZ_FLOAT
+        return 4 * SZ_FLOAT
 
     def write(self,file):
         data=struct.pack('<4f', self.w, self.x, self.y, self.z)
@@ -276,7 +277,6 @@ class _3ds_point_4d(object):
 
     def __str__(self):
         return '(%f, %f, %f, %f)' % (self.w, self.x, self.y, self.z)
-'''
 
 
 class _3ds_point_uv(object):
@@ -342,9 +342,7 @@ class _3ds_face(object):
     def get_size(self):
         return 4 * SZ_SHORT
 
-    # no need to validate every face vert. the oversized array will
-    # catch this problem
-
+    # no need to validate every face vert. the oversized array will catch this problem
     def write(self, file):
         # The last short is used for face flags
         file.write(struct.pack('<4H', self.vindex[0], self.vindex[1], self.vindex[2], self.flag))
@@ -363,7 +361,7 @@ class _3ds_array(object):
         self.values = []
         self.size = SZ_SHORT
 
-    # add an item:
+    # add an item
     def add(self, item):
         self.values.append(item)
         self.size += item.get_size()
@@ -387,7 +385,6 @@ class _3ds_array(object):
 
 class _3ds_named_variable(object):
     """Convenience class for named variables."""
-
     __slots__ = "value", "name"
 
     def __init__(self, name, val=None):
@@ -485,9 +482,9 @@ class _3ds_chunk(object):
             subchunk.dump(indent + 1)
 
 
-##########
-# EXPORT #
-##########
+#############
+# MATERIALS #
+#############
 
 def get_material_image(material):
     """ Get images from paint slots."""
@@ -685,9 +682,9 @@ def make_material_chunk(material, image):
         primary_tex = False
 
         if wrap.base_color_texture:
-            d_pct = 0.7 + sum(wrap.base_color[:]) * 0.1
             color = [wrap.base_color_texture]
-            matmap = make_material_texture_chunk(MAT_DIFFUSEMAP, color, d_pct)
+            c_pct = 0.7 + sum(wrap.base_color[:]) * 0.1
+            matmap = make_material_texture_chunk(MAT_DIFFUSEMAP, color, c_pct)
             if matmap:
                 material_chunk.add_subchunk(matmap)
                 primary_tex = True
@@ -729,8 +726,8 @@ def make_material_chunk(material, image):
                 material_chunk.add_subchunk(matmap)
 
         if wrap.emission_color_texture:
-            e_pct = wrap.emission_strength
             emission = [wrap.emission_color_texture]
+            e_pct = wrap.emission_strength
             matmap = make_material_texture_chunk(MAT_SELFIMAP, emission, e_pct)
             if matmap:
                 material_chunk.add_subchunk(matmap)
@@ -769,6 +766,10 @@ def make_material_chunk(material, image):
 
     return material_chunk
 
+
+#############
+# MESH DATA #
+#############
 
 class tri_wrapper(object):
     """Class representing a triangle.
@@ -849,31 +850,27 @@ def remove_face_uv(verts, tri_list):
     need to be converted to vertex uv coordinates. That means that vertices need to be duplicated when
     there are multiple uv coordinates per vertex."""
 
-    # initialize a list of UniqueLists, one per vertex:
-    # uv_list = [UniqueList() for i in xrange(len(verts))]
+    # initialize a list of UniqueLists, one per vertex
     unique_uvs = [{} for i in range(len(verts))]
 
     # for each face uv coordinate, add it to the UniqueList of the vertex
     for tri in tri_list:
         for i in range(3):
-            # store the index into the UniqueList for future reference:
+            # store the index into the UniqueList for future reference
             # offset.append(uv_list[tri.vertex_index[i]].add(_3ds_point_uv(tri.faceuvs[i])))
 
             context_uv_vert = unique_uvs[tri.vertex_index[i]]
             uvkey = tri.faceuvs[i]
 
             offset_index__uv_3ds = context_uv_vert.get(uvkey)
-
             if not offset_index__uv_3ds:
                 offset_index__uv_3ds = context_uv_vert[uvkey] = len(context_uv_vert), _3ds_point_uv(uvkey)
 
             tri.offset[i] = offset_index__uv_3ds[0]
 
-    # At this point, each vertex has a UniqueList containing every uv coordinate that is associated with it
-    # only once.
-
+    # At this point each vertex has a UniqueList containing every uv coord associated with it only once
     # Now we need to duplicate every vertex as many times as it has uv coordinates and make sure the
-    # faces refer to the new face indices:
+    # faces refer to the new face indices
     vert_index = 0
     vert_array = _3ds_array()
     uv_array = _3ds_array()
@@ -894,12 +891,12 @@ def remove_face_uv(verts, tri_list):
 
         # Add the uv's in the correct order
         for uv_3ds in uvmap:
-            # add the uv coordinate to the uv array:
+            # add the uv coordinate to the uv array
             uv_array.add(uv_3ds)
 
         vert_index += len(unique_uvs[i])
 
-    # Make sure the triangle vertex indices now refer to the new vertex list:
+    # Make sure the triangle vertex indices now refer to the new vertex list
     for tri in tri_list:
         for i in range(3):
             tri.offset[i] += index_list[tri.vertex_index[i]]
@@ -1003,30 +1000,30 @@ def make_uv_chunk(uv_array):
 def make_mesh_chunk(ob, mesh, matrix, materialDict, translation):
     """Make a chunk out of a Blender mesh."""
 
-    # Extract the triangles from the mesh:
+    # Extract the triangles from the mesh
     tri_list = extract_triangles(mesh)
 
     if mesh.uv_layers:
-        # Remove the face UVs and convert it to vertex UV:
+        # Remove the face UVs and convert it to vertex UV
         vert_array, uv_array, tri_list = remove_face_uv(mesh.vertices, tri_list)
     else:
-        # Add the vertices to the vertex array:
+        # Add the vertices to the vertex array
         vert_array = _3ds_array()
         for vert in mesh.vertices:
             vert_array.add(_3ds_point_3d(vert.co))
-        # no UV at all:
+        # no UV at all
         uv_array = None
 
-    # create the chunk:
+    # create the chunk
     mesh_chunk = _3ds_chunk(OBJECT_MESH)
 
-    # add vertex chunk:
+    # add vertex chunk
     mesh_chunk.add_subchunk(make_vert_chunk(vert_array))
 
-    # add faces chunk:
+    # add faces chunk
     mesh_chunk.add_subchunk(make_faces_chunk(tri_list, mesh, materialDict))
 
-    # if available, add uv chunk:
+    # if available, add uv chunk
     if uv_array:
         mesh_chunk.add_subchunk(make_uv_chunk(uv_array))
 
@@ -1058,17 +1055,18 @@ def make_mesh_chunk(ob, mesh, matrix, materialDict, translation):
     return mesh_chunk
 
 
-''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
-def make_kfdata(start=0, stop=0, curtime=0):
+#################
+# KEYFRAME DATA #
+#################
+
+def make_kfdata(revision, start=0, stop=100, curtime=0):
     """Make the basic keyframe data chunk"""
     kfdata = _3ds_chunk(KFDATA)
 
     kfhdr = _3ds_chunk(KFDATA_KFHDR)
-    kfhdr.add_variable("revision", _3ds_ushort(0))
-    # Not really sure what filename is used for, but it seems it is usually used
-    # to identify the program that generated the .3ds:
-    kfhdr.add_variable("filename", _3ds_string("Blender"))
-    kfhdr.add_variable("animlen", _3ds_uint(stop-start))
+    kfhdr.add_variable("revision", _3ds_ushort(revision))
+    kfhdr.add_variable("filename", _3ds_string(b'Blender'))
+    kfhdr.add_variable("animlen", _3ds_uint(stop - start))
 
     kfseg = _3ds_chunk(KFDATA_KFSEG)
     kfseg.add_variable("start", _3ds_uint(start))
@@ -1082,107 +1080,396 @@ def make_kfdata(start=0, stop=0, curtime=0):
     kfdata.add_subchunk(kfcurtime)
     return kfdata
 
-def make_track_chunk(ID, obj):
-    """Make a chunk for track data.
-    Depending on the ID, this will construct a position, rotation or scale track."""
+def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
+    """Make a chunk for track data. Depending on the ID, this will
+       construct a position, rotation, scale, roll, color or fov track."""
     track_chunk = _3ds_chunk(ID)
-    track_chunk.add_variable("track_flags", _3ds_ushort())
-    track_chunk.add_variable("unknown", _3ds_uint())
-    track_chunk.add_variable("unknown", _3ds_uint())
-    track_chunk.add_variable("nkeys", _3ds_uint(1))
-    # Next section should be repeated for every keyframe, but for now, animation is not actually supported.
-    track_chunk.add_variable("tcb_frame", _3ds_uint(0))
-    track_chunk.add_variable("tcb_flags", _3ds_ushort())
-    if obj.type=='Empty':
-        if ID==POS_TRACK_TAG:
-            # position vector:
-            track_chunk.add_variable("position", _3ds_point_3d(obj.getLocation()))
-        elif ID==ROT_TRACK_TAG:
-            # rotation (quaternion, angle first, followed by axis):
-            q = obj.getEuler().to_quaternion()  # XXX, todo!
-            track_chunk.add_variable("rotation", _3ds_point_4d((q.angle, q.axis[0], q.axis[1], q.axis[2])))
-        elif ID==SCL_TRACK_TAG:
-            # scale vector:
-            track_chunk.add_variable("scale", _3ds_point_3d(obj.getSize()))
+
+    if ID in {POS_TRACK_TAG, ROT_TRACK_TAG, SCL_TRACK_TAG} and ob.animation_data and ob.animation_data.action:
+        action = ob.animation_data.action
+        if action.fcurves:
+            fcurves = action.fcurves
+            kframes = [kf.co[0] for kf in [fc for fc in fcurves if fc is not None][0].keyframe_points]
+            nkeys = len(kframes)
+            if not 0 in kframes:
+                kframes.append(0)
+                nkeys = nkeys + 1
+            kframes = sorted(set(kframes))
+            track_chunk.add_variable("track_flags", _3ds_ushort(0x40))
+            track_chunk.add_variable("frame_start", _3ds_uint(int(action.frame_start)))
+            track_chunk.add_variable("frame_total", _3ds_uint(int(action.frame_end)))
+            track_chunk.add_variable("nkeys", _3ds_uint(nkeys))
+
+            if ID==POS_TRACK_TAG:  # Position
+                for i, frame in enumerate(kframes):
+                    position = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'location']
+                    if not position:
+                        position.append(ob_pos)
+                    track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
+                    track_chunk.add_variable("tcb_flags", _3ds_ushort())
+                    track_chunk.add_variable("position", _3ds_point_3d(position))
+
+            elif ID==ROT_TRACK_TAG:  # Rotation
+                for i, frame in enumerate(kframes):
+                    rotation = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
+                    if not rotation:
+                        rotation.append(ob_rot)
+                    quat = mathutils.Euler(rotation).to_quaternion()
+                    axis_angle = quat.angle, quat.axis[0], quat.axis[1], quat.axis[2]
+                    track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
+                    track_chunk.add_variable("tcb_flags", _3ds_ushort())
+                    track_chunk.add_variable("rotation", _3ds_point_4d(axis_angle))
+
+            elif ID==SCL_TRACK_TAG:  # Scale
+                for i, frame in enumerate(kframes):
+                    size = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'scale']
+                    if not size:
+                        size.append(ob_size)
+                    track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
+                    track_chunk.add_variable("tcb_flags", _3ds_ushort())
+                    track_chunk.add_variable("scale", _3ds_point_3d(size))
+
+            elif ID==ROLL_TRACK_TAG:  # Roll
+                for i, frame in enumerate(kframes):
+                    roll = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
+                    if not roll:
+                        roll.append(ob_rot)
+                    track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
+                    track_chunk.add_variable("tcb_flags", _3ds_ushort())
+                    track_chunk.add_variable("roll", _3ds_float(round(math.degrees(roll[1]), 4)))
+
+    elif ID in {COL_TRACK_TAG, FOV_TRACK_TAG, HOTSPOT_TRACK_TAG, FALLOFF_TRACK_TAG} and ob.data.animation_data and ob.data.animation_data.action:
+        action = ob.data.animation_data.action
+        if action.fcurves:
+            fcurves = action.fcurves
+            kframes = [kf.co[0] for kf in [fc for fc in fcurves if fc is not None][0].keyframe_points]
+            nkeys = len(kframes)
+            if not 0 in kframes:
+                kframes.append(0)
+                nkeys = nkeys + 1
+            kframes = sorted(set(kframes))
+            track_chunk.add_variable("track_flags", _3ds_ushort(0x40))
+            track_chunk.add_variable("frame_start", _3ds_uint(int(action.frame_start)))
+            track_chunk.add_variable("frame_total", _3ds_uint(int(action.frame_end)))
+            track_chunk.add_variable("nkeys", _3ds_uint(nkeys))
+
+            if ID==COL_TRACK_TAG:  # Color
+                for i, frame in enumerate(kframes):
+                    color = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'color']
+                    if not color:
+                        color.append(ob.data.color[:3])
+                    track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
+                    track_chunk.add_variable("tcb_flags", _3ds_ushort())
+                    track_chunk.add_variable("color", _3ds_float_color(color))
+
+            elif ID==FOV_TRACK_TAG:  # Field of view
+                for i, frame in enumerate(kframes):
+                    lens = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'lens']
+                    if not lens:
+                        lens.append(ob.data.lens)
+                    fov = 2 * math.atan(ob.data.sensor_width/(2*lens[0]))
+                    track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
+                    track_chunk.add_variable("tcb_flags", _3ds_ushort())
+                    track_chunk.add_variable("fov", _3ds_float(round(math.degrees(fov), 4)))
+
+            elif ID==HOTSPOT_TRACK_TAG:  # Hotspot
+                beam_angle = math.degrees(ob.data.spot_size)
+                for i, frame in enumerate(kframes):
+                    blend = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'spot_blend']
+                    if not blend:
+                        blend.append(ob.data.spot_blend)
+                    hot_spot = beam_angle-(blend[0]*math.floor(beam_angle))
+                    track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
+                    track_chunk.add_variable("tcb_flags", _3ds_ushort())
+                    track_chunk.add_variable("hotspot", _3ds_float(round(hot_spot, 4)))
+
+            elif ID==FALLOFF_TRACK_TAG:  # Falloff
+                for i, frame in enumerate(kframes):
+                    fall_off = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'spot_size']
+                    if not fall_off:
+                        fall_off.append(ob.data.spot_size)
+                    track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
+                    track_chunk.add_variable("tcb_flags", _3ds_ushort())
+                    track_chunk.add_variable("falloff", _3ds_float(round(math.degrees(fall_off[0]), 4)))
+
     else:
-        # meshes have their transformations applied before
-        # exporting, so write identity transforms here:
-        if ID==POS_TRACK_TAG:
-            # position vector:
-            track_chunk.add_variable("position", _3ds_point_3d((0.0,0.0,0.0)))
-        elif ID==ROT_TRACK_TAG:
-            # rotation (quaternion, angle first, followed by axis):
-            track_chunk.add_variable("rotation", _3ds_point_4d((0.0, 1.0, 0.0, 0.0)))
-        elif ID==SCL_TRACK_TAG:
-            # scale vector:
-            track_chunk.add_variable("scale", _3ds_point_3d((1.0, 1.0, 1.0)))
+        track_chunk.add_variable("track_flags", _3ds_ushort(0x40))  # Based on observation default flag is 0x40
+        track_chunk.add_variable("frame_start", _3ds_uint(0))
+        track_chunk.add_variable("frame_total", _3ds_uint(0))
+        track_chunk.add_variable("nkeys", _3ds_uint(1))
+        # Next section should be repeated for every keyframe, with no animation only one tag is needed.
+        track_chunk.add_variable("tcb_frame", _3ds_uint(0))
+        track_chunk.add_variable("tcb_flags", _3ds_ushort())
+
+        # New method simply inserts the parameters
+        if ID==POS_TRACK_TAG:  # Position vector:
+            track_chunk.add_variable("position", _3ds_point_3d(ob_pos))
+
+        elif ID==ROT_TRACK_TAG:  # Rotation (angle first [radians], followed by axis):
+            track_chunk.add_variable("rotation", _3ds_point_4d((ob_rot.angle, ob_rot.axis[0], ob_rot.axis[1], ob_rot.axis[2])))
+            
+        elif ID==SCL_TRACK_TAG:  # Scale vector:
+            track_chunk.add_variable("scale", _3ds_point_3d(ob_size))
+
+        elif ID==ROLL_TRACK_TAG:  # Roll angle:
+            track_chunk.add_variable("roll", _3ds_float(round(math.degrees(ob.rotation_euler[1]), 4)))
+
+        elif ID==COL_TRACK_TAG:  # Color values:
+            track_chunk.add_variable("color", _3ds_float_color(ob.data.color))
+
+        elif ID==FOV_TRACK_TAG:  # Field of view:
+            track_chunk.add_variable("fov", _3ds_float(round(math.degrees(ob.data.angle), 4)))
+
+        elif ID==HOTSPOT_TRACK_TAG:  # Hotspot:
+            beam_angle = math.degrees(ob.data.spot_size)
+            track_chunk.add_variable("hotspot", _3ds_float(round(beam_angle-(ob.data.spot_blend*math.floor(beam_angle)), 4)))
+
+        elif ID==FALLOFF_TRACK_TAG:  # Falloff:
+            track_chunk.add_variable("falloff", _3ds_float(round(math.degrees(ob.data.spot_size), 4)))
 
     return track_chunk
 
-def make_kf_obj_node(obj, name_to_id):
-    """Make a node chunk for a Blender object.
-    Takes the Blender object as a parameter. Object id's are taken from the dictionary name_to_id.
-    Blender Empty objects are converted to dummy nodes."""
 
-    name = obj.name
-    # main object node chunk:
-    kf_obj_node = _3ds_chunk(OBJECT_NODE_TAG)
-    # chunk for the object id:
-    obj_id_chunk = _3ds_chunk(OBJECT_NODE_ID)
-    # object id is from the name_to_id dictionary:
-    obj_id_chunk.add_variable("node_id", _3ds_ushort(name_to_id[name]))
+def make_object_node(ob, translation, rotation, scale):
+    """Make a node chunk for a Blender object. Takes Blender object as parameter.
+       Blender Empty objects are converted to dummy nodes."""
 
-    # object node header:
+    name = ob.name
+    if ob.type == 'CAMERA':
+        obj_node = _3ds_chunk(CAMERA_NODE_TAG)
+    elif ob.type == 'LIGHT':
+        obj_node = _3ds_chunk(LIGHT_NODE_TAG)
+        if ob.data.type == 'SPOT':
+            obj_node = _3ds_chunk(SPOT_NODE_TAG)
+    else:  # Main object node chunk:
+        obj_node = _3ds_chunk(OBJECT_NODE_TAG)
+
+    # Object node header with object name:
     obj_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
-    # object name:
-    if obj.type == 'Empty':
-        # Empties are called "$$$DUMMY" and use the OBJECT_INSTANCE_NAME chunk
-        # for their name (see below):
-        obj_node_header_chunk.add_variable("name", _3ds_string("$$$DUMMY"))
-    else:
-        # Add the name:
+    parent = ob.parent
+
+    if ob.type == 'EMPTY':  # Forcing to use the real name for empties
+        # Empties called $$$DUMMY and use OBJECT_INSTANCE_NAME chunk as name.
+        obj_node_header_chunk.add_variable("name", _3ds_string(b"$$$DUMMY"))
+        obj_node_header_chunk.add_variable("flags1", _3ds_ushort(0x4000))
+        obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0))
+
+    else:  # Add flag variables - Based on observation flags1 is usually 0x0040 and 0x4000 for empty objects
         obj_node_header_chunk.add_variable("name", _3ds_string(sane_name(name)))
-    # Add Flag variables (not sure what they do):
-    obj_node_header_chunk.add_variable("flags1", _3ds_ushort(0))
-    obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0))
+        obj_node_header_chunk.add_variable("flags1", _3ds_ushort(0x0040))
 
+        # Flag 0x01 display path 0x02 use autosmooth 0x04 object frozen 0x10 motion blur 0x20 material morph 0x40 mesh morph
+        if ob.type == 'MESH' and ob.data.use_auto_smooth:
+            obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0x02))
+        else:
+            obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0))
+    obj_node_header_chunk.add_variable("parent", _3ds_ushort(ROOT_OBJECT))
+
+    '''
+    # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
     # Check parent-child relationships:
-    parent = obj.parent
-    if (parent is None) or (parent.name not in name_to_id):
-        # If no parent, or the parents name is not in the name_to_id dictionary,
-        # parent id becomes -1:
+    if parent is None or parent.name not in name_to_id:
+        # If no parent, or parents name is not in dictionary, ID becomes -1:
         obj_node_header_chunk.add_variable("parent", _3ds_ushort(-1))
-    else:
-        # Get the parent's id from the name_to_id dictionary:
+    else:  # Get the parent's ID from the name_to_id dictionary:
         obj_node_header_chunk.add_variable("parent", _3ds_ushort(name_to_id[parent.name]))
+    '''
 
-    # Add pivot chunk:
-    obj_pivot_chunk = _3ds_chunk(OBJECT_PIVOT)
-    obj_pivot_chunk.add_variable("pivot", _3ds_point_3d(obj.getLocation()))
-    kf_obj_node.add_subchunk(obj_pivot_chunk)
+    # Add subchunk for node header
+    obj_node.add_subchunk(obj_node_header_chunk)
 
-    # add subchunks for object id and node header:
-    kf_obj_node.add_subchunk(obj_id_chunk)
-    kf_obj_node.add_subchunk(obj_node_header_chunk)
-
-    # Empty objects need to have an extra chunk for the instance name:
-    if obj.type == 'Empty':
+    # Empty objects need to have an extra chunk for the instance name
+    if ob.type == 'EMPTY':  # Will use a real object name for empties for now
         obj_instance_name_chunk = _3ds_chunk(OBJECT_INSTANCE_NAME)
         obj_instance_name_chunk.add_variable("name", _3ds_string(sane_name(name)))
-        kf_obj_node.add_subchunk(obj_instance_name_chunk)
+        obj_node.add_subchunk(obj_instance_name_chunk)
 
-    # Add track chunks for position, rotation and scale:
-    kf_obj_node.add_subchunk(make_track_chunk(POS_TRACK_TAG, obj))
-    kf_obj_node.add_subchunk(make_track_chunk(ROT_TRACK_TAG, obj))
-    kf_obj_node.add_subchunk(make_track_chunk(SCL_TRACK_TAG, obj))
+    if ob.type in {'MESH', 'EMPTY'}:  # Add a pivot point at the object center
+        pivot_pos = (translation[name])
+        obj_pivot_chunk = _3ds_chunk(OBJECT_PIVOT)
+        obj_pivot_chunk.add_variable("pivot", _3ds_point_3d(pivot_pos))
+        obj_node.add_subchunk(obj_pivot_chunk)
 
-    return kf_obj_node
-'''
+        # Create a bounding box from quadrant diagonal
+        obj_boundbox = _3ds_chunk(OBJECT_BOUNDBOX)
+        obj_boundbox.add_variable("min", _3ds_point_3d(ob.bound_box[0]))
+        obj_boundbox.add_variable("max", _3ds_point_3d(ob.bound_box[6]))
+        obj_node.add_subchunk(obj_boundbox)
 
+        # Add smooth angle if autosmooth is used
+        if ob.type == 'MESH' and ob.data.use_auto_smooth:
+            obj_morph_smooth = _3ds_chunk(OBJECT_MORPH_SMOOTH)
+            obj_morph_smooth.add_variable("angle", _3ds_float(round(ob.data.auto_smooth_angle, 6)))
+            obj_node.add_subchunk(obj_morph_smooth)
+
+    # Add track chunks for color, position, rotation and scale:
+    if parent is None:
+        ob_pos = translation[name]
+        ob_rot = rotation[name]
+        ob_size = scale[name]
+
+    else:  # Calculate child position and rotation of the object center, no scale applied
+        ob_pos = translation[name] - translation[parent.name]
+        ob_rot = rotation[name].cross(rotation[parent.name].copy().inverted())
+        ob_size = (1.0, 1.0, 1.0)
+
+    obj_node.add_subchunk(make_track_chunk(POS_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
+
+    if ob.type in {'MESH', 'EMPTY'}:
+        obj_node.add_subchunk(make_track_chunk(ROT_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
+        obj_node.add_subchunk(make_track_chunk(SCL_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
+    if ob.type =='CAMERA':
+        obj_node.add_subchunk(make_track_chunk(FOV_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
+        obj_node.add_subchunk(make_track_chunk(ROLL_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
+    if ob.type =='LIGHT':
+        obj_node.add_subchunk(make_track_chunk(COL_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
+    if ob.type == 'LIGHT' and ob.data.type == 'SPOT':
+        obj_node.add_subchunk(make_track_chunk(HOTSPOT_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
+        obj_node.add_subchunk(make_track_chunk(FALLOFF_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
+        obj_node.add_subchunk(make_track_chunk(ROLL_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
+
+    return obj_node
+
+
+def make_target_node(ob, translation, rotation, scale):
+    """Make a target chunk for light and camera objects"""
+
+    name = ob.name
+    if ob.type == 'CAMERA':  #Add camera target
+        tar_node = _3ds_chunk(TARGET_NODE_TAG)
+    elif ob.type == 'LIGHT':  # Add spot target
+        tar_node = _3ds_chunk(LTARGET_NODE_TAG)
+
+    # Object node header with object name:
+    tar_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
+    # Targets get the same name as the object, flags1 is usually 0x0010 and parent ROOT_OBJECT
+    tar_node_header_chunk.add_variable("name", _3ds_string(sane_name(name)))
+    tar_node_header_chunk.add_variable("flags1", _3ds_ushort(0x0010))
+    tar_node_header_chunk.add_variable("flags2", _3ds_ushort(0))
+    tar_node_header_chunk.add_variable("parent", _3ds_ushort(ROOT_OBJECT))
+
+    # Add subchunk for node header:
+    tar_node.add_subchunk(tar_node_header_chunk)
+
+    # Calculate target position
+    ob_pos = translation[name]
+    ob_rot = rotation[name].to_euler()
+    ob_size = scale[name]
+    
+    diagonal = math.copysign(math.sqrt(pow(ob_pos[0],2)+pow(ob_pos[1],2)), ob_pos[1])
+    target_x = ob_pos[0]+(ob_pos[1]*math.tan(ob_rot[2]))
+    target_y = ob_pos[1]+(ob_pos[0]*math.tan(math.radians(90)-ob_rot[2]))
+    target_z = -1*diagonal*math.tan(math.radians(90)-ob_rot[0])
+    
+    # Add track chunks for target position:
+    track_chunk = _3ds_chunk(POS_TRACK_TAG)
+
+    if ob.animation_data and ob.animation_data.action:
+        action = ob.animation_data.action
+        if action.fcurves:
+            fcurves = action.fcurves
+            kframes = [kf.co[0] for kf in [fc for fc in fcurves if fc is not None][0].keyframe_points]
+            nkeys = len(kframes)
+            if not 0 in kframes:
+                kframes.append(0)
+                nkeys = nkeys + 1
+            kframes = sorted(set(kframes))
+            track_chunk.add_variable("track_flags", _3ds_ushort(0x40))
+            track_chunk.add_variable("frame_start", _3ds_uint(int(action.frame_start)))
+            track_chunk.add_variable("frame_total", _3ds_uint(int(action.frame_end)))
+            track_chunk.add_variable("nkeys", _3ds_uint(nkeys))
+
+            for i, frame in enumerate(kframes):
+                target_pos = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'location']
+                target_rot = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
+                if not target_pos:
+                    target_pos.append(ob_pos)
+                if not target_rot:
+                    target_rot.insert(0, ob_rot.x)
+                    target_rot.insert(1, ob_rot.y)
+                    target_rot.insert(2, ob_rot.z)
+                diagonal = math.copysign(math.sqrt(pow(target_pos[0],2)+pow(target_pos[1],2)), target_pos[1])
+                target_x = target_pos[0]+(target_pos[1]*math.tan(target_rot[2]))
+                target_y = target_pos[1]+(target_pos[0]*math.tan(math.radians(90)-target_rot[2]))
+                target_z = -1*diagonal*math.tan(math.radians(90)-target_rot[0])
+                track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
+                track_chunk.add_variable("tcb_flags", _3ds_ushort())
+                track_chunk.add_variable("position", _3ds_point_3d((target_x, target_y, target_z)))
+
+    else:  # Track header
+        track_chunk.add_variable("track_flags", _3ds_ushort(0x40))  # Based on observation default flag is 0x40
+        track_chunk.add_variable("frame_start", _3ds_uint(0))
+        track_chunk.add_variable("frame_total", _3ds_uint(0))
+        track_chunk.add_variable("nkeys", _3ds_uint(1))
+        # Keyframe header
+        track_chunk.add_variable("tcb_frame", _3ds_uint(0))
+        track_chunk.add_variable("tcb_flags", _3ds_ushort())
+        track_chunk.add_variable("position", _3ds_point_3d((target_x, target_y, target_z)))
+        
+    tar_node.add_subchunk(track_chunk)
+    
+    return tar_node
+
+
+def make_ambient_node(world):
+    amb_color = world.color
+    amb_node = _3ds_chunk(AMBIENT_NODE_TAG)
+    track_chunk = _3ds_chunk(COL_TRACK_TAG)
+
+    # Object node header, name is "$AMBIENT$" for ambient nodes:
+    amb_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
+    amb_node_header_chunk.add_variable("name", _3ds_string(b"$AMBIENT$"))
+    amb_node_header_chunk.add_variable("flags1", _3ds_ushort(0x4000))  # Flags1 0x4000 for empty objects
+    amb_node_header_chunk.add_variable("flags2", _3ds_ushort(0))
+    amb_node_header_chunk.add_variable("parent", _3ds_ushort(ROOT_OBJECT))
+    amb_node.add_subchunk(amb_node_header_chunk)
+    
+    if world.animation_data.action:
+        action = world.animation_data.action
+        if action.fcurves:
+            fcurves = action.fcurves
+            kframes = [kf.co[0] for kf in [fc for fc in fcurves if fc is not None][0].keyframe_points]
+            nkeys = len(kframes)
+            if not 0 in kframes:
+                kframes.append(0)
+                nkeys = nkeys + 1
+            kframes = sorted(set(kframes))
+            track_chunk.add_variable("track_flags", _3ds_ushort(0x40))
+            track_chunk.add_variable("frame_start", _3ds_uint(int(action.frame_start)))
+            track_chunk.add_variable("frame_total", _3ds_uint(int(action.frame_end)))
+            track_chunk.add_variable("nkeys", _3ds_uint(nkeys))
+
+            for i, frame in enumerate(kframes):
+                ambient = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'color']
+                if not ambient:
+                    ambient.append(world.color)
+                track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
+                track_chunk.add_variable("tcb_flags", _3ds_ushort())
+                track_chunk.add_variable("color", _3ds_float_color(ambient))
+    
+    else:  # Track header
+        track_chunk.add_variable("track_flags", _3ds_ushort(0x40))
+        track_chunk.add_variable("frame_start", _3ds_uint(0))
+        track_chunk.add_variable("frame_total", _3ds_uint(0))
+        track_chunk.add_variable("nkeys", _3ds_uint(1))
+        # Keyframe header
+        track_chunk.add_variable("tcb_frame", _3ds_uint(0))
+        track_chunk.add_variable("tcb_flags", _3ds_ushort())
+        track_chunk.add_variable("color", _3ds_float_color(amb_color))
+    
+    amb_node.add_subchunk(track_chunk)
+    
+    return amb_node
+
+
+##########
+# EXPORT #
+##########
 
 def save(operator,
          context, filepath="",
          use_selection=True,
+         write_keyframe=True,
          global_matrix=None,
          ):
 
@@ -1193,6 +1480,7 @@ def save(operator,
     scene = context.scene
     layer = context.view_layer
     depsgraph = context.evaluated_depsgraph_get()
+    world = scene.world
 
     if global_matrix is None:
         global_matrix = mathutils.Matrix()
@@ -1200,15 +1488,15 @@ def save(operator,
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    # Initialize the main chunk (primary):
+    # Initialize the main chunk (primary)
     primary = _3ds_chunk(PRIMARY)
 
-    # Add version chunk:
+    # Add version chunk
     version_chunk = _3ds_chunk(VERSION)
     version_chunk.add_variable("version", _3ds_uint(3))
     primary.add_subchunk(version_chunk)
 
-    # Init main object info chunk:
+    # Init main object info chunk
     object_info = _3ds_chunk(OBJECTINFO)
     mesh_version = _3ds_chunk(MESHVERSION)
     mesh_version.add_variable("mesh", _3ds_uint(3))
@@ -1219,21 +1507,26 @@ def save(operator,
     mscale.add_variable("scale", _3ds_float(1))
     object_info.add_subchunk(mscale)
 
+    # Init main keyframe data chunk
+    if write_keyframe:
+        revision = 0x0005
+        stop = scene.frame_end
+        start = scene.frame_start
+        curtime = scene.frame_current
+        kfdata = make_kfdata(revision, start, stop, curtime)
+
     # Add AMBIENT color
-    if scene.world is not None:
+    if world is not None:
         ambient_chunk = _3ds_chunk(AMBIENTLIGHT)
         ambient_light = _3ds_chunk(RGB)
         ambient_light.add_variable("ambient", _3ds_float_color(scene.world.color))
         ambient_chunk.add_subchunk(ambient_light)
         object_info.add_subchunk(ambient_chunk)
-
-    ''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
-    # init main key frame data chunk:
-    kfdata = make_kfdata()
-    '''
+        if write_keyframe and world.animation_data:
+            kfdata.add_subchunk(make_ambient_node(world))
 
     # Make a list of all materials used in the selected meshes (use a dictionary,
-    # each material is added once):
+    # each material is added once)
     materialDict = {}
     mesh_objects = []
 
@@ -1270,7 +1563,7 @@ def save(operator,
                 ma_ls = data.materials
                 ma_ls_len = len(ma_ls)
 
-                # get material/image tuples.
+                # get material/image tuples
                 if data.uv_layers:
                     if not ma_ls:
                         ma = ma_name = None
@@ -1291,7 +1584,7 @@ def save(operator,
 
                 else:
                     for ma in ma_ls:
-                        if ma:  # material may be None so check its not.
+                        if ma:  # material may be None so check its not
                             materialDict.setdefault((ma.name, None), (ma, None))
 
                     # Why 0 Why!
@@ -1300,25 +1593,31 @@ def save(operator,
                             f.material_index = 0
 
 
-    # Make material chunks for all materials used in the meshes:
+    # Make material chunks for all materials used in the meshes
     for ma_image in materialDict.values():
         object_info.add_subchunk(make_material_chunk(ma_image[0], ma_image[1]))
 
     # Collect translation for transformation matrix
     translation = {}
+    rotation = {}
+    scale = {}
 
-    # Give all objects a unique ID and build a dictionary from object name to object id:
+    # Give all objects a unique ID and build a dictionary from object name to object id
     # name_to_id = {}
 
     for ob, data, matrix in mesh_objects:
         translation[ob.name] = ob.location
+        rotation[ob.name] = ob.rotation_euler.to_quaternion().inverted()
+        scale[ob.name] = ob.scale
         # name_to_id[ob.name]= len(name_to_id)
 
     for ob in empty_objects:
         translation[ob.name] = ob.location
+        rotation[ob.name] = ob.rotation_euler.to_quaternion().inverted()
+        scale[ob.name] = ob.scale
         # name_to_id[ob.name]= len(name_to_id)
 
-    # Create object chunks for all meshes:
+    # Create object chunks for all meshes
     i = 0
     for ob, mesh, matrix in mesh_objects:
         # create a new object chunk
@@ -1327,34 +1626,34 @@ def save(operator,
         # set the object name
         object_chunk.add_variable("name", _3ds_string(sane_name(ob.name)))
 
-        # make a mesh chunk out of the mesh:
+        # make a mesh chunk out of the mesh
         object_chunk.add_subchunk(make_mesh_chunk(ob, mesh, matrix, materialDict, translation))
 
-        # ensure the mesh has no over sized arrays
-        # skip ones that do!, otherwise we cant write since the array size wont
-        # fit into USHORT.
+        # ensure the mesh has no over sized arrays, skip ones that do!
+        # Otherwise we cant write since the array size wont fit into USHORT
         if object_chunk.validate():
             object_info.add_subchunk(object_chunk)
         else:
             operator.report({'WARNING'}, "Object %r can't be written into a 3DS file")
 
-        ''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
-        # make a kf object node for the object:
-        kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
-        '''
+        # Export kf object node
+        if write_keyframe:
+            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale))
 
         i += i
 
-    # Create chunks for all empties:
-    ''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
-    for ob in empty_objects:
-        # Empties only require a kf object node:
-        kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
-        pass
-    '''
+    # Create chunks for all empties, only requires a kf object node
+    if write_keyframe:
+        for ob in empty_objects:
+            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale))
 
     # Create light object chunks
     for ob in light_objects:
+        translation[ob.name] = ob.location
+        rotation[ob.name] = ob.rotation_euler.to_quaternion()
+        scale[ob.name] = ob.scale
+
+        # Add light data subchunks
         object_chunk = _3ds_chunk(OBJECT)
         light_chunk = _3ds_chunk(OBJECT_LIGHT)
         color_float_chunk = _3ds_chunk(RGB)
@@ -1392,8 +1691,19 @@ def save(operator,
         object_chunk.add_subchunk(light_chunk)
         object_info.add_subchunk(object_chunk)
 
+        # Export light and spotlight target node
+        if write_keyframe:
+            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale))
+            if ob.data.type == 'SPOT':
+                kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale))
+
     # Create camera object chunks
     for ob in camera_objects:
+        translation[ob.name] = ob.location
+        rotation[ob.name] = ob.rotation_euler.to_quaternion()
+        scale[ob.name] = ob.scale
+
+        # Add camera data subchunks
         object_chunk = _3ds_chunk(OBJECT)
         camera_chunk = _3ds_chunk(OBJECT_CAMERA)
         diagonal = math.copysign(math.sqrt(pow(ob.location[0], 2) + pow(ob.location[1], 2)), ob.location[1])
@@ -1408,13 +1718,17 @@ def save(operator,
         object_chunk.add_subchunk(camera_chunk)
         object_info.add_subchunk(object_chunk)
 
+        # Export camera and target node
+        if write_keyframe:
+            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale))
+            kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale))
+
     # Add main object info chunk to primary chunk:
     primary.add_subchunk(object_info)
 
-    ''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
     # Add main keyframe data chunk to primary chunk:
-    primary.add_subchunk(kfdata)
-    '''
+    if write_keyframe:
+        primary.add_subchunk(kfdata)
 
     # At this point, the chunk hierarchy is completely built.
     # Check the size:
