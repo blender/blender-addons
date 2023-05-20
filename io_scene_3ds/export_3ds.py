@@ -158,7 +158,7 @@ def sane_name(name):
         new_name = new_name_clean + '.%.3d' % i
         i += 1
 
-    # note, appending the 'str' version.
+    # note, appending the 'str' version
     name_unique.append(new_name)
     name_mapping[name] = new_name = new_name.encode("ASCII", "replace")
     return new_name
@@ -378,7 +378,7 @@ class _3ds_array(object):
             value.write(file)
 
     # To not overwhelm the output in a dump, a _3ds_array only
-    # outputs the number of items, not all of the actual items.
+    # outputs the number of items, not all of the actual items
     def __str__(self):
         return '(%d items)' % len(self.values)
 
@@ -580,7 +580,7 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
         0x40 activates alpha source, 0x80 activates tinting, 0x100 ignores alpha, 0x200 activates RGB tint.
         Bits 0x80, 0x100, and 0x200 are only used with TEXMAP, TEX2MAP, and SPECMAP chunks.
         0x40, when used with a TEXMAP, TEX2MAP, or SPECMAP chunk must be accompanied with a tint bit,
-        either 0x100 or 0x200, tintcolor will be processed if colorchunks are present"""
+        either 0x100 or 0x200, tintcolor will be processed if a tintflag is present"""
 
         mapflags = 0
         if texslot.extension == 'EXTEND':
@@ -629,9 +629,8 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
             rgb.add_variable("mapcolor", _3ds_rgb_color(spec if texslot.socket_dst.identifier == 'Specular' else base))
             mat_sub.add_subchunk(rgb)
 
-    # store all textures for this mapto in order. This at least is what
-    # the 3DS exporter did so far, afaik most readers will just skip
-    # over 2nd textures.
+    # store all textures for this mapto in order. This at least is what the
+    # 3DS exporter did so far, afaik most readers will just skip over 2nd textures
     for slot in texslots:
         if slot.image is not None:
             add_texslot(slot)
@@ -1197,34 +1196,34 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
         track_chunk.add_variable("frame_start", _3ds_uint(0))
         track_chunk.add_variable("frame_total", _3ds_uint(0))
         track_chunk.add_variable("nkeys", _3ds_uint(1))
-        # Next section should be repeated for every keyframe, with no animation only one tag is needed.
+        # Next section should be repeated for every keyframe, with no animation only one tag is needed
         track_chunk.add_variable("tcb_frame", _3ds_uint(0))
         track_chunk.add_variable("tcb_flags", _3ds_ushort())
 
         # New method simply inserts the parameters
-        if ID==POS_TRACK_TAG:  # Position vector:
+        if ID==POS_TRACK_TAG:  # Position vector
             track_chunk.add_variable("position", _3ds_point_3d(ob_pos))
 
-        elif ID==ROT_TRACK_TAG:  # Rotation (angle first [radians], followed by axis):
+        elif ID==ROT_TRACK_TAG:  # Rotation (angle first [radians], followed by axis)
             track_chunk.add_variable("rotation", _3ds_point_4d((ob_rot.angle, ob_rot.axis[0], ob_rot.axis[1], ob_rot.axis[2])))
             
-        elif ID==SCL_TRACK_TAG:  # Scale vector:
+        elif ID==SCL_TRACK_TAG:  # Scale vector
             track_chunk.add_variable("scale", _3ds_point_3d(ob_size))
 
-        elif ID==ROLL_TRACK_TAG:  # Roll angle:
+        elif ID==ROLL_TRACK_TAG:  # Roll angle
             track_chunk.add_variable("roll", _3ds_float(round(math.degrees(ob.rotation_euler[1]), 4)))
 
-        elif ID==COL_TRACK_TAG:  # Color values:
+        elif ID==COL_TRACK_TAG:  # Color values
             track_chunk.add_variable("color", _3ds_float_color(ob.data.color))
 
-        elif ID==FOV_TRACK_TAG:  # Field of view:
+        elif ID==FOV_TRACK_TAG:  # Field of view
             track_chunk.add_variable("fov", _3ds_float(round(math.degrees(ob.data.angle), 4)))
 
-        elif ID==HOTSPOT_TRACK_TAG:  # Hotspot:
+        elif ID==HOTSPOT_TRACK_TAG:  # Hotspot
             beam_angle = math.degrees(ob.data.spot_size)
             track_chunk.add_variable("hotspot", _3ds_float(round(beam_angle-(ob.data.spot_blend*math.floor(beam_angle)), 4)))
 
-        elif ID==FALLOFF_TRACK_TAG:  # Falloff:
+        elif ID==FALLOFF_TRACK_TAG:  # Falloff
             track_chunk.add_variable("falloff", _3ds_float(round(math.degrees(ob.data.spot_size), 4)))
 
     return track_chunk
@@ -1241,15 +1240,15 @@ def make_object_node(ob, translation, rotation, scale):
         obj_node = _3ds_chunk(LIGHT_NODE_TAG)
         if ob.data.type == 'SPOT':
             obj_node = _3ds_chunk(SPOT_NODE_TAG)
-    else:  # Main object node chunk:
+    else:  # Main object node chunk
         obj_node = _3ds_chunk(OBJECT_NODE_TAG)
 
-    # Object node header with object name:
+    # Object node header with object name
     obj_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
     parent = ob.parent
 
     if ob.type == 'EMPTY':  # Forcing to use the real name for empties
-        # Empties called $$$DUMMY and use OBJECT_INSTANCE_NAME chunk as name.
+        # Empties called $$$DUMMY and use OBJECT_INSTANCE_NAME chunk as name
         obj_node_header_chunk.add_variable("name", _3ds_string(b"$$$DUMMY"))
         obj_node_header_chunk.add_variable("flags1", _3ds_ushort(0x4000))
         obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0))
@@ -1302,7 +1301,7 @@ def make_object_node(ob, translation, rotation, scale):
             obj_morph_smooth.add_variable("angle", _3ds_float(round(ob.data.auto_smooth_angle, 6)))
             obj_node.add_subchunk(obj_morph_smooth)
 
-    # Add track chunks for color, position, rotation and scale:
+    # Add track chunks for color, position, rotation and scale
     if parent is None:
         ob_pos = translation[name]
         ob_rot = rotation[name]
@@ -1340,7 +1339,7 @@ def make_target_node(ob, translation, rotation, scale):
     elif ob.type == 'LIGHT':  # Add spot target
         tar_node = _3ds_chunk(LTARGET_NODE_TAG)
 
-    # Object node header with object name:
+    # Object node header with object name
     tar_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
     # Targets get the same name as the object, flags1 is usually 0x0010 and parent ROOT_OBJECT
     tar_node_header_chunk.add_variable("name", _3ds_string(sane_name(name)))
@@ -1348,7 +1347,7 @@ def make_target_node(ob, translation, rotation, scale):
     tar_node_header_chunk.add_variable("flags2", _3ds_ushort(0))
     tar_node_header_chunk.add_variable("parent", _3ds_ushort(ROOT_OBJECT))
 
-    # Add subchunk for node header:
+    # Add subchunk for node header
     tar_node.add_subchunk(tar_node_header_chunk)
 
     # Calculate target position
@@ -1361,7 +1360,7 @@ def make_target_node(ob, translation, rotation, scale):
     target_y = ob_pos[1]+(ob_pos[0]*math.tan(math.radians(90)-ob_rot[2]))
     target_z = -1*diagonal*math.tan(math.radians(90)-ob_rot[0])
     
-    # Add track chunks for target position:
+    # Add track chunks for target position
     track_chunk = _3ds_chunk(POS_TRACK_TAG)
 
     if ob.animation_data and ob.animation_data.action:
@@ -1416,7 +1415,7 @@ def make_ambient_node(world):
     amb_node = _3ds_chunk(AMBIENT_NODE_TAG)
     track_chunk = _3ds_chunk(COL_TRACK_TAG)
 
-    # Object node header, name is "$AMBIENT$" for ambient nodes:
+    # Object node header, name is "$AMBIENT$" for ambient nodes
     amb_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
     amb_node_header_chunk.add_variable("name", _3ds_string(b"$AMBIENT$"))
     amb_node_header_chunk.add_variable("flags1", _3ds_ushort(0x4000))  # Flags1 0x4000 for empty objects
@@ -1468,8 +1467,8 @@ def make_ambient_node(world):
 
 def save(operator,
          context, filepath="",
-         use_selection=True,
-         write_keyframe=True,
+         use_selection=False,
+         write_keyframe=False,
          global_matrix=None,
          ):
 
@@ -1723,34 +1722,34 @@ def save(operator,
             kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale))
             kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale))
 
-    # Add main object info chunk to primary chunk:
+    # Add main object info chunk to primary chunk
     primary.add_subchunk(object_info)
 
-    # Add main keyframe data chunk to primary chunk:
+    # Add main keyframe data chunk to primary chunk
     if write_keyframe:
         primary.add_subchunk(kfdata)
 
     # At this point, the chunk hierarchy is completely built.
-    # Check the size:
+    # Check the size
     primary.get_size()
 
-    # Open the file for writing:
+    # Open the file for writing
     file = open(filepath, 'wb')
 
-    # Recursively write the chunks to file:
+    # Recursively write the chunks to file
     primary.write(file)
 
-    # Close the file:
+    # Close the file
     file.close()
 
     # Clear name mapping vars, could make locals too
     del name_unique[:]
     name_mapping.clear()
 
-    # Debugging only: report the exporting time:
+    # Debugging only: report the exporting time
     print("3ds export time: %.2f" % (time.time() - duration))
 
-    # Debugging only: dump the chunk hierarchy:
+    # Debugging only: dump the chunk hierarchy
     # primary.dump()
 
     return {'FINISHED'}
