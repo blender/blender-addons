@@ -65,12 +65,12 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         "importing incorrectly",
         default=True,
     )
-    read_keyframe: bpy.props.BoolProperty(
+    read_keyframe: BoolProperty(
         name="Read Keyframe",
         description="Read the keyframe data",
         default=True,
     )
-    use_world_matrix: bpy.props.BoolProperty(
+    use_world_matrix: BoolProperty(
         name="World Space",
         description="Transform to matrix world",
         default=False,
@@ -108,6 +108,11 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         name="Selection Only",
         description="Export selected objects only",
         default=False,
+    )
+    write_keyframe: BoolProperty(
+        name="Write Keyframe",
+        description="Write the keyframe data",
+        default=True,
     )
 
     def execute(self, context):
