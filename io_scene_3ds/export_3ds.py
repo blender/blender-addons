@@ -882,7 +882,7 @@ def remove_face_uv(verts, tri_list):
         for ii, uv_3ds in unique_uvs[i].values():
             # add a vertex duplicate to the vertex_array for every uv associated with this vertex:
             vert_array.add(pt)
-            # add the uv coordinate to the uv array:
+            # add the uv coordinate to the uv array
             # This for loop does not give uv's ordered by ii, so we create a new map
             # and add the uv's later
             # uv_array.add(uv_3ds)
@@ -1084,7 +1084,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
        construct a position, rotation, scale, roll, color or fov track."""
     track_chunk = _3ds_chunk(ID)
 
-    if ID in {POS_TRACK_TAG, ROT_TRACK_TAG, SCL_TRACK_TAG} and ob.animation_data and ob.animation_data.action:
+    if ID in {POS_TRACK_TAG, ROT_TRACK_TAG, SCL_TRACK_TAG, ROLL_TRACK_TAG} and ob.animation_data and ob.animation_data.action:
         action = ob.animation_data.action
         if action.fcurves:
             fcurves = action.fcurves
@@ -1099,7 +1099,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
             track_chunk.add_variable("frame_total", _3ds_uint(int(action.frame_end)))
             track_chunk.add_variable("nkeys", _3ds_uint(nkeys))
 
-            if ID==POS_TRACK_TAG:  # Position
+            if ID == POS_TRACK_TAG:  # Position
                 for i, frame in enumerate(kframes):
                     position = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'location']
                     if not position:
@@ -1108,7 +1108,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("position", _3ds_point_3d(position))
 
-            elif ID==ROT_TRACK_TAG:  # Rotation
+            elif ID == ROT_TRACK_TAG:  # Rotation
                 for i, frame in enumerate(kframes):
                     rotation = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
                     if not rotation:
@@ -1119,7 +1119,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("rotation", _3ds_point_4d(axis_angle))
 
-            elif ID==SCL_TRACK_TAG:  # Scale
+            elif ID == SCL_TRACK_TAG:  # Scale
                 for i, frame in enumerate(kframes):
                     size = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'scale']
                     if not size:
@@ -1128,7 +1128,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("scale", _3ds_point_3d(size))
 
-            elif ID==ROLL_TRACK_TAG:  # Roll
+            elif ID == ROLL_TRACK_TAG:  # Roll
                 for i, frame in enumerate(kframes):
                     roll = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
                     if not roll:
@@ -1152,7 +1152,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
             track_chunk.add_variable("frame_total", _3ds_uint(int(action.frame_end)))
             track_chunk.add_variable("nkeys", _3ds_uint(nkeys))
 
-            if ID==COL_TRACK_TAG:  # Color
+            if ID == COL_TRACK_TAG:  # Color
                 for i, frame in enumerate(kframes):
                     color = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'color']
                     if not color:
@@ -1161,7 +1161,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("color", _3ds_float_color(color))
 
-            elif ID==FOV_TRACK_TAG:  # Field of view
+            elif ID == FOV_TRACK_TAG:  # Field of view
                 for i, frame in enumerate(kframes):
                     lens = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'lens']
                     if not lens:
@@ -1171,7 +1171,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("fov", _3ds_float(round(math.degrees(fov), 4)))
 
-            elif ID==HOTSPOT_TRACK_TAG:  # Hotspot
+            elif ID == HOTSPOT_TRACK_TAG:  # Hotspot
                 beam_angle = math.degrees(ob.data.spot_size)
                 for i, frame in enumerate(kframes):
                     blend = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'spot_blend']
@@ -1182,7 +1182,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("hotspot", _3ds_float(round(hot_spot, 4)))
 
-            elif ID==FALLOFF_TRACK_TAG:  # Falloff
+            elif ID == FALLOFF_TRACK_TAG:  # Falloff
                 for i, frame in enumerate(kframes):
                     fall_off = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'spot_size']
                     if not fall_off:
@@ -1201,29 +1201,29 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
         track_chunk.add_variable("tcb_flags", _3ds_ushort())
 
         # New method simply inserts the parameters
-        if ID==POS_TRACK_TAG:  # Position vector
+        if ID == POS_TRACK_TAG:  # Position vector
             track_chunk.add_variable("position", _3ds_point_3d(ob_pos))
 
-        elif ID==ROT_TRACK_TAG:  # Rotation (angle first [radians], followed by axis)
+        elif ID == ROT_TRACK_TAG:  # Rotation (angle first [radians], followed by axis)
             track_chunk.add_variable("rotation", _3ds_point_4d((ob_rot.angle, ob_rot.axis[0], ob_rot.axis[1], ob_rot.axis[2])))
             
-        elif ID==SCL_TRACK_TAG:  # Scale vector
+        elif ID == SCL_TRACK_TAG:  # Scale vector
             track_chunk.add_variable("scale", _3ds_point_3d(ob_size))
 
-        elif ID==ROLL_TRACK_TAG:  # Roll angle
+        elif ID == ROLL_TRACK_TAG:  # Roll angle
             track_chunk.add_variable("roll", _3ds_float(round(math.degrees(ob.rotation_euler[1]), 4)))
 
-        elif ID==COL_TRACK_TAG:  # Color values
+        elif ID == COL_TRACK_TAG:  # Color values
             track_chunk.add_variable("color", _3ds_float_color(ob.data.color))
 
-        elif ID==FOV_TRACK_TAG:  # Field of view
+        elif ID == FOV_TRACK_TAG:  # Field of view
             track_chunk.add_variable("fov", _3ds_float(round(math.degrees(ob.data.angle), 4)))
 
-        elif ID==HOTSPOT_TRACK_TAG:  # Hotspot
+        elif ID == HOTSPOT_TRACK_TAG:  # Hotspot
             beam_angle = math.degrees(ob.data.spot_size)
             track_chunk.add_variable("hotspot", _3ds_float(round(beam_angle-(ob.data.spot_blend*math.floor(beam_angle)), 4)))
 
-        elif ID==FALLOFF_TRACK_TAG:  # Falloff
+        elif ID == FALLOFF_TRACK_TAG:  # Falloff
             track_chunk.add_variable("falloff", _3ds_float(round(math.degrees(ob.data.spot_size), 4)))
 
     return track_chunk
@@ -1257,7 +1257,8 @@ def make_object_node(ob, translation, rotation, scale):
         obj_node_header_chunk.add_variable("name", _3ds_string(sane_name(name)))
         obj_node_header_chunk.add_variable("flags1", _3ds_ushort(0x0040))
 
-        # Flag 0x01 display path 0x02 use autosmooth 0x04 object frozen 0x10 motion blur 0x20 material morph 0x40 mesh morph
+        # Flags2 defines bit 0x01 for display path, bit 0x02 use autosmooth, bit 0x04 object frozen
+        # bit 0x10 for motion blur, bit 0x20 for material morph and bit 0x40 for mesh morph
         if ob.type == 'MESH' and ob.data.use_auto_smooth:
             obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0x02))
         else:
