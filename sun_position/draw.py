@@ -9,7 +9,7 @@ from mathutils import Vector
 from .sun_calc import calc_surface, calc_analemma
 
 
-if bpy.app.background:  # ignore north line in background mode
+if bpy.app.background:  # ignore drawing in background mode
     def north_update(self, context):
         pass
     def surface_update(self, context):
