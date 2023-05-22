@@ -149,7 +149,7 @@ def sane_name(name):
     if name_fixed is not None:
         return name_fixed
 
-    # Strip non ascii chars
+    # strip non ascii chars
     new_name_clean = new_name = name.encode("ASCII", "replace").decode("ASCII")[:12]
     i = 0
 
@@ -157,7 +157,7 @@ def sane_name(name):
         new_name = new_name_clean + '.%.3d' % i
         i += 1
 
-    # Note, appending the 'str' version
+    # note, appending the 'str' version
     name_unique.append(new_name)
     name_mapping[name] = new_name = new_name.encode("ASCII", "replace")
     return new_name
@@ -166,7 +166,7 @@ def sane_name(name):
 def uv_key(uv):
     return round(uv[0], 6), round(uv[1], 6)
 
-# Size defines
+# size defines
 SZ_SHORT = 2
 SZ_INT = 4
 SZ_FLOAT = 4
@@ -341,7 +341,7 @@ class _3ds_face(object):
     def get_size(self):
         return 4 * SZ_SHORT
 
-    # No need to validate every face vert, the oversized array will catch this problem
+    # no need to validate every face vert, the oversized array will catch this problem
     def write(self, file):
         # The last short is used for face flags
         file.write(struct.pack('<4H', self.vindex[0], self.vindex[1], self.vindex[2], self.flag))
@@ -359,7 +359,7 @@ class _3ds_array(object):
         self.values = []
         self.size = SZ_SHORT
 
-    # Add an item
+    # add an item
     def add(self, item):
         self.values.append(item)
         self.size += item.get_size()
@@ -408,11 +408,11 @@ class _3ds_named_variable(object):
                   self.value)
 
 
-# The chunk class
+# the chunk class
 class _3ds_chunk(object):
     """Class representing a chunk in a 3ds file.
-    Chunks contain zero or more variables, followed by zero or more subchunks."""
-
+    Chunks contain zero or more variables, followed by zero or more subchunks.
+    """
     __slots__ = "ID", "size", "variables", "subchunks"
 
     def __init__(self, chunk_id=0):
@@ -514,7 +514,7 @@ def make_material_subchunk(chunk_id, color):
     col1 = _3ds_chunk(RGB1)
     col1.add_variable("color1", _3ds_rgb_color(color))
     mat_sub.add_subchunk(col1)
-    # Optional
+    # optional:
     # col2 = _3ds_chunk(RGBI)
     # col2.add_variable("color2", _3ds_rgb_color(color))
     # mat_sub.add_subchunk(col2)
@@ -527,7 +527,7 @@ def make_percent_subchunk(chunk_id, percent):
     pcti = _3ds_chunk(PCT)
     pcti.add_variable("percent", _3ds_ushort(int(round(percent * 100, 0))))
     pct_sub.add_subchunk(pcti)
-    # Optional
+    # optional:
     # pctf = _3ds_chunk(PCTF)
     # pctf.add_variable("pctfloat", _3ds_float(round(percent, 6)))
     # pct_sub.add_subchunk(pctf)
@@ -628,7 +628,7 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
             rgb.add_variable("mapcolor", _3ds_rgb_color(spec if texslot.socket_dst.identifier == 'Specular' else base))
             mat_sub.add_subchunk(rgb)
 
-    # Store all textures for this mapto in order. This at least is what the
+    # store all textures for this mapto in order. This at least is what the
     # 3DS exporter did so far, afaik most readers will just skip over 2nd textures
     for slot in texslots:
         if slot.image is not None:
@@ -730,7 +730,7 @@ def make_material_chunk(material, image):
             if matmap:
                 material_chunk.add_subchunk(matmap)
 
-        # Make sure no textures are lost. Everything that doesn't fit
+        # make sure no textures are lost. Everything that doesn't fit
         # into a channel is exported as secondary texture
         diffuse = []
 
@@ -757,7 +757,7 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(make_percent_subchunk(MATTRANS, 1 - material.diffuse_color[3]))
         material_chunk.add_subchunk(shading)
 
-        slots = [get_material_image(material)]  # Can be None
+        slots = [get_material_image(material)]  # can be None
 
         if image:
             material_chunk.add_subchunk(make_texture_chunk(MAT_DIFFUSEMAP, slots))
@@ -776,7 +776,7 @@ class tri_wrapper(object):
         self.ma = ma
         self.image = image
         self.faceuvs = faceuvs
-        self.offset = [0, 0, 0]  # Offset indices
+        self.offset = [0, 0, 0]  # offset indices
         self.flag = flag
         self.group = group
 
@@ -844,13 +844,13 @@ def remove_face_uv(verts, tri_list):
     need to be converted to vertex uv coordinates. That means that vertices need to be duplicated when
     there are multiple uv coordinates per vertex."""
 
-    # Initialize a list of UniqueLists, one per vertex
+    # initialize a list of UniqueLists, one per vertex
     unique_uvs = [{} for i in range(len(verts))]
 
-    # For each face uv coordinate, add it to the UniqueList of the vertex
+    # for each face uv coordinate, add it to the UniqueList of the vertex
     for tri in tri_list:
         for i in range(3):
-            # Store the index into the UniqueList for future reference:
+            # store the index into the UniqueList for future reference:
             # offset.append(uv_list[tri.vertex_index[i]].add(_3ds_point_uv(tri.faceuvs[i])))
 
             context_uv_vert = unique_uvs[tri.vertex_index[i]]
@@ -875,15 +875,16 @@ def remove_face_uv(verts, tri_list):
         pt = _3ds_point_3d(vert.co)  # reuse, should be ok
         uvmap = [None] * len(unique_uvs[i])
         for ii, uv_3ds in unique_uvs[i].values():
-            # Add a vertex duplicate to the vertex_array for every uv associated with this vertex
+            # add a vertex duplicate to the vertex_array for every uv associated with this vertex
             vert_array.add(pt)
-            # Add the uv coordinate to the uv array, this for loop does not give
+            # add the uv coordinate to the uv array, this for loop does not give
             # uv's ordered by ii, so we create a new map and add the uv's later
             # uv_array.add(uv_3ds)
             uvmap[ii] = uv_3ds
 
-        # Add uv's in the correct order and add coordinates to the uv array
+        # Add the uv's in the correct order
         for uv_3ds in uvmap:
+            # add the uv coordinate to the uv array
             uv_array.add(uv_3ds)
 
         vert_index += len(unique_uvs[i])
@@ -1003,23 +1004,23 @@ def make_mesh_chunk(ob, mesh, matrix, materialDict, translation):
         vert_array = _3ds_array()
         for vert in mesh.vertices:
             vert_array.add(_3ds_point_3d(vert.co))
-        # No UV at all
+        # no UV at all
         uv_array = None
 
-    # Create the chunk
+    # create the chunk
     mesh_chunk = _3ds_chunk(OBJECT_MESH)
 
-    # Add vertex chunk
+    # add vertex chunk
     mesh_chunk.add_subchunk(make_vert_chunk(vert_array))
 
-    # Add faces chunk
+    # add faces chunk
     mesh_chunk.add_subchunk(make_faces_chunk(tri_list, mesh, materialDict))
 
-    # If available, add uv chunk
+    # if available, add uv chunk
     if uv_array:
         mesh_chunk.add_subchunk(make_uv_chunk(uv_array))
 
-    # Create transformation matrix chunk
+    # create transformation matrix chunk
     matrix_chunk = _3ds_chunk(OBJECT_TRANS_MATRIX)
     obj_matrix = matrix.transposed().to_3x3()
 
@@ -1221,7 +1222,8 @@ def save(operator,
     kfdata = make_kfdata()
     '''
 
-    # Make a list of all materials used in the selected meshes (use dictionary, each material is added once)
+    # Make a list of all materials used in the selected meshes (use a dictionary,
+    # each material is added once)
     materialDict = {}
     mesh_objects = []
 
@@ -1235,7 +1237,7 @@ def save(operator,
     camera_objects = [ob for ob in objects if ob.type == 'CAMERA']
 
     for ob in objects:
-        # Get derived objects
+        # get derived objects
         derived_dict = bpy_extras.io_utils.create_derived_objects(depsgraph, [ob])
         derived = derived_dict.get(ob)
 
@@ -1258,7 +1260,7 @@ def save(operator,
                 ma_ls = data.materials
                 ma_ls_len = len(ma_ls)
 
-                # Get material/image tuples
+                # get material/image tuples
                 if data.uv_layers:
                     if not ma_ls:
                         ma = ma_name = None
@@ -1270,7 +1272,7 @@ def save(operator,
                                 ma_index = f.material_index = 0
                             ma = ma_ls[ma_index]
                             ma_name = None if ma is None else ma.name
-                        # Else there already set to none
+                        # else there already set to none
 
                         img = get_uv_image(ma)
                         img_name = None if img is None else img.name
@@ -1279,7 +1281,7 @@ def save(operator,
 
                 else:
                     for ma in ma_ls:
-                        if ma:  # Material may be None so check its not
+                        if ma:  # material may be None so check its not
                             materialDict.setdefault((ma.name, None), (ma, None))
 
                     # Why 0 Why!
@@ -1309,13 +1311,13 @@ def save(operator,
     # Create object chunks for all meshes
     i = 0
     for ob, mesh, matrix in mesh_objects:
-        # Create a new object chunk
+        # create a new object chunk
         object_chunk = _3ds_chunk(OBJECT)
 
-        # Set the object name
+        # set the object name
         object_chunk.add_variable("name", _3ds_string(sane_name(ob.name)))
 
-        # Make a mesh chunk out of the mesh
+        # make a mesh chunk out of the mesh
         object_chunk.add_subchunk(make_mesh_chunk(ob, mesh, matrix, materialDict, translation))
 
         # Ensure the mesh has no over sized arrays, skip ones that do!
