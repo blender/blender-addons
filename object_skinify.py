@@ -606,7 +606,7 @@ def main(context):
         ob.scale = oldScale
         ob.select_set(False)
         armature_object.select_set(True)
-        scn.objects.active = armature_object
+        context.view_layer.objects.active = armature_object
 
     armature_object.location = oldLocation
     armature_object.rotation_euler = oldRotation

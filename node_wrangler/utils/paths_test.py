@@ -10,9 +10,9 @@ from dataclasses import dataclass
 # XXX Not really nice, but that hack is needed to allow execution of that test
 #     from both automated CTest and by directly running the file manually.
 if __name__ == "__main__":
-    from util import match_files_to_socket_names
+    from paths import match_files_to_socket_names
 else:
-    from .util import match_files_to_socket_names
+    from .paths import match_files_to_socket_names
 
 
 # From NWPrincipledPreferences 2023-01-06

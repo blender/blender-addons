@@ -15,9 +15,9 @@
 
 bl_info = {
     "name": "Sun Position",
-    "author": "Michael Martin",
-    "version": (3, 2, 2),
-    "blender": (3, 0, 0),
+    "author": "Michael Martin, Damien Picard",
+    "version": (3, 5, 0),
+    "blender": (3, 2, 0),
     "location": "World > Sun Position",
     "description": "Show sun position with objects and/or sky texture",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/lighting/sun_position.html",
@@ -41,16 +41,21 @@ from bpy.app.handlers import persistent
 register_classes, unregister_classes = bpy.utils.register_classes_factory(
     (properties.SunPosProperties,
      properties.SunPosAddonPreferences, ui_sun.SUNPOS_OT_AddPreset,
-     ui_sun.SUNPOS_MT_Presets, ui_sun.SUNPOS_PT_Panel,
+     ui_sun.SUNPOS_PT_Presets, ui_sun.SUNPOS_PT_Panel,
      ui_sun.SUNPOS_PT_Location, ui_sun.SUNPOS_PT_Time, hdr.SUNPOS_OT_ShowHdr))
 
 
 @persistent
 def sun_scene_handler(scene):
     sun_props = bpy.context.scene.sun_pos_properties
+
+    # Force drawing update
     sun_props.show_surface = sun_props.show_surface
     sun_props.show_analemmas = sun_props.show_analemmas
     sun_props.show_north = sun_props.show_north
+
+    # Force coordinates update
+    sun_props.latitude = sun_props.latitude
 
 
 def register():
@@ -62,6 +67,7 @@ def register():
     bpy.app.handlers.frame_change_post.append(sun_calc.sun_handler)
     bpy.app.handlers.load_post.append(sun_scene_handler)
     bpy.app.translations.register(__name__, translations.translations_dict)
+
 
 def unregister():
     bpy.app.translations.unregister(__name__)
