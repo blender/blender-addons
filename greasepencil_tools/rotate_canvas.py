@@ -61,7 +61,7 @@ def draw_callback_px(self, context):
     font_id = 0
     ## draw text debug infos
     blf.position(font_id, 15, 30, 0)
-    blf.size(font_id, 20, 72)
+    blf.size(font_id, 20.0)
     blf.draw(font_id, f'angle: {math.degrees(self.angle):.1f}')
 
 

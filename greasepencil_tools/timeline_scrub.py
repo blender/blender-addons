@@ -77,14 +77,14 @@ def draw_callback_px(self, context):
     blf.color(font_id, *self.color_text)
     if self.use_hud_frame_current:
         blf.position(font_id, self.mouse[0]+10, self.mouse[1]+10, 0)
-        blf.size(font_id, 30, self.dpi)
+        blf.size(font_id, 30 * (self.dpi / 72.0))
         blf.draw(font_id, f'{self.new_frame:.0f}')
 
     # Display frame offset text
     if self.use_hud_frame_offset:
         blf.position(font_id, self.mouse[0]+10,
                      self.mouse[1]+(40*self.ui_scale), 0)
-        blf.size(font_id, 16, self.dpi)
+        blf.size(font_id, 16 * (self.dpi / 72.0))
         sign = '+' if self.offset > 0 else ''
         blf.draw(font_id, f'{sign}{self.offset:.0f}')
 

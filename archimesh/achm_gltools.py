@@ -92,7 +92,7 @@ def draw_main(context):
 def draw_text(x_pos, y_pos, display_text, rgba, fsize, right=False):
     gap = 12
     font_id = 0
-    blf.size(font_id, fsize, 72)
+    blf.size(font_id, fsize)
 
     text_width, text_height = blf.dimensions(font_id, display_text)
     if right is True:
