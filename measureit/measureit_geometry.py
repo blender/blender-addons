@@ -21,8 +21,8 @@ import gpu
 from gpu_extras.batch import batch_for_shader
 
 
-shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR') if not bpy.app.background else None
-shader_line = gpu.shader.from_builtin('3D_POLYLINE_UNIFORM_COLOR') if not bpy.app.background else None
+shader = gpu.shader.from_builtin('UNIFORM_COLOR') if not bpy.app.background else None
+shader_line = gpu.shader.from_builtin('POLYLINE_UNIFORM_COLOR') if not bpy.app.background else None
 
 imm_line_width = 1.0
 imm_viewport = (0, 0)

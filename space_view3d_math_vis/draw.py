@@ -12,8 +12,8 @@ SpaceView3D = bpy.types.SpaceView3D
 callback_handle = []
 
 if not bpy.app.background:
-    single_color_shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-    smooth_color_shader = gpu.shader.from_builtin('3D_SMOOTH_COLOR')
+    single_color_shader = gpu.shader.from_builtin('UNIFORM_COLOR')
+    smooth_color_shader = gpu.shader.from_builtin('SMOOTH_COLOR')
 else:
     single_color_shader = None
     smooth_color_shader = None

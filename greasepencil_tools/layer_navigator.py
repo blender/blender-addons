@@ -74,7 +74,7 @@ def draw_callback_px(self, context):
     # blf.size(font_id, 20.0)
     # blf.draw(font_id, "Time " + self.text)
 
-    shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')  # initiate shader
+    shader = gpu.shader.from_builtin('UNIFORM_COLOR')  # initiate shader
     gpu.state.blend_set('ALPHA')
     gpu.state.line_width_set(1.0)
 
@@ -198,7 +198,7 @@ def draw_callback_px(self, context):
     for icon_name, coord_list in icons.items():
         texture = gpu.texture.from_image(self.icon_tex[icon_name])
         for coords in coord_list:
-            shader_tex = gpu.shader.from_builtin('2D_IMAGE')
+            shader_tex = gpu.shader.from_builtin('IMAGE')
             batch_icons = batch_for_shader(
                 shader_tex, 'TRI_FAN',
                 {
@@ -417,7 +417,7 @@ class GPT_OT_viewport_layer_nav_osd(bpy.types.Operator):
                     Vector((self.left, self.bottom)), Vector((self.right, self.bottom)),
                     Vector((self.left, self.top)), Vector((self.left, self.bottom)),
                     Vector((self.right, self.top)), Vector((self.right, self.bottom))]
-        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        shader = gpu.shader.from_builtin('UNIFORM_COLOR')
 
         self.batch_lines = batch_for_shader(
             shader, 'LINES', {"pos": self.lines[2:]})

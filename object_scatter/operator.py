@@ -485,7 +485,7 @@ def get_max_object_side_length(objects):
     )
 
 def get_uniform_color_shader():
-    return gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    return gpu.shader.from_builtin('UNIFORM_COLOR')
 
 
 # Registration

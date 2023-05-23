@@ -37,7 +37,7 @@ def draw_callback_px(self, context):
     # text
     font_id = 0
 
-    shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')  # initiate shader
+    shader = gpu.shader.from_builtin('UNIFORM_COLOR')  # initiate shader
     gpu.state.blend_set('ALPHA')
     gpu.state.line_width_set(1.0)
 
@@ -291,7 +291,7 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
         self.hud_lines += [(0, my), (width, my)]
 
         # Prepare batchs to draw static parts
-        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')  # initiate shader
+        shader = gpu.shader.from_builtin('UNIFORM_COLOR')  # initiate shader
         self.batch_timeline = batch_for_shader(
             shader, 'LINES', {"pos": self.hud_lines})
 

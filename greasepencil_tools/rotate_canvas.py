@@ -29,7 +29,7 @@ def draw_callback_px(self, context):
     # 50% alpha, 2 pixel width line
     if context.area != self.current_area:
         return
-    shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+    shader = gpu.shader.from_builtin('UNIFORM_COLOR')
     gpu.state.blend_set('ALPHA')
     gpu.state.line_width_set(2.0)
 

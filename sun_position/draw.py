@@ -126,7 +126,7 @@ else:
                                     coord_offset + i+1))
                 coord_offset += len(analemma_verts)
 
-            shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+            shader = gpu.shader.from_builtin('UNIFORM_COLOR')
             batch = batch_for_shader(shader, 'LINES',
                                     {"pos": coords}, indices=indices)
 
@@ -156,7 +156,7 @@ else:
 
         if addon_prefs.show_overlays and sun_props.show_surface:
             coords = calc_surface(context)
-            shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+            shader = gpu.shader.from_builtin('UNIFORM_COLOR')
             batch = batch_for_shader(shader, 'TRIS', {"pos": coords})
 
             if _surface_handle is not None:

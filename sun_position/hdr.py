@@ -11,8 +11,8 @@ from math import sqrt, pi, atan2, asin
 
 
 if not bpy.app.background:  # ignore drawing in background mode
-    image_shader = gpu.shader.from_builtin('2D_IMAGE_COLOR')
-    line_shader = gpu.shader.from_builtin('2D_FLAT_COLOR')
+    image_shader = gpu.shader.from_builtin('IMAGE_COLOR')
+    line_shader = gpu.shader.from_builtin('FLAT_COLOR')
 
 
 def draw_callback_px(self, context):

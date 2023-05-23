@@ -740,7 +740,7 @@ def allocate_main_ui(self, context):
 def draw_callback_px(self, context):
     allocate_main_ui(self, context)
 
-    shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+    shader = gpu.shader.from_builtin('UNIFORM_COLOR')
     shader.bind()
 
     addon_prefs = context.preferences.addons[__package__].preferences
