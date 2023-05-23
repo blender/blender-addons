@@ -24,10 +24,10 @@ PRIMARY = 0x4D4D
 
 # >----- Main Chunks
 VERSION = 0x0002  # This gives the version of the .3ds file
-KFDATA = 0xB000  # This is the header for all of the key frame info
+KFDATA = 0xB000  # This is the header for all of the keyframe info
 
 # >----- sub defines of OBJECTINFO
-OBJECTINFO = 0x3D3D  # Main mesh object chunk before the material and object information
+OBJECTINFO = 0x3D3D  # Main mesh object chunk before material and object information
 MESHVERSION = 0x3D3E  # This gives the version of the mesh
 AMBIENTLIGHT = 0x2100  # The color of the ambient light
 MATERIAL = 45055  # 0xAFFF // This stored the texture info
@@ -353,7 +353,6 @@ class _3ds_face(object):
 class _3ds_array(object):
     """Class representing an array of variables for a 3ds file.
     Consists of a _3ds_ushort to indicate the number of items, followed by the items themselves."""
-
     __slots__ = "values", "size"
 
     def __init__(self):
@@ -412,7 +411,6 @@ class _3ds_named_variable(object):
 class _3ds_chunk(object):
     """Class representing a chunk in a 3ds file.
     Chunks contain zero or more variables, followed by zero or more subchunks."""
-
     __slots__ = "ID", "size", "variables", "subchunks"
 
     def __init__(self, chunk_id=0):
@@ -424,7 +422,6 @@ class _3ds_chunk(object):
     def add_variable(self, name, var):
         """Add a named variable.
         The name is mostly for debugging purposes."""
-
         self.variables.append(_3ds_named_variable(name, var))
 
     def add_subchunk(self, chunk):
@@ -433,8 +430,7 @@ class _3ds_chunk(object):
 
     def get_size(self):
         """Calculate the size of the chunk and return it.
-        The sizes of the variables and subchunks are used to determine this chunk\'s size."""
-
+        The sizes of the variables and subchunks are used to determine this chunk's size."""
         tmpsize = self.ID.get_size() + self.size.get_size()
         for variable in self.variables:
             tmpsize += variable.get_size()
@@ -848,7 +844,7 @@ def remove_face_uv(verts, tri_list):
     need to be converted to vertex uv coordinates. That means that vertices need to be duplicated when
     there are multiple uv coordinates per vertex."""
 
-    # Initialize a list of UniqueLists, one per vertex
+    # Initialize a list of UniqueUVs, one per vertex
     unique_uvs = [{} for i in range(len(verts))]
 
     # For each face uv coordinate, add it to the UniqueList of the vertex
@@ -883,7 +879,6 @@ def remove_face_uv(verts, tri_list):
             vert_array.add(pt)
             # Add the uv coordinate to the uv array, this for loop does not give
             # uv's ordered by ii, so we create a new map and add the uv's later
-            # uv_array.add(uv_3ds)
             uvmap[ii] = uv_3ds
 
         # Add uv's in the correct order and add coordinates to the uv array
@@ -940,7 +935,6 @@ def make_faces_chunk(tri_list, mesh, materialDict):
                 unique_mats[ma, img] = _3ds_string(sane_name(name_str)), context_face_array
 
             context_face_array.add(_3ds_ushort(i))
-            # obj_material_faces[tri.ma].add(_3ds_ushort(i))
 
         face_chunk.add_variable("faces", face_list)
         for ma_name, ma_faces in unique_mats.values():
@@ -1614,7 +1608,6 @@ def save(operator,
     # Create object chunks for all meshes
     i = 0
     for ob, mesh, matrix in mesh_objects:
-        # Create a new object chunk
         object_chunk = _3ds_chunk(OBJECT)
 
         # Set the object name
