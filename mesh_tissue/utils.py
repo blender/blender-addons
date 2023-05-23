@@ -343,8 +343,9 @@ def array_mesh(ob, n):
     arr = ob.modifiers.new('Repeat','ARRAY')
     arr.relative_offset_displace[0] = 0
     arr.count = n
-    #bpy.ops.object.modifier_apply({'active_object':ob},modifier='Repeat')
-    #me = ob.data
+    # with bpy.context.temp_override(active_object=ob):
+    #     bpy.ops.object.modifier_apply(modifier='Repeat')
+    # me = ob.data
     ob.modifiers.update()
 
     dg = bpy.context.evaluated_depsgraph_get()
