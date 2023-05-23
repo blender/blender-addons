@@ -4,7 +4,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (3, 6, 21),
+    "version": (3, 6, 22),
     'blender': (3, 5, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -599,6 +599,19 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         description='Export directional, point, and spot lights. '
                     'Uses "KHR_lights_punctual" glTF extension',
         default=False
+    )
+
+    # This parameter is only here for backward compatibility, as this option is removed in 3.6
+    # This option does nothing, and is not displayed in UI
+    # What you are looking for is probably "export_animation_mode"
+    export_nla_strips: BoolProperty(
+        name='Group by NLA Track',
+        description=(
+            "When on, multiple actions become part of the same glTF animation if "
+            "they're pushed onto NLA tracks with the same name. "
+            "When off, all the currently assigned actions become one glTF animation"
+        ),
+        default=True
     )
 
     will_save_settings: BoolProperty(
