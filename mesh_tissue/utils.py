@@ -261,7 +261,6 @@ def simple_to_mesh(ob, depsgraph=None):
         dg = depsgraph
     ob_eval = ob.evaluated_get(dg)
     me = bpy.data.meshes.new_from_object(ob_eval, preserve_all_data_layers=True, depsgraph=dg)
-    me.calc_normals()
     return me
 
 def _join_objects(context, objects, link_to_scene=True, make_active=True):
