@@ -234,6 +234,7 @@ classes = (
     DemoModeRun,
 )
 
+
 def register():
     from bpy.utils import register_class
     for cls in classes:
@@ -252,6 +253,7 @@ def unregister():
     bpy.types.TOPBAR_MT_file.remove(menu_func)
 
     extern_demo_mode_unregister()
+
 
 if __name__ == "__main__":
     register()

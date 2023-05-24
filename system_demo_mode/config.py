@@ -1,7 +1,14 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "as_string",
+)
+
 import os
 
+
+# -----------------------------------------------------------------------------
+# Configuration Generation
 
 def blend_list(path):
     for dirpath, dirnames, filenames in os.walk(path):
@@ -33,6 +40,7 @@ def generate(dirpath, random_order, **kwargs):
 def as_string(dirpath, random_order, exit, **kwargs):
     """ Config loader is in demo_mode.py
     """
+    import pprint
     cfg, dirpath = generate(dirpath, random_order, **kwargs)
 
     # hint for reader, can be used if files are not found.
@@ -49,23 +57,16 @@ def as_string(dirpath, random_order, exit, **kwargs):
         "\n",
     ]
 
-    # All these work but use nicest formatting!
-    if 0:  # works but not nice to edit.
-        cfg_str += ["config = %r" % cfg]
-    elif 0:
-        import pprint
-        cfg_str += ["config = %s" % pprint.pformat(cfg, indent=0, width=120)]
-    elif 0:
-        cfg_str += [("config = %r" % cfg).replace("{", "\n    {")]
-    else:
-        import pprint
+    # Works, but custom formatting looks better.
+    # `cfg_str.append("config = %s" % pprint.pformat(cfg, indent=4, width=120))`.
 
-        def dict_as_kw(d):
-            return "dict(%s)" % ", ".join(("%s=%s" % (k, pprint.pformat(v))) for k, v in sorted(d.items()))
-        ident = "    "
-        cfg_str += ["config = [\n"]
-        for cfg_item in cfg:
-            cfg_str += ["%s%s,\n" % (ident, dict_as_kw(cfg_item))]
-        cfg_str += ["%s]\n\n" % ident]
+    def dict_as_kw(d):
+        return "dict(%s)" % ", ".join(("%s=%s" % (k, pprint.pformat(v))) for k, v in sorted(d.items()))
+
+    ident = "    "
+    cfg_str.append("config = [\n")
+    for cfg_item in cfg:
+        cfg_str.append("%s%s,\n" % (ident, dict_as_kw(cfg_item)))
+    cfg_str.append("%s]\n\n" % ident)
 
     return "".join(cfg_str), dirpath
