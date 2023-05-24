@@ -77,7 +77,7 @@ from .fbx_utils import (
     # Animation.
     AnimationCurveNodeWrapper,
     # Objects.
-    ObjectWrapper, fbx_name_class,
+    ObjectWrapper, fbx_name_class, ensure_object_not_in_edit_mode,
     # Top level.
     FBXExportSettingsMedia, FBXExportSettings, FBXExportData,
 )
@@ -3497,6 +3497,14 @@ def save(operator, context,
                 ctx_objects = context.view_layer.objects
         if use_visible:
             ctx_objects = tuple(obj for obj in ctx_objects if obj.visible_get())
+
+        # Ensure no Objects are in Edit mode.
+        # Copy to a tuple for safety, to avoid the risk of modifying ctx_objects while iterating.
+        for obj in tuple(ctx_objects):
+            if not ensure_object_not_in_edit_mode(context, obj):
+                operator.report({'ERROR'}, "%s could not be set out of Edit Mode, so cannot be exported" % obj.name)
+                return {'CANCELLED'}
+
         kwargs_mod["context_objects"] = ctx_objects
 
         depsgraph = context.evaluated_depsgraph_get()
@@ -3527,6 +3535,16 @@ def save(operator, context,
                     data_seq.append((coll, coll_name, 'all_objects'))
         else:
             data_seq = tuple((scene, scene.name, 'objects') for scene in bpy.data.scenes if scene.objects)
+
+        # Ensure no Objects are in Edit mode.
+        for data, data_name, data_obj_propname in data_seq:
+            # Copy to a tuple for safety, to avoid the risk of modifying the data prop while iterating it.
+            for obj in tuple(getattr(data, data_obj_propname)):
+                if not ensure_object_not_in_edit_mode(context, obj):
+                    operator.report({'ERROR'},
+                                    "%s in %s could not be set out of Edit Mode, so cannot be exported"
+                                    % (obj.name, data_name))
+                    return {'CANCELLED'}
 
         # call this function within a loop with BATCH_ENABLE == False
 
