@@ -121,10 +121,10 @@ KFDATA_KFCURTIME = 0xB009  # Frame current
 KFDATA_KFHDR = 0xB00A  # Keyframe header
 
 # >------ sub defines of OBJECT_NODE_TAG
-PARENT_NAME = 0x80F0  # Object parent name tree
 OBJECT_NODE_ID = 0xB030  # Object hierachy ID
 OBJECT_NODE_HDR = 0xB010  # Hierachy tree header
 OBJECT_INSTANCE_NAME = 0xB011  # Object instance name
+OBJECT_PARENT_NAME = 0x80F0  # Object parent name
 OBJECT_PIVOT = 0xB013  # Object pivot position
 OBJECT_BOUNDBOX = 0xB014  # Object boundbox
 OBJECT_MORPH_SMOOTH = 0xB015  # Object smooth angle
@@ -1081,7 +1081,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
             nkeys = len(kframes)
             if not 0 in kframes:
                 kframes.append(0)
-                nkeys = nkeys + 1
+                nkeys += 1
             kframes = sorted(set(kframes))
             track_chunk.add_variable("track_flags", _3ds_ushort(0x40))
             track_chunk.add_variable("frame_start", _3ds_uint(int(action.frame_start)))
@@ -1134,7 +1134,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
             nkeys = len(kframes)
             if not 0 in kframes:
                 kframes.append(0)
-                nkeys = nkeys + 1
+                nkeys += 1
             kframes = sorted(set(kframes))
             track_chunk.add_variable("track_flags", _3ds_ushort(0x40))
             track_chunk.add_variable("frame_start", _3ds_uint(int(action.frame_start)))
@@ -1155,7 +1155,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     lens = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'lens']
                     if not lens:
                         lens.append(ob.data.lens)
-                    fov = 2 * math.atan(ob.data.sensor_width/(2*lens[0]))
+                    fov = 2 * math.atan(ob.data.sensor_width / (2 * lens[0]))
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("fov", _3ds_float(round(math.degrees(fov), 4)))
@@ -1166,7 +1166,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     blend = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'spot_blend']
                     if not blend:
                         blend.append(ob.data.spot_blend)
-                    hot_spot = beam_angle-(blend[0]*math.floor(beam_angle))
+                    hot_spot = beam_angle - (blend[0] * math.floor(beam_angle))
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("hotspot", _3ds_float(round(hot_spot, 4)))
@@ -1210,7 +1210,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
 
         elif ID == HOTSPOT_TRACK_TAG:  # Hotspot
             beam_angle = math.degrees(ob.data.spot_size)
-            track_chunk.add_variable("hotspot", _3ds_float(round(beam_angle-(ob.data.spot_blend*math.floor(beam_angle)), 4)))
+            track_chunk.add_variable("hotspot", _3ds_float(round(beam_angle - (ob.data.spot_blend * math.floor(beam_angle)), 4)))
 
         elif ID == FALLOFF_TRACK_TAG:  # Falloff
             track_chunk.add_variable("falloff", _3ds_float(round(math.degrees(ob.data.spot_size), 4)))
@@ -1266,6 +1266,12 @@ def make_object_node(ob, translation, rotation, scale):
 
     # Add subchunk for node header
     obj_node.add_subchunk(obj_node_header_chunk)
+
+    # Alternatively use PARENT_NAME chunk for hierachy
+    if parent is not None:
+        obj_parent_name_chunk = _3ds_chunk(OBJECT_PARENT_NAME)
+        obj_parent_name_chunk.add_variable("parent", _3ds_string(sane_name(parent.name)))
+        obj_node.add_subchunk(obj_parent_name_chunk)
 
     # Empty objects need to have an extra chunk for the instance name
     if ob.type == 'EMPTY':  # Will use a real object name for empties for now
@@ -1345,10 +1351,10 @@ def make_target_node(ob, translation, rotation, scale):
     ob_rot = rotation[name].to_euler()
     ob_size = scale[name]
     
-    diagonal = math.copysign(math.sqrt(pow(ob_pos[0],2)+pow(ob_pos[1],2)), ob_pos[1])
-    target_x = ob_pos[0]+(ob_pos[1]*math.tan(ob_rot[2]))
-    target_y = ob_pos[1]+(ob_pos[0]*math.tan(math.radians(90)-ob_rot[2]))
-    target_z = -1*diagonal*math.tan(math.radians(90)-ob_rot[0])
+    diagonal = math.copysign(math.sqrt(pow(ob_pos[0],2) + pow(ob_pos[1],2)), ob_pos[1])
+    target_x = ob_pos[0] + (ob_pos[1] * math.tan(ob_rot[2]))
+    target_y = ob_pos[1] + (ob_pos[0] * math.tan(math.radians(90) - ob_rot[2]))
+    target_z = -1 * diagonal * math.tan(math.radians(90) - ob_rot[0])
     
     # Add track chunks for target position
     track_chunk = _3ds_chunk(POS_TRACK_TAG)
@@ -1361,7 +1367,7 @@ def make_target_node(ob, translation, rotation, scale):
             nkeys = len(kframes)
             if not 0 in kframes:
                 kframes.append(0)
-                nkeys = nkeys + 1
+                nkeys += 1
             kframes = sorted(set(kframes))
             track_chunk.add_variable("track_flags", _3ds_ushort(0x40))
             track_chunk.add_variable("frame_start", _3ds_uint(int(action.frame_start)))
@@ -1377,10 +1383,10 @@ def make_target_node(ob, translation, rotation, scale):
                     target_rot.insert(0, ob_rot.x)
                     target_rot.insert(1, ob_rot.y)
                     target_rot.insert(2, ob_rot.z)
-                diagonal = math.copysign(math.sqrt(pow(target_pos[0],2)+pow(target_pos[1],2)), target_pos[1])
-                target_x = target_pos[0]+(target_pos[1]*math.tan(target_rot[2]))
-                target_y = target_pos[1]+(target_pos[0]*math.tan(math.radians(90)-target_rot[2]))
-                target_z = -1*diagonal*math.tan(math.radians(90)-target_rot[0])
+                diagonal = math.copysign(math.sqrt(pow(target_pos[0],2) + pow(target_pos[1],2)), target_pos[1])
+                target_x = target_pos[0] + (target_pos[1] * math.tan(target_rot[2]))
+                target_y = target_pos[1] + (target_pos[0] * math.tan(math.radians(90) - target_rot[2]))
+                target_z = -1 * diagonal * math.tan(math.radians(90) - target_rot[0])
                 track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                 track_chunk.add_variable("tcb_flags", _3ds_ushort())
                 track_chunk.add_variable("position", _3ds_point_3d((target_x, target_y, target_z)))
@@ -1421,7 +1427,7 @@ def make_ambient_node(world):
             nkeys = len(kframes)
             if not 0 in kframes:
                 kframes.append(0)
-                nkeys = nkeys + 1
+                nkeys += 1
             kframes = sorted(set(kframes))
             track_chunk.add_variable("track_flags", _3ds_ushort(0x40))
             track_chunk.add_variable("frame_start", _3ds_uint(int(action.frame_start)))
