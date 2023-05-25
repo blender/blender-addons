@@ -550,10 +550,8 @@ def make_texture_chunk(chunk_id, images):
 
 
 def make_material_texture_chunk(chunk_id, texslots, pct):
-    """Make Material Map texture chunk given a seq. of `MaterialTextureSlot`'s
-    Paint slots are optionally used as image source if no nodes are
-    used. No additional filtering for mapping modes is done, all
-    slots are written "as is"."""
+    """Make Material Map texture chunk given a seq. of MaterialTextureSlot's
+    Paint slots are optionally used as image source if no nodes are used."""
 
     # Add texture percentage value
     mat_sub = make_percent_subchunk(chunk_id, pct)
@@ -588,7 +586,7 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
         if socket == 'Alpha':
             mapflags |= 0x40
             if texslot.socket_dst.identifier in {'Base Color', 'Specular'}: 
-                mapflags |= 0x80 if image.colorspace_settings.name=='Non-Color' else 0x200
+                mapflags |= 0x80 if image.colorspace_settings.name == 'Non-Color' else 0x200
 
         mat_sub_mapflags.add_variable("mapflags", _3ds_ushort(mapflags))
         mat_sub.add_subchunk(mat_sub_mapflags)
@@ -1251,8 +1249,8 @@ def make_object_node(ob, translation, rotation, scale, name_id):
         obj_node_header_chunk.add_variable("name", _3ds_string(sane_name(name)))
         obj_node_header_chunk.add_variable("flags1", _3ds_ushort(0x0040))
 
-        # Flags2 defines bit 0x01 for display path, bit 0x02 use autosmooth, bit 0x04 object frozen,
-        # bit 0x10 for motion blur, bit 0x20 for material morph and bit 0x40 for mesh morph
+        """Flags2 defines 0x01 for display path, 0x02 use autosmooth, 0x04 object frozen,
+        0x10 for motion blur, 0x20 for material morph and bit 0x40 for mesh morph."""
         if ob.type == 'MESH' and ob.data.use_auto_smooth:
             obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0x02))
         else:
@@ -1336,7 +1334,7 @@ def make_target_node(ob, translation, rotation, scale, name_id):
 
     name = ob.name
     name_id["ø " + name] = len(name_id)
-    if ob.type == 'CAMERA':  #Add camera target
+    if ob.type == 'CAMERA':  # Add camera target
         tar_node = _3ds_chunk(TARGET_NODE_TAG)
     elif ob.type == 'LIGHT':  # Add spot target
         tar_node = _3ds_chunk(LTARGET_NODE_TAG)
@@ -1515,7 +1513,7 @@ def save(operator,
 
     # Add MASTERSCALE element
     mscale = _3ds_chunk(MASTERSCALE)
-    mscale.add_variable("scale", _3ds_float(1))
+    mscale.add_variable("scale", _3ds_float(1.0))
     object_info.add_subchunk(mscale)
 
     # Init main keyframe data chunk
@@ -1530,7 +1528,7 @@ def save(operator,
     if world is not None:
         ambient_chunk = _3ds_chunk(AMBIENTLIGHT)
         ambient_light = _3ds_chunk(RGB)
-        ambient_light.add_variable("ambient", _3ds_float_color(scene.world.color))
+        ambient_light.add_variable("ambient", _3ds_float_color(world.color))
         ambient_chunk.add_subchunk(ambient_light)
         object_info.add_subchunk(ambient_chunk)
         if write_keyframe and world.animation_data:
@@ -1619,13 +1617,13 @@ def save(operator,
         translation[ob.name] = ob.location
         rotation[ob.name] = ob.rotation_euler.to_quaternion().inverted()
         scale[ob.name] = ob.scale
-        name_id[ob.name]= len(name_id)
+        name_id[ob.name] = len(name_id)
 
     for ob in empty_objects:
         translation[ob.name] = ob.location
         rotation[ob.name] = ob.rotation_euler.to_quaternion().inverted()
         scale[ob.name] = ob.scale
-        name_id[ob.name]= len(name_id)
+        name_id[ob.name] = len(name_id)
 
     # Create object chunks for all meshes
     i = 0
@@ -1662,7 +1660,7 @@ def save(operator,
         translation[ob.name] = ob.location
         rotation[ob.name] = ob.rotation_euler.to_quaternion()
         scale[ob.name] = ob.scale
-        name_id[ob.name]= len(name_id)
+        name_id[ob.name] = len(name_id)
 
         # Add light data subchunks
         light_chunk = _3ds_chunk(OBJECT_LIGHT)
@@ -1713,7 +1711,7 @@ def save(operator,
         translation[ob.name] = ob.location
         rotation[ob.name] = ob.rotation_euler.to_quaternion()
         scale[ob.name] = ob.scale
-        name_id[ob.name]= len(name_id)
+        name_id[ob.name] = len(name_id)
 
         # Add camera data subchunks
         camera_chunk = _3ds_chunk(OBJECT_CAMERA)
