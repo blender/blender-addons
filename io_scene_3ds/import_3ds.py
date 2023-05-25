@@ -1236,17 +1236,17 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             default_value = child.data.angle
             child.data.angle = read_track_angle(temp_chunk)[0]
             for keydata in keyframe_angle.items():
-                child.data.lens = (child.data.sensor_width/2)/math.tan(keydata[1]/2)
+                child.data.lens = (child.data.sensor_width / 2) / math.tan(keydata[1] / 2)
                 child.data.keyframe_insert(data_path="lens", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == HOTSPOT_TRACK_TAG and child.type == 'LIGHT' and child.data.type == 'SPOT':  # Hotspot
             keyframe_angle = {}
             cone_angle = math.degrees(child.data.spot_size)
-            default_value = cone_angle-(child.data.spot_blend*math.floor(cone_angle))   
+            default_value = cone_angle-(child.data.spot_blend * math.floor(cone_angle))   
             hot_spot = math.degrees(read_track_angle(temp_chunk)[0])
             child.data.spot_blend = 1.0 - (hot_spot/cone_angle)
             for keydata in keyframe_angle.items():
-                child.data.spot_blend = 1.0 - (math.degrees(keydata[1])/cone_angle)
+                child.data.spot_blend = 1.0 - (math.degrees(keydata[1]) / cone_angle)
                 child.data.keyframe_insert(data_path="spot_blend", frame=keydata[0])
 
         elif KEYFRAME and new_chunk.ID == FALLOFF_TRACK_TAG and child.type == 'LIGHT' and child.data.type == 'SPOT':  # Falloff
@@ -1299,7 +1299,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     for par, objs in parent_dictionary.items():
         parent = object_dictionary.get(par)
         for ob in objs:
-            ob.parent = parent
+            if parent is not None:
+                ob.parent = parent
 
     # fix pivots
     for ind, ob in enumerate(object_list):
