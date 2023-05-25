@@ -20,7 +20,7 @@ import bpy
 import time
 import os
 
-DEMO_CFG = "demo.py"
+from . import DEMO_CFG
 
 # populate from script
 global_config_files = []
@@ -121,7 +121,6 @@ def demo_mode_next_file(step=1):
         del global_config_files[global_state["demo_index"]]
         global_state["demo_index"] -= 1
 
-    print(global_state["demo_index"])
     demo_index_next = (global_state["demo_index"] + step) % len(global_config_files)
 
     if global_state["exit"] and step > 0:
@@ -132,7 +131,7 @@ def demo_mode_next_file(step=1):
 
     global_state["demo_index"] = demo_index_next
     print(global_state["demo_index"], "....")
-    print("func:demo_mode_next_file", global_state["demo_index"])
+    print("func:demo_mode_next_file", global_state["demo_index"], "of", len(global_config_files))
     filepath = global_config_files[global_state["demo_index"]]["file"]
     bpy.ops.wm.open_mainfile(filepath=filepath)
 

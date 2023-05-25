@@ -99,4 +99,4 @@ def as_string(dirpath, random_order, exit, **kwargs):
         cfg_str.append("%s%s,\n" % (ident, dict_as_kw(cfg_item)))
     cfg_str.append("%s]\n\n" % ident)
 
-    return "".join(cfg_str), dirpath
+    return "".join(cfg_str), len(cfg), dirpath
