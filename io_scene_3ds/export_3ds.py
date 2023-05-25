@@ -1657,12 +1657,6 @@ def save(operator,
     # Create light object chunks
     for ob in light_objects:
         object_chunk = _3ds_chunk(OBJECT)
-        translation[ob.name] = ob.location
-        rotation[ob.name] = ob.rotation_euler.to_quaternion()
-        scale[ob.name] = ob.scale
-        name_id[ob.name] = len(name_id)
-
-        # Add light data subchunks
         light_chunk = _3ds_chunk(OBJECT_LIGHT)
         color_float_chunk = _3ds_chunk(RGB)
         energy_factor = _3ds_chunk(LIGHT_MULTIPLIER)
@@ -1701,6 +1695,10 @@ def save(operator,
 
         # Export light and spotlight target node
         if write_keyframe:
+            translation[ob.name] = ob.location
+            rotation[ob.name] = ob.rotation_euler.to_quaternion()
+            scale[ob.name] = ob.scale
+            name_id[ob.name] = len(name_id)
             kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
             if ob.data.type == 'SPOT':
                 kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale, name_id))
@@ -1708,12 +1706,6 @@ def save(operator,
     # Create camera object chunks
     for ob in camera_objects:
         object_chunk = _3ds_chunk(OBJECT)
-        translation[ob.name] = ob.location
-        rotation[ob.name] = ob.rotation_euler.to_quaternion()
-        scale[ob.name] = ob.scale
-        name_id[ob.name] = len(name_id)
-
-        # Add camera data subchunks
         camera_chunk = _3ds_chunk(OBJECT_CAMERA)
         diagonal = math.copysign(math.sqrt(pow(ob.location[0], 2) + pow(ob.location[1], 2)), ob.location[1])
         focus_x = ob.location[0] + (ob.location[1] * math.tan(ob.rotation_euler[2]))
@@ -1729,6 +1721,10 @@ def save(operator,
 
         # Export camera and target node
         if write_keyframe:
+            translation[ob.name] = ob.location
+            rotation[ob.name] = ob.rotation_euler.to_quaternion()
+            scale[ob.name] = ob.scale
+            name_id[ob.name] = len(name_id)
             kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
             kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale, name_id))
 
