@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """Define the POV render engine from generic Blender RenderEngine class."""
-import faulthandler
-faulthandler.enable()
 import bpy
 
 import builtins as __builtin__
