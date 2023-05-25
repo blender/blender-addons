@@ -1218,7 +1218,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
     return track_chunk
 
 
-def make_object_node(ob, translation, rotation, scale):
+def make_object_node(ob, translation, rotation, scale, name_id):
     """Make a node chunk for a Blender object. Takes Blender object as parameter.
        Blender Empty objects are converted to dummy nodes."""
 
@@ -1231,6 +1231,11 @@ def make_object_node(ob, translation, rotation, scale):
             obj_node = _3ds_chunk(SPOT_NODE_TAG)
     else:  # Main object node chunk
         obj_node = _3ds_chunk(OBJECT_NODE_TAG)
+
+    # Chunk for the object ID from name_id dictionary:
+    obj_id_chunk = _3ds_chunk(OBJECT_NODE_ID)
+    obj_id_chunk.add_variable("node_id", _3ds_ushort(name_id[name]))
+    obj_node.add_subchunk(obj_id_chunk)
 
     # Object node header with object name
     obj_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
@@ -1257,11 +1262,11 @@ def make_object_node(ob, translation, rotation, scale):
     '''
     # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
     # Check parent-child relationships:
-    if parent is None or parent.name not in name_to_id:
+    if parent is None or parent.name not in name_id:
         # If no parent, or parents name is not in dictionary, ID becomes -1:
         obj_node_header_chunk.add_variable("parent", _3ds_ushort(-1))
-    else:  # Get the parent's ID from the name_to_id dictionary:
-        obj_node_header_chunk.add_variable("parent", _3ds_ushort(name_to_id[parent.name]))
+    else:  # Get the parent's ID from the name_id dictionary:
+        obj_node_header_chunk.add_variable("parent", _3ds_ushort(name_id[parent.name]))
     '''
 
     # Add subchunk for node header
@@ -1326,14 +1331,20 @@ def make_object_node(ob, translation, rotation, scale):
     return obj_node
 
 
-def make_target_node(ob, translation, rotation, scale):
+def make_target_node(ob, translation, rotation, scale, name_id):
     """Make a target chunk for light and camera objects"""
 
     name = ob.name
+    name_id["ø " + name] = len(name_id)
     if ob.type == 'CAMERA':  #Add camera target
         tar_node = _3ds_chunk(TARGET_NODE_TAG)
     elif ob.type == 'LIGHT':  # Add spot target
         tar_node = _3ds_chunk(LTARGET_NODE_TAG)
+
+    # Chunk for the object ID from name_id dictionary:
+    tar_id_chunk = _3ds_chunk(OBJECT_NODE_ID)
+    tar_id_chunk.add_variable("node_id", _3ds_ushort(name_id[name]))
+    tar_node.add_subchunk(tar_id_chunk)
 
     # Object node header with object name
     tar_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
@@ -1410,6 +1421,11 @@ def make_ambient_node(world):
     amb_color = world.color
     amb_node = _3ds_chunk(AMBIENT_NODE_TAG)
     track_chunk = _3ds_chunk(COL_TRACK_TAG)
+
+    # Chunk for the ambient ID is ROOT_OBJECT
+    amb_id_chunk = _3ds_chunk(OBJECT_NODE_ID)
+    amb_id_chunk.add_variable("node_id", _3ds_ushort(ROOT_OBJECT))
+    amb_node.add_subchunk(amb_id_chunk)
 
     # Object node header, name is "$AMBIENT$" for ambient nodes
     amb_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
@@ -1597,19 +1613,19 @@ def save(operator,
     scale = {}
 
     # Give all objects a unique ID and build a dictionary from object name to object id
-    # name_to_id = {}
+    name_id = {}
 
     for ob, data, matrix in mesh_objects:
         translation[ob.name] = ob.location
         rotation[ob.name] = ob.rotation_euler.to_quaternion().inverted()
         scale[ob.name] = ob.scale
-        # name_to_id[ob.name]= len(name_to_id)
+        name_id[ob.name]= len(name_id)
 
     for ob in empty_objects:
         translation[ob.name] = ob.location
         rotation[ob.name] = ob.rotation_euler.to_quaternion().inverted()
         scale[ob.name] = ob.scale
-        # name_to_id[ob.name]= len(name_to_id)
+        name_id[ob.name]= len(name_id)
 
     # Create object chunks for all meshes
     i = 0
@@ -1631,14 +1647,14 @@ def save(operator,
 
         # Export kf object node
         if write_keyframe:
-            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale))
+            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
 
         i += i
 
     # Create chunks for all empties, only requires a kf object node
     if write_keyframe:
         for ob in empty_objects:
-            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale))
+            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
 
     # Create light object chunks
     for ob in light_objects:
@@ -1646,6 +1662,7 @@ def save(operator,
         translation[ob.name] = ob.location
         rotation[ob.name] = ob.rotation_euler.to_quaternion()
         scale[ob.name] = ob.scale
+        name_id[ob.name]= len(name_id)
 
         # Add light data subchunks
         light_chunk = _3ds_chunk(OBJECT_LIGHT)
@@ -1686,9 +1703,9 @@ def save(operator,
 
         # Export light and spotlight target node
         if write_keyframe:
-            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale))
+            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
             if ob.data.type == 'SPOT':
-                kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale))
+                kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale, name_id))
 
     # Create camera object chunks
     for ob in camera_objects:
@@ -1696,6 +1713,7 @@ def save(operator,
         translation[ob.name] = ob.location
         rotation[ob.name] = ob.rotation_euler.to_quaternion()
         scale[ob.name] = ob.scale
+        name_id[ob.name]= len(name_id)
 
         # Add camera data subchunks
         camera_chunk = _3ds_chunk(OBJECT_CAMERA)
@@ -1713,8 +1731,8 @@ def save(operator,
 
         # Export camera and target node
         if write_keyframe:
-            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale))
-            kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale))
+            kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
+            kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale, name_id))
 
     # Add main object info chunk to primary chunk
     primary.add_subchunk(object_info)
