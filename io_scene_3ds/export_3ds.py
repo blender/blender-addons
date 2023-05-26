@@ -573,7 +573,7 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
         0x40 activates alpha source, 0x80 activates tinting, 0x100 ignores alpha, 0x200 activates RGB tint.
         Bits 0x80, 0x100, and 0x200 are only used with TEXMAP, TEX2MAP, and SPECMAP chunks.
         0x40, when used with a TEXMAP, TEX2MAP, or SPECMAP chunk must be accompanied with a tint bit,
-        either 0x100 or 0x200, tintcolor will be processed if a tintflag is present"""
+        either 0x100 or 0x200, tintcolor will be processed if a tintflag was created."""
 
         mapflags = 0
         if texslot.extension == 'EXTEND':
@@ -804,7 +804,7 @@ def extract_triangles(mesh):
 
         """Flag 0x1 sets CA edge visible, Flag 0x2 sets BC edge visible, Flag 0x4 sets AB edge visible
         Flag 0x8 indicates a U axis texture wrap seam and Flag 0x10 indicates a V axis texture wrap seam
-        In Blender we use the edge CA, BC, and AB flags for sharp edges flags"""
+        In Blender we use the edge CA, BC, and AB flags for sharp edges flags."""
         a_b = mesh.edges[mesh.loops[face.loops[0]].edge_index]
         b_c = mesh.edges[mesh.loops[face.loops[1]].edge_index]
         c_a = mesh.edges[mesh.loops[face.loops[2]].edge_index]
@@ -1017,7 +1017,7 @@ def make_mesh_chunk(ob, mesh, matrix, materialDict, translation):
     matrix_chunk = _3ds_chunk(OBJECT_TRANS_MATRIX)
     obj_matrix = matrix.transposed().to_3x3()
 
-    if ob.parent is None or ob.parent.name not in translation:
+    if ob.parent is None or (ob.parent.name not in translation):
         obj_translate = matrix.to_translation()
 
     else:  # Calculate child matrix translation relative to parent
@@ -1046,7 +1046,7 @@ def make_mesh_chunk(ob, mesh, matrix, materialDict, translation):
 #################
 
 def make_kfdata(revision, start=0, stop=100, curtime=0):
-    """Make the basic keyframe data chunk"""
+    """Make the basic keyframe data chunk."""
     kfdata = _3ds_chunk(KFDATA)
 
     kfhdr = _3ds_chunk(KFDATA_KFHDR)
@@ -1067,8 +1067,8 @@ def make_kfdata(revision, start=0, stop=100, curtime=0):
     return kfdata
 
 def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
-    """Make a chunk for track data. Depending on the ID, this will
-       construct a position, rotation, scale, roll, color or fov track."""
+    """Make a chunk for track data. Depending on the ID, this will construct
+    a position, rotation, scale, roll, color, fov, hotspot or falloff track."""
     track_chunk = _3ds_chunk(ID)
 
     if ID in {POS_TRACK_TAG, ROT_TRACK_TAG, SCL_TRACK_TAG, ROLL_TRACK_TAG} and ob.animation_data and ob.animation_data.action:
@@ -1271,7 +1271,7 @@ def make_object_node(ob, translation, rotation, scale, name_id):
     obj_node.add_subchunk(obj_node_header_chunk)
 
     # Alternatively use PARENT_NAME chunk for hierachy
-    if parent is not None:
+    if parent is not None and (parent.name in name_id):
         obj_parent_name_chunk = _3ds_chunk(OBJECT_PARENT_NAME)
         obj_parent_name_chunk.add_variable("parent", _3ds_string(sane_name(parent.name)))
         obj_node.add_subchunk(obj_parent_name_chunk)
@@ -1301,7 +1301,7 @@ def make_object_node(ob, translation, rotation, scale, name_id):
             obj_node.add_subchunk(obj_morph_smooth)
 
     # Add track chunks for color, position, rotation and scale
-    if parent is None:
+    if parent is None or (parent.name not in name_id):
         ob_pos = translation[name]
         ob_rot = rotation[name]
         ob_size = scale[name]
@@ -1330,7 +1330,7 @@ def make_object_node(ob, translation, rotation, scale, name_id):
 
 
 def make_target_node(ob, translation, rotation, scale, name_id):
-    """Make a target chunk for light and camera objects"""
+    """Make a target chunk for light and camera objects."""
 
     name = ob.name
     name_id["ø " + name] = len(name_id)
@@ -1416,6 +1416,8 @@ def make_target_node(ob, translation, rotation, scale, name_id):
 
 
 def make_ambient_node(world):
+    """Make an ambient node for the world color, if the color is animated."""
+
     amb_color = world.color
     amb_node = _3ds_chunk(AMBIENT_NODE_TAG)
     track_chunk = _3ds_chunk(COL_TRACK_TAG)
@@ -1475,12 +1477,7 @@ def make_ambient_node(world):
 # EXPORT #
 ##########
 
-def save(operator,
-         context, filepath="",
-         use_selection=False,
-         write_keyframe=False,
-         global_matrix=None,
-         ):
+def save(operator, context, filepath="", use_selection=False, write_keyframe=False, global_matrix=None):
 
     """Save the Blender scene to a 3ds file."""
     # Time the export
