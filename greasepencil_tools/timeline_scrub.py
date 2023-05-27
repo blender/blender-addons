@@ -37,7 +37,7 @@ def draw_callback_px(self, context):
     # text
     font_id = 0
 
-    shader = gpu.shader.from_builtin('UNIFORM_COLOR')  # initiate shader
+    shader = gpu.shader.from_builtin('UNIFORM_COLOR') # initiate shader
     gpu.state.blend_set('ALPHA')
     gpu.state.line_width_set(1.0)
 

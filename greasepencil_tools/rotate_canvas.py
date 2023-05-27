@@ -6,13 +6,11 @@ import bpy
 import math
 import mathutils
 from bpy_extras.view3d_utils import location_3d_to_region_2d
-from bpy.props import BoolProperty, EnumProperty
 from time import time
 ## draw utils
 import gpu
 import blf
 from gpu_extras.batch import batch_for_shader
-from gpu_extras.presets import draw_circle_2d
 
 def step_value(value, step):
     '''return the step closer to the passed value'''
@@ -195,6 +193,8 @@ class RC_OT_RotateCanvas(bpy.types.Operator):
         self.hud = prefs.canvas_use_hud
         self.use_view_center = prefs.canvas_use_view_center
         self.angle = 0.0
+        ## Check if scene camera or local camera exists ?
+        # if (context.space_data.use_local_camera and context.space_data.camera) or context.scene.camera
         self.in_cam = context.region_data.view_perspective == 'CAMERA'
 
         ## store ratio for view rotate correction
@@ -216,7 +216,10 @@ class RC_OT_RotateCanvas(bpy.types.Operator):
 
         if self.in_cam:
             # Get camera from scene
-            self.cam = bpy.context.scene.camera
+            if context.space_data.use_local_camera and context.space_data.camera:
+                self.cam = context.space_data.camera
+            else:
+                self.cam = context.scene.camera
 
             #return if one element is locked (else bypass location)
             if self.cam.lock_rotation[:] != (False, False, False):
