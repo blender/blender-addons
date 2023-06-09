@@ -774,6 +774,10 @@ def elem_data_single_bool(elem, name, value):
     return _elem_data_single(elem, name, value, "add_bool")
 
 
+def elem_data_single_int8(elem, name, value):
+    return _elem_data_single(elem, name, value, "add_int8")
+
+
 def elem_data_single_int16(elem, name, value):
     return _elem_data_single(elem, name, value, "add_int16")
 
