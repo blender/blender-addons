@@ -3598,7 +3598,7 @@ def merge_components(ob, props, use_bmesh):
         if props.close_mesh != 'NONE':
             bm.edges.ensure_lookup_table()
             # set crease
-            crease_layer = bm.edges.layers.crease.verify()
+            crease_layer = bm.edges.layers.float.new("crease_edge")
             boundary_edges = [e for e in bm.edges if e.is_boundary or e.is_wire]
             if props.close_mesh == 'BRIDGE':
                 try:
