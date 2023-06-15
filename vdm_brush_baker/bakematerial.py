@@ -1,6 +1,6 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2023 Robin Hohnsbeen
 #
-# Copyright (C) 2023 Robin Hohnsbeen
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import bpy
 

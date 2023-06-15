@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2005 Bob Holcomb
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2005 Bob Holcomb
 
 import os
 import bpy

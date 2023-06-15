@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2005 Bob Holcomb
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2005 Bob Holcomb
 
 """
 Exporting is based on 3ds loader from www.gametutorials.com(Thanks DigiBen) and using information

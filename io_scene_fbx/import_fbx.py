@@ -1,6 +1,6 @@
+# SPDX-FileCopyrightText: 2013-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# Script copyright (C) Blender Foundation
 
 # FBX 7.1.0 -> 7.4.0 loader for Blender
 

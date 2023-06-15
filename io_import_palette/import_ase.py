@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2019-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # This ASE conversion uses code from Marcos A Ojeda http://generic.cx/
