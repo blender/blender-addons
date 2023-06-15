@@ -33,8 +33,8 @@ COLOR_F = 0x0010  # color defined as 3 floats
 COLOR_24 = 0x0011  # color defined as 3 bytes
 LIN_COLOR_24 = 0x0012  # linear byte color
 LIN_COLOR_F = 0x0013  # linear float color
-PCT_SHORT = 0x30  # percentage short
-PCT_FLOAT = 0x31  # percentage float
+PCT_SHORT = 0x0030  # percentage short
+PCT_FLOAT = 0x0031  # percentage float
 MASTERSCALE = 0x0100  # Master scale factor
 
 # >----- sub defines of OBJECTINFO
@@ -223,13 +223,6 @@ def read_string(file):
 ##########
 # IMPORT #
 ##########
-
-def process_next_object_chunk(file, previous_chunk):
-    new_chunk = Chunk()
-
-    while (previous_chunk.bytes_read < previous_chunk.length):
-        # read the next chunk
-        read_chunk(file, new_chunk)
 
 def skip_to_end(file, skip_chunk):
     buffer_size = skip_chunk.length - skip_chunk.bytes_read
@@ -576,8 +569,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         tilt = 0.0
         pos = location + target  # Target triangulation
         if abs(location[0] - target[0]) > abs(location[1] - target[1]):
-            foc = math.copysign(math.sqrt(pow(pos[0],2) + pow(pos[1],2)),pos[0])
-            dia = math.copysign(math.sqrt(pow(foc,2) + pow(target[2],2)),pos[0])
+            foc = math.copysign(math.sqrt(pow(pos[0],2) + pow(pos[1],2)), pos[0])
+            dia = math.copysign(math.sqrt(pow(foc,2) + pow(target[2],2)), pos[0])
             pitch = math.radians(90) - math.copysign(math.acos(foc / dia), pos[2])
             if location[0] > target[0]:
                 tilt = math.copysign(pitch, pos[0])
@@ -586,8 +579,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 tilt = -1 * (math.copysign(pitch, pos[0]))
                 pan = -1 * (math.radians(90) - math.atan(pos[1] / foc))
         elif abs(location[1] - target[1]) > abs(location[0] - target[0]):
-            foc = math.copysign(math.sqrt(pow(pos[1],2) + pow(pos[0],2)),pos[1])
-            dia = math.copysign(math.sqrt(pow(foc,2) + pow(target[2],2)),pos[1])
+            foc = math.copysign(math.sqrt(pow(pos[1],2) + pow(pos[0],2)), pos[1])
+            dia = math.copysign(math.sqrt(pow(foc,2) + pow(target[2],2)), pos[1])
             pitch = math.radians(90) - math.copysign(math.acos(foc / dia), pos[2])
             if location[1] > target[1]:
                 tilt = math.copysign(pitch, pos[1])
