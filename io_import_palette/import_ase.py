@@ -120,7 +120,7 @@ def create_color(data):
         color[0] = (1.0 - val[0]) * (1.0 - val[3])
         color[1] = (1.0 - val[1]) * (1.0 - val[3])
         color[2] = (1.0 - val[2]) * (1.0 - val[3])
-    
+
     if valid:
         return color
 

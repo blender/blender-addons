@@ -7,7 +7,7 @@ import bpy
 
 def get_vdm_bake_material():
     """Creates a material that is used to bake the displacement from a plane against its UVs.
-    
+
     Returns:
     material: Baking material
     """

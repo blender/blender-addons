@@ -1296,7 +1296,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif KEYFRAME and new_chunk.ID == HOTSPOT_TRACK_TAG and child.type == 'LIGHT' and child.data.type == 'SPOT':  # Hotspot
             keyframe_angle = {}
             cone_angle = math.degrees(child.data.spot_size)
-            default_value = cone_angle-(child.data.spot_blend * math.floor(cone_angle))   
+            default_value = cone_angle-(child.data.spot_blend * math.floor(cone_angle))
             hot_spot = math.degrees(read_track_angle(temp_chunk)[0])
             child.data.spot_blend = 1.0 - (hot_spot/cone_angle)
             for keydata in keyframe_angle.items():
