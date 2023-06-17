@@ -1337,10 +1337,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif parent not in object_dict:
             if ob.parent != object_list[parent]:
                 ob.parent = object_list[parent]
-        elif ob.parent != object_dict[parent]:
-            ob.parent = object_dict.get(parent)
         else:
-            print("\tWarning: Cannot assign self to parent ", ob.name)
+            if ob.parent != object_dict[parent]:
+                ob.parent = object_dict.get(parent)
 
         #pivot_list[ind] += pivot_list[parent]  # Not sure this is correct, should parent space matrix be applied before combining?
 
