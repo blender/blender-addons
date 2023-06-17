@@ -1351,6 +1351,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         for ob in objs:
             if parent is not None:
                 ob.parent = parent
+    parent_dictionary.clear()
 
     # If hierarchy
     hierarchy = dict(zip(childs_list, parent_list))
