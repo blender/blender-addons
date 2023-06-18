@@ -556,7 +556,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                                     (uoffset, voffset, 0), angle, tintcolor, mapto)
 
     def apply_constrain(vec):
-        consize = mathutils.Vector(vec) * (CONSTRAIN * 0.1) if CONSTRAIN != 0.0 else mathutils.Vector(vec)
+        convector = mathutils.Vector.Fill(3, (CONSTRAIN * 0.1))
+        consize = mathutils.Vector(vec) * convector if CONSTRAIN != 0.0 else mathutils.Vector(vec)
         return consize
 
     def calc_target(location, target):
@@ -1062,12 +1063,16 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             new_chunk.bytes_read += read_str_len
 
         elif new_chunk.ID == OBJECT_INSTANCE_NAME:
-            object_name, read_str_len = read_string(file)
+            instance_name, read_str_len = read_string(file)
             if child.name == '$$$DUMMY':
-                child.name = object_name
-            else:
-                child.name += "." + object_name
-            object_dictionary[object_name] = child
+                child.name = instance_name
+            else:  # Child is an instance
+                child = child.copy()
+                child.name = object_name + "." + instance_name
+                context.view_layer.active_layer_collection.collection.objects.link(child)
+                object_dict[object_id] = child
+                object_list[-1] = child
+            object_dictionary[child.name] = child
             new_chunk.bytes_read += read_str_len
 
         elif new_chunk.ID == OBJECT_PIVOT:  # Pivot
