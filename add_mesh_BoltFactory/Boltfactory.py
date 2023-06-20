@@ -431,6 +431,8 @@ class add_mesh_bolt(Operator, AddObjectHelper):
                 obj.data.use_auto_smooth = use_auto_smooth
                 if use_smooth:
                     bpy.ops.object.shade_smooth()
+                else:
+                    bpy.ops.object.shade_flat()
 
                 bpy.data.meshes.remove(mesh)
 

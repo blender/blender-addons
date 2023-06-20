@@ -224,6 +224,8 @@ class AntLandscapeRegenerate(bpy.types.Operator):
 
             if ob['smooth_mesh']:
                 bpy.ops.object.shade_smooth()
+            else:
+                bpy.ops.object.shade_flat()
 
             # Landscape Material
             if ob['land_material'] != "" and ob['land_material'] in bpy.data.materials:
@@ -267,6 +269,8 @@ class AntLandscapeRegenerate(bpy.types.Operator):
 
                 if ob['smooth_mesh']:
                     bpy.ops.object.shade_smooth()
+                else:
+                    bpy.ops.object.shade_flat()
 
                 # Water Material
                 if ob['water_material'] != "" and ob['water_material'] in bpy.data.materials:
@@ -1001,6 +1005,8 @@ class Eroder(bpy.types.Operator):
 
         if self.smooth:
             bpy.ops.object.shade_smooth()
+        else:
+            bpy.ops.object.shade_flat()
         self.stats.time()
         self.stats.memory()
         if self.showmeshstats:
