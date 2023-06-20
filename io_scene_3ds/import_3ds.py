@@ -449,6 +449,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                     bmesh.polygons[f].use_smooth = True
                 else:
                     bmesh.polygons[f].use_smooth = False
+        else:
+            for poly in bmesh.polygons:
+                poly.use_smooth = False
 
         if contextMatrix:
             if WORLD_MATRIX:

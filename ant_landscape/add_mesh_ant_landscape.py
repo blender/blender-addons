@@ -700,6 +700,8 @@ class AntAddLandscape(bpy.types.Operator):
 
         if self.smooth_mesh:
             bpy.ops.object.shade_smooth()
+        else:
+            bpy.ops.object.shade_flat()
 
         if not self.at_cursor:
             new_ob.location = (0.0, 0.0, 0.0)
@@ -746,6 +748,8 @@ class AntAddLandscape(bpy.types.Operator):
 
             if self.smooth_mesh:
                 bpy.ops.object.shade_smooth()
+            else:
+                bpy.ops.object.shade_flat()
 
             if not self.at_cursor:
                 wobj.location = (0.0, 0.0, 0.0)
