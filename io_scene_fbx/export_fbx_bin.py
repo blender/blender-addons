@@ -1109,19 +1109,25 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         ec_fbx_dtype = np.float64
         if t_pvi_edge_indices.size:
             ec_bl_dtype = np.single
-            t_ec_raw = np.empty(len(me.edges), dtype=ec_bl_dtype)
-            me.edges.foreach_get('crease', t_ec_raw)
+            edge_creases = me.edge_creases
+            if edge_creases:
+                t_ec_raw = np.empty(len(me.edges), dtype=ec_bl_dtype)
+                edge_creases.data.foreach_get("value", t_ec_raw)
 
-            # Convert to t_pvi edge-keys.
-            t_ec_ek_raw = t_ec_raw[t_pvi_edge_indices]
+                # Convert to t_pvi edge-keys.
+                t_ec_ek_raw = t_ec_raw[t_pvi_edge_indices]
 
-            # Blender squares those values before sending them to OpenSubdiv, when other software don't,
-            # so we need to compensate that to get similar results through FBX...
-            # Use the precision of the fbx dtype for the calculation since it's usually higher precision.
-            t_ec_ek_raw = t_ec_ek_raw.astype(ec_fbx_dtype, copy=False)
-            t_ec = np.square(t_ec_ek_raw, out=t_ec_ek_raw)
-            del t_ec_ek_raw
-            del t_ec_raw
+                # Blender squares those values before sending them to OpenSubdiv, when other software don't,
+                # so we need to compensate that to get similar results through FBX...
+                # Use the precision of the fbx dtype for the calculation since it's usually higher precision.
+                t_ec_ek_raw = t_ec_ek_raw.astype(ec_fbx_dtype, copy=False)
+                t_ec = np.square(t_ec_ek_raw, out=t_ec_ek_raw)
+                del t_ec_ek_raw
+                del t_ec_raw
+            else:
+                # todo: Blender edge creases are optional now, we may be able to avoid writing the array to FBX when
+                #  there are no edge creases.
+                t_ec = np.zeros(t_pvi_edge_indices.shape, dtype=ec_fbx_dtype)
         else:
             t_ec = np.empty(0, dtype=ec_fbx_dtype)
 

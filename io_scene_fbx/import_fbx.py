@@ -1360,9 +1360,9 @@ def blen_read_geom_layer_edge_crease(fbx_obj, mesh):
             print("warning skipping edge crease data, no valid edges...")
             return False
 
-        blen_data = mesh.edges
+        blen_data = mesh.edge_creases_ensure().data
         return blen_read_geom_array_mapped_edge(
-            mesh, blen_data, "crease", np.single,
+            mesh, blen_data, "value", np.single,
             fbx_layer_data, None,
             fbx_layer_mapping, fbx_layer_ref,
             1, 1, layer_id,
