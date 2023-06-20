@@ -3015,6 +3015,8 @@ def importShape_ProcessObject(
         if creaseAngle is not None:
             bpydata.auto_smooth_angle = creaseAngle
             bpydata.use_auto_smooth = True
+        else:
+            bpydata.polygons.foreach_set("use_smooth", [False] * len(bpydata.polygons))
 
         # Only ever 1 material per shape
         if bpymat:
