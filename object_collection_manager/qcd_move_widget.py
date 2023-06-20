@@ -397,6 +397,7 @@ class QCDMoveWidget(Operator):
         }
 
     last_type = ''
+    last_type_value = ''
     initialized = False
     moved = False
 
@@ -414,7 +415,7 @@ class QCDMoveWidget(Operator):
         if len(self.areas) == 1:
             return {'RUNNING_MODAL'}
 
-        if self.last_type == 'LEFTMOUSE' and event.value == 'PRESS' and event.type == 'MOUSEMOVE':
+        if self.last_type == 'LEFTMOUSE' and self.last_type_value == 'PRESS' and event.type == 'MOUSEMOVE':
             if mouse_in_area(self.mouse_pos, self.areas["Grab Bar"]):
                 x_offset = self.areas["Main Window"]["vert"][0] - self.mouse_pos[0]
                 x = event.mouse_region_x + x_offset
@@ -480,6 +481,7 @@ class QCDMoveWidget(Operator):
 
         if event.type != 'MOUSEMOVE' and event.type != 'INBETWEEN_MOUSEMOVE':
             self.last_type = event.type
+            self.last_type_value = event.value
 
         return {'RUNNING_MODAL'}
 
