@@ -1725,6 +1725,14 @@ def fbx_data_video_elements(root, vid, scene_data):
     #~ else:
         #~ elem_data_single_bytes(fbx_vid, b"Content", b"")
 
+    # Blender currently has no UI for editing custom properties on Images, but the importer will import Image custom
+    # properties from either a Video Node or a Texture Node, preferring a Video node if one exists. We'll propagate
+    # these custom properties only to Video Nodes because that is most likely where they were imported from, and Texture
+    # Nodes are more like Blender's Shader Nodes than Images, which is what we're exporting here.
+    if scene_data.settings.use_custom_props:
+        fbx_data_element_custom_properties(props, vid)
+
+
 
 def fbx_data_armature_elements(root, arm_obj, scene_data):
     """
