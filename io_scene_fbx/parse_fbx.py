@@ -20,7 +20,7 @@ from . import data_types
 # that the sub-scope exists (i.e. to distinguish between P: and P : {})
 _BLOCK_SENTINEL_LENGTH = ...
 _BLOCK_SENTINEL_DATA = ...
-read_fbx_elem_uint = ...
+read_fbx_elem_start = ...
 _IS_BIG_ENDIAN = (__import__("sys").byteorder != 'little')
 _HEAD_MAGIC = b'Kaydara FBX Binary\x20\x20\x00\x1a\x00'
 from collections import namedtuple
@@ -30,10 +30,6 @@ del namedtuple
 
 def read_uint(read):
     return unpack(b'<I', read(4))[0]
-
-
-def read_uint64(read):
-    return unpack(b'<Q', read(8))[0]
 
 
 def read_ubyte(read):
@@ -46,10 +42,24 @@ def read_string_ubyte(read):
     return data
 
 
+def read_array_params(read):
+    return unpack(b'<III', read(12))
+
+
+def read_elem_start32(read):
+    end_offset, prop_count, _prop_length, elem_id_size = unpack(b'<IIIB', read(13))
+    elem_id = read(elem_id_size) if elem_id_size else b""
+    return end_offset, prop_count, elem_id
+
+
+def read_elem_start64(read):
+    end_offset, prop_count, _prop_length, elem_id_size = unpack(b'<QQQB', read(25))
+    elem_id = read(elem_id_size) if elem_id_size else b""
+    return end_offset, prop_count, elem_id
+
+
 def unpack_array(read, array_type, array_stride, array_byteswap):
-    length = read_uint(read)
-    encoding = read_uint(read)
-    comp_len = read_uint(read)
+    length, encoding, comp_len = read_array_params(read)
 
     data = read(comp_len)
 
@@ -89,18 +99,17 @@ read_data_dict = {
 #   * The NULL block marking end of nested stuff switches from 13 bytes long to 25 bytes long.
 #   * The FBX element metadata (end_offset, prop_count and prop_length) switch from uint32 to uint64.
 def init_version(fbx_version):
-    global _BLOCK_SENTINEL_LENGTH, _BLOCK_SENTINEL_DATA, read_fbx_elem_uint
+    global _BLOCK_SENTINEL_LENGTH, _BLOCK_SENTINEL_DATA, read_fbx_elem_start
 
     _BLOCK_SENTINEL_LENGTH = ...
     _BLOCK_SENTINEL_DATA = ...
-    read_fbx_elem_uint = ...
 
     if fbx_version < 7500:
         _BLOCK_SENTINEL_LENGTH = 13
-        read_fbx_elem_uint = read_uint
+        read_fbx_elem_start = read_elem_start32
     else:
         _BLOCK_SENTINEL_LENGTH = 25
-        read_fbx_elem_uint = read_uint64
+        read_fbx_elem_start = read_elem_start64
     _BLOCK_SENTINEL_DATA = (b'\0' * _BLOCK_SENTINEL_LENGTH)
 
 
@@ -108,14 +117,14 @@ def read_elem(read, tell, use_namedtuple):
     # [0] the offset at which this block ends
     # [1] the number of properties in the scope
     # [2] the length of the property list
-    end_offset = read_fbx_elem_uint(read)
+    # [3] elem name length
+    # [4] elem name of the scope/key
+    # read_fbx_elem_start does not return [2] because we don't use it and does not return [3] because it is only used to
+    # get [4].
+    end_offset, prop_count, elem_id = read_fbx_elem_start(read)
     if end_offset == 0:
         return None
 
-    prop_count = read_fbx_elem_uint(read)
-    prop_length = read_fbx_elem_uint(read)
-
-    elem_id = read_string_ubyte(read)        # elem name of the scope/key
     elem_props_type = bytearray(prop_count)  # elem property types
     elem_props_data = [None] * prop_count    # elem properties (if any)
     elem_subtree = []                        # elem children (if any)
