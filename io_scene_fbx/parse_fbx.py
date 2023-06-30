@@ -13,6 +13,7 @@ __all__ = (
 from struct import unpack
 import array
 import zlib
+from io import BytesIO
 
 from . import data_types
 
@@ -113,7 +114,7 @@ def init_version(fbx_version):
     _BLOCK_SENTINEL_DATA = (b'\0' * _BLOCK_SENTINEL_LENGTH)
 
 
-def read_elem(read, tell, use_namedtuple):
+def read_elem(read, tell, use_namedtuple, tell_file_offset=0):
     # [0] the offset at which this block ends
     # [1] the number of properties in the scope
     # [2] the length of the property list
@@ -134,15 +135,58 @@ def read_elem(read, tell, use_namedtuple):
         elem_props_data[i] = read_data_dict[data_type](read)
         elem_props_type[i] = data_type
 
-    if tell() < end_offset:
-        while tell() < (end_offset - _BLOCK_SENTINEL_LENGTH):
-            elem_subtree.append(read_elem(read, tell, use_namedtuple))
+    pos = tell()
+    local_end_offset = end_offset - tell_file_offset
 
+    if pos < local_end_offset:
+        # The default BufferedReader used when `open()`-ing files in 'rb' mode has to get the raw stream position from
+        # the OS every time its tell() function is called. This is about 10 times slower than the tell() function of
+        # BytesIO objects, so reading chunks of bytes from the file into memory at once and exposing them through
+        # BytesIO can give better performance. We know the total size of each element's subtree so can read entire
+        # subtrees into memory at a time.
+        # The "Objects" element's subtree, however, usually makes up most of the file, so we specifically avoid reading
+        # all its sub-elements into memory at once to reduce memory requirements at the cost of slightly worse
+        # performance when memory is not a concern.
+        # If we're currently reading directly from the opened file, then tell_file_offset will be zero.
+        if tell_file_offset == 0 and elem_id != b"Objects":
+            block_bytes_remaining = local_end_offset - pos
+
+            # Read the entire subtree
+            sub_elem_bytes = read(block_bytes_remaining)
+            num_bytes_read = len(sub_elem_bytes)
+            if num_bytes_read != block_bytes_remaining:
+                raise IOError("failed to read complete nested block, expected %i bytes, but only got %i"
+                              % (block_bytes_remaining, num_bytes_read))
+
+            # BytesIO provides IO API for reading bytes in memory, so we can use the same code as reading bytes directly
+            # from a file.
+            f = BytesIO(sub_elem_bytes)
+            tell = f.tell
+            read = f.read
+            # The new `tell` function starts at zero and is offset by `pos` bytes from the start of the file.
+            start_sub_pos = 0
+            tell_file_offset = pos
+            sub_tree_end = block_bytes_remaining - _BLOCK_SENTINEL_LENGTH
+        else:
+            # The `tell` function is unchanged, so starts at the value returned by `tell()`, which is still `pos`
+            # because no reads have been made since then.
+            start_sub_pos = pos
+            sub_tree_end = local_end_offset - _BLOCK_SENTINEL_LENGTH
+
+        sub_pos = start_sub_pos
+        while sub_pos < sub_tree_end:
+            elem_subtree.append(read_elem(read, tell, use_namedtuple, tell_file_offset))
+            sub_pos = tell()
+
+        # At the end of each subtree there should be a sentinel (an empty element with all bytes set to zero).
         if read(_BLOCK_SENTINEL_LENGTH) != _BLOCK_SENTINEL_DATA:
             raise IOError("failed to read nested block sentinel, "
                           "expected all bytes to be 0")
 
-    if tell() != end_offset:
+        # Update `pos` for the number of bytes that have been read.
+        pos += (sub_pos - start_sub_pos) + _BLOCK_SENTINEL_LENGTH
+
+    if pos != local_end_offset:
         raise IOError("scope length not reached, something is wrong")
 
     args = (elem_id, elem_props_data, elem_props_type, elem_subtree)
