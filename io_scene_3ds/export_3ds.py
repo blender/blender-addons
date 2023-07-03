@@ -1093,7 +1093,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                 for i, frame in enumerate(kframes):
                     position = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'location']
                     if not position:
-                        position.append(ob_pos)
+                        position = ob_pos
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("position", _3ds_point_3d(position))
@@ -1102,7 +1102,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                 for i, frame in enumerate(kframes):
                     rotation = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
                     if not rotation:
-                        rotation.append(ob_rot)
+                        rotation = ob_rot
                     quat = mathutils.Euler(rotation).to_quaternion()
                     axis_angle = quat.angle, quat.axis[0], quat.axis[1], quat.axis[2]
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
@@ -1113,7 +1113,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                 for i, frame in enumerate(kframes):
                     size = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'scale']
                     if not size:
-                        size.append(ob_size)
+                        size = ob_size
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("scale", _3ds_point_3d(size))
@@ -1122,10 +1122,10 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                 for i, frame in enumerate(kframes):
                     roll = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
                     if not roll:
-                        roll.append(ob_rot)
+                        roll = ob_rot.to_euler()
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
-                    track_chunk.add_variable("roll", _3ds_float(round(math.degrees(roll[1]), 4)))
+                    track_chunk.add_variable("roll", _3ds_float(round(math.degrees(roll.y), 4)))
 
     elif ID in {COL_TRACK_TAG, FOV_TRACK_TAG, HOTSPOT_TRACK_TAG, FALLOFF_TRACK_TAG} and ob.data.animation_data and ob.data.animation_data.action:
         action = ob.data.animation_data.action
@@ -1146,7 +1146,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                 for i, frame in enumerate(kframes):
                     color = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'color']
                     if not color:
-                        color.append(ob.data.color[:3])
+                        color = ob.data.color[:3]
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("color", _3ds_float_color(color))
