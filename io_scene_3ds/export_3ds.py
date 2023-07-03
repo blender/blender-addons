@@ -1125,7 +1125,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                         roll = ob_rot.to_euler()
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
-                    track_chunk.add_variable("roll", _3ds_float(round(math.degrees(roll.y), 4)))
+                    track_chunk.add_variable("roll", _3ds_float(round(math.degrees(roll[1]), 4)))
 
     elif ID in {COL_TRACK_TAG, FOV_TRACK_TAG, HOTSPOT_TRACK_TAG, FALLOFF_TRACK_TAG} and ob.data.animation_data and ob.data.animation_data.action:
         action = ob.data.animation_data.action
