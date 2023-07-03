@@ -1100,10 +1100,10 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
 
             elif ID == ROT_TRACK_TAG:  # Rotation
                 for i, frame in enumerate(kframes):
+                    quat = ob_rot
                     rotation = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
-                    if not rotation:
-                        rotation = ob_rot
-                    quat = mathutils.Euler(rotation).to_quaternion()
+                    if rotation:
+                        quat = mathutils.Euler(rotation).to_quaternion()
                     axis_angle = quat.angle, quat.axis[0], quat.axis[1], quat.axis[2]
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
