@@ -1394,9 +1394,9 @@ def make_target_node(ob, translation, rotation, scale, name_id):
                 if not target_pos:
                     target_pos.append(ob_pos)
                 if not target_rot:
-                    target_rot.insert(0, ob_rot.to_euler().x)
-                    target_rot.insert(1, ob_rot.to_euler().y)
-                    target_rot.insert(2, ob_rot.to_euler().z)
+                    target_rot.insert(0, ob_rot.x)
+                    target_rot.insert(1, ob_rot.y)
+                    target_rot.insert(2, ob_rot.z)
                 diagonal = math.copysign(math.sqrt(pow(target_pos[0],2) + pow(target_pos[1],2)), target_pos[1])
                 target_x = target_pos[0] + (target_pos[1] * math.tan(target_rot[2]))
                 target_y = target_pos[1] + (target_pos[0] * math.tan(math.radians(90) - target_rot[2]))
