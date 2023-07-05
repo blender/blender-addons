@@ -578,12 +578,9 @@ def fbx_data_light_elements(root, lamp, scene_data):
 
     light_key = scene_data.data_lights[lamp]
     do_light = True
-    decay_type = FBX_LIGHT_DECAY_TYPES['CONSTANT']
     do_shadow = False
     shadow_color = Vector((0.0, 0.0, 0.0))
     if lamp.type not in {'HEMI'}:
-        if lamp.type not in {'SUN', 'AREA'}:
-            decay_type = FBX_LIGHT_DECAY_TYPES[lamp.falloff_type]
         do_light = True
         do_shadow = lamp.use_shadow
         shadow_color = lamp.shadow_color
@@ -600,8 +597,8 @@ def fbx_data_light_elements(root, lamp, scene_data):
     elem_props_template_set(tmpl, props, "p_bool", b"CastLight", do_light)
     elem_props_template_set(tmpl, props, "p_color", b"Color", lamp.color)
     elem_props_template_set(tmpl, props, "p_number", b"Intensity", lamp.energy * 100.0)
-    elem_props_template_set(tmpl, props, "p_enum", b"DecayType", decay_type)
-    elem_props_template_set(tmpl, props, "p_double", b"DecayStart", lamp.distance * gscale)
+    elem_props_template_set(tmpl, props, "p_enum", b"DecayType", FBX_LIGHT_DECAY_TYPES['INVERSE_SQUARE'])
+    elem_props_template_set(tmpl, props, "p_double", b"DecayStart", 25.0 * gscale) # 25 is old Blender default
     elem_props_template_set(tmpl, props, "p_bool", b"CastShadows", do_shadow)
     elem_props_template_set(tmpl, props, "p_color", b"ShadowColor", shadow_color)
     if lamp.type in {'SPOT'}:
