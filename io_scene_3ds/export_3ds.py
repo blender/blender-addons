@@ -1114,9 +1114,9 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
             elif ID == SCL_TRACK_TAG:  # Scale
                 for i, frame in enumerate(kframes):
                     scale_track = [fc for fc in fcurves if fc is not None and fc.data_path == 'scale']
-                    size_x = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 0), ob_size.x)
-                    size_y = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 1), ob_size.y)
-                    size_z = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 2), ob_size.z)
+                    size_x = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 0), ob_size[0])
+                    size_y = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 1), ob_size[1])
+                    size_z = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 2), ob_size[2])
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("scale", _3ds_point_3d((size_x, size_y, size_z)))
