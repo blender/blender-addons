@@ -1,10 +1,12 @@
+# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 bl_info = {
 "name": "Grease Pencil Tools",
 "description": "Extra tools for Grease Pencil",
 "author": "Samuel Bernou, Antonio Vazquez, Daniel Martinez Lara, Matias Mendiola",
-"version": (1, 7, 9),
+"version": (1, 8, 0),
 "blender": (3, 0, 0),
 "location": "Sidebar > Grease Pencil > Grease Pencil Tools",
 "warning": "",

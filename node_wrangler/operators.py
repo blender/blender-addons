@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2013-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
@@ -1349,7 +1351,6 @@ class NWMergeNodes(Operator, NWBase):
                     if tree_type == 'COMPOSITING':
                         first = 1
                         second = 2
-                    add.width_hidden = 100.0
                 elif nodes_list == selected_math:
                     add_type = node_type + 'Math'
                     add = nodes.new(add_type)
@@ -1359,7 +1360,6 @@ class NWMergeNodes(Operator, NWBase):
                         loc_y = loc_y - 50
                     first = 0
                     second = 1
-                    add.width_hidden = 100.0
                 elif nodes_list == selected_shader:
                     if mode == 'MIX':
                         add_type = node_type + 'MixShader'
@@ -1369,7 +1369,6 @@ class NWMergeNodes(Operator, NWBase):
                             loc_y = loc_y - 50
                         first = 1
                         second = 2
-                        add.width_hidden = 100.0
                     elif mode == 'ADD':
                         add_type = node_type + 'AddShader'
                         add = nodes.new(add_type)
@@ -1378,7 +1377,6 @@ class NWMergeNodes(Operator, NWBase):
                             loc_y = loc_y - 50
                         first = 0
                         second = 1
-                        add.width_hidden = 100.0
                 elif nodes_list == selected_geometry:
                     if mode in ('JOIN', 'MIX'):
                         add_type = node_type + 'JoinGeometry'
@@ -1401,7 +1399,6 @@ class NWMergeNodes(Operator, NWBase):
                         loc_y = loc_y - 50
                     first = 0
                     second = 1
-                    add.width_hidden = 100.0
                 elif nodes_list == selected_z:
                     add = nodes.new('CompositorNodeZcombine')
                     add.show_preview = False
@@ -1410,7 +1407,6 @@ class NWMergeNodes(Operator, NWBase):
                         loc_y = loc_y - 50
                     first = 0
                     second = 2
-                    add.width_hidden = 100.0
                 elif nodes_list == selected_alphaover:
                     add = nodes.new('CompositorNodeAlphaOver')
                     add.show_preview = False
@@ -1419,7 +1415,6 @@ class NWMergeNodes(Operator, NWBase):
                         loc_y = loc_y - 50
                     first = 1
                     second = 2
-                    add.width_hidden = 100.0
                 add.location = loc_x, loc_y
                 loc_y += offset_y
                 add.select = True
@@ -2184,7 +2179,6 @@ class NWAddReroutes(Operator, NWBase):
                 # unhide 'REROUTE' nodes to avoid issues with location.y
                 if node.type == 'REROUTE':
                     node.hide = False
-                # When node is hidden - width_hidden not usable.
                 # Hack needed to calculate real width
                 if node.hide:
                     bpy.ops.node.select_all(action='DESELECT')
@@ -2726,7 +2720,6 @@ class NWAddMultipleImages(Operator, NWBase, ImportHelper):
             new_nodes.append(node)
             node.label = fname
             node.hide = True
-            node.width_hidden = 100
             node.location.x = xloc
             node.location.y = yloc
             yloc -= 40

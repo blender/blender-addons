@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import typing
@@ -26,7 +28,7 @@ class LineDrawer:
             id="color", comp_type="F32", len=4, fetch_mode="FLOAT"
         )
 
-        self.shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        self.shader = gpu.shader.from_builtin('UNIFORM_COLOR')
 
     def draw(
             self,

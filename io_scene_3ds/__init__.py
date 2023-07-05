@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2011-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from bpy_extras.io_utils import (
@@ -16,7 +18,7 @@ import bpy
 bl_info = {
     "name": "Autodesk 3DS format",
     "author": "Bob Holcomb, Campbell Barton, Andreas Atteneder, Sebastian Schrand",
-    "version": (2, 3, 4),
+    "version": (2, 4, 3),
     "blender": (3, 6, 0),
     "location": "File > Import-Export",
     "description": "3DS Import/Export meshes, UVs, materials, textures, "
@@ -65,12 +67,12 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         "importing incorrectly",
         default=True,
     )
-    read_keyframe: bpy.props.BoolProperty(
+    read_keyframe: BoolProperty(
         name="Read Keyframe",
         description="Read the keyframe data",
         default=True,
     )
-    use_world_matrix: bpy.props.BoolProperty(
+    use_world_matrix: BoolProperty(
         name="World Space",
         description="Transform to matrix world",
         default=False,
@@ -107,6 +109,16 @@ class Export3DS(bpy.types.Operator, ExportHelper):
     use_selection: BoolProperty(
         name="Selection Only",
         description="Export selected objects only",
+        default=False,
+    )
+    use_hierarchy: bpy.props.BoolProperty(
+        name="Export Hierarchy",
+        description="Export hierarchy chunks",
+        default=False,
+    )
+    write_keyframe: BoolProperty(
+        name="Write Keyframe",
+        description="Write the keyframe data",
         default=False,
     )
 

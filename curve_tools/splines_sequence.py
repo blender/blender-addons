@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2019-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 
@@ -60,7 +62,7 @@ def draw(self, context, splines, sequence_color, font_thickness, font_size, matr
             first_point_co = Vector((i, 0, 0)) + first_point_co
             points = draw_number(r, first_point_co, font_size)
 
-            shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+            shader = gpu.shader.from_builtin('UNIFORM_COLOR')
 
             batch = batch_for_shader(shader, 'LINES', {"pos": points})
 

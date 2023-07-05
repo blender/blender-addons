@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """User interface imports and preferences for the addon."""
@@ -116,7 +118,10 @@ def pov_centric_moray_like_workspace(dummy):
                 wsp = available_workspaces.get("Geometry Nodes")
                 context = bpy.context
                 if context.scene.render.engine == "POVRAY_RENDER" and wsp is not None:
-                    bpy.ops.workspace.duplicate({"workspace": wsp})
+                    context_override = {"workspace": wsp}
+                    with context.temp_override(**context_override):
+                        bpy.ops.workspace.duplicate()
+                    del context_override
                     available_workspaces["Geometry Nodes.001"].name = "POV-Ed"
                     # May be already done, but explicitly make this workspace the active one
                     context.window.workspace = available_workspaces["POV-Ed"]
@@ -197,7 +202,10 @@ def pov_centric_moray_like_workspace(dummy):
                 wsp1 = available_workspaces.get("Rendering")
                 context = bpy.context
                 if context.scene.render.engine == "POVRAY_RENDER" and wsp1 is not None:
-                    bpy.ops.workspace.duplicate({"workspace": wsp1})
+                    context_override = {"workspace": wsp1}
+                    with context.temp_override(**context_override):
+                        bpy.ops.workspace.duplicate()
+                    del context_override
                     available_workspaces["Rendering.001"].name = "POV-Mo"
                     # Already done it would seem, but explicitly make this workspace the active one
                     context.window.workspace = available_workspaces["POV-Mo"]

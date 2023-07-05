@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2019-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 """
 Amaranth
 
@@ -50,7 +53,6 @@ from amaranth.render import (
     passepartout,
     final_resolution,
     samples_scene,
-    render_output_z,
     )
 
 from amaranth.animation import (

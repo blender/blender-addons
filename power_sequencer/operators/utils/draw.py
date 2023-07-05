@@ -1,5 +1,7 @@
+# SPDX-FileCopyrightText: 2016-2020 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
+#
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2016-2020 by Nathan Lovato, Daniel Oakey, Razvan Radulescu, and contributors
+
 """Drawing utilities. A list of functions to draw common elements"""
 # import bgl
 import blf
@@ -82,7 +84,7 @@ def draw_text(x, y, size, text, justify="left", color=(1.0, 1.0, 1.0, 1.0)):
     else:
         text_width = 0
     blf.position(font_id, x - text_width, y, 0)
-    blf.size(font_id, size, 72)
+    blf.size(font_id, size)
     blf.draw(font_id, text)
 
 

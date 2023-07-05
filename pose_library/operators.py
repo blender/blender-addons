@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2021-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -311,7 +313,6 @@ class PoseAssetUser:
         if not (
             context.object
             and context.object.mode == "POSE"  # This condition may not be desired.
-            and context.asset_library_ref
             and context.asset_file_handle
         ):
             return False

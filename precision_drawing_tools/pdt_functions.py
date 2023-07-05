@@ -1,9 +1,8 @@
+# SPDX-FileCopyrightText: 2019-2022 Alan Odom (Clockmender)
+# SPDX-FileCopyrightText: 2019-2022 Rune Morling (ermo)
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# -----------------------------------------------------------------------
-# Author: Alan Odom (Clockmender), Rune Morling (ermo) Copyright (c) 2019
-# -----------------------------------------------------------------------
-#
 # Common Functions used in more than one place in PDT Operations
 
 import bpy
@@ -560,7 +559,7 @@ def dis_ang(values, flip_angle, plane, scene):
 
 # Shader for displaying the Pivot Point as Graphics.
 #
-SHADER = gpu.shader.from_builtin("3D_UNIFORM_COLOR") if not bpy.app.background else None
+SHADER = gpu.shader.from_builtin("UNIFORM_COLOR") if not bpy.app.background else None
 
 
 def draw_3d(coords, gtype, rgba, context):
