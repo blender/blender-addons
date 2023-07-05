@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: 2004-2009 JM Soler
-# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import re
@@ -747,8 +744,8 @@ class SVGPathParser:
         """
         Calc arc paths
 
-        Copied and adopted from `paths_svg2obj.py` script for Blender 2.49:
-        ``Copyright (c) jm soler juillet/novembre 2004-april 2009``.
+        Copied and adoptedfrom paths_svg2obj.py script for Blender 2.49
+        which is Copyright (c) jm soler juillet/novembre 2004-april 2009,
         """
 
         cpx = self._point[0]

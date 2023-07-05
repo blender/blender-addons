@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
@@ -35,10 +33,10 @@ class GP_PT_sidebarPanel(bpy.types.Panel):
         # View flip
         if context.scene.camera and context.scene.camera.scale.x < 0:
             row = layout.row(align=True)
-            row.operator('view3d.camera_flip_x', text = 'Camera Mirror Flip', icon = 'MOD_MIRROR')
+            row.operator('gp.camera_flip_x', text = 'Camera Mirror Flip', icon = 'MOD_MIRROR')
             row.label(text='', icon='LOOP_BACK')
         else:
-            layout.operator('view3d.camera_flip_x', text = 'Camera Mirror Flip', icon = 'MOD_MIRROR')
+            layout.operator('gp.camera_flip_x', text = 'Camera Mirror Flip', icon = 'MOD_MIRROR')
 
 
 def menu_boxdeform_entry(self, context):

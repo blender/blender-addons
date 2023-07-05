@@ -1,6 +1,10 @@
-# SPDX-FileCopyrightText: 2019-2022 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Contributed to by:
+# meta-androcto,  Hidesato Ikeya, zmj100, Gert De Roost, TrumanBlending, PKHG, #
+# Oscurart, Greg, Stanislav Blinov, komi3D, BlenderLab, Paul Marshall (brikbot), #
+# metalliandy, macouno, CoDEmanX, dustractor, Liero, lijenstina, Germano Cavalcante #
+# Pistiwique, Jimmy Hazevoet
 
 bl_info = {
     "name": "Edit Mesh Tools",

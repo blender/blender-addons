@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2016-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
+# by meta-androcto, saidenka.
 
 bl_info = {
     "name": "Modifier Tools",
@@ -35,19 +34,23 @@ class ApplyAllModifiers(Operator):
             is_select = True
 
             # copying context for the operator's override
-            context_override = {'object': obj}
+            contx = bpy.context.copy()
+            contx['object'] = obj
 
             modifiers = modifier_type(obj)
 
             for mod in modifiers[:]:
-                context_override['modifier'] = mod
+                contx['modifier'] = mod
                 is_mod = True
                 try:
-                    with bpy.context.temp_override(**context_override):
-                        if obj.type != 'GPENCIL':
-                            bpy.ops.object.modifier_apply(modifier=mod.name)
-                        else:
-                            bpy.ops.object.gpencil_modifier_apply(modifier=mod.name)
+                    bpy.ops.object.modifier_apply(
+                                        contx,
+                                        modifier=contx['modifier'].name
+                                        )
+
+                    bpy.ops.object.gpencil_modifier_apply(
+                                        modifier=contx['modifier'].name
+                                        )
                 except:
                     obj_name = getattr(obj, "name", "NO NAME")
                     collect_names.append(obj_name)

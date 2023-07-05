@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2011 Manfred Moitzi (mozman)
-#
 # SPDX-License-Identifier: MIT
+# Copyright 2011 Manfred Moitzi
 
 # Purpose: blocks section
 # Created: 09.08.2012, taken from my package ezdxf

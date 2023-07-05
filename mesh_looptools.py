@@ -1,7 +1,7 @@
-# SPDX-FileCopyrightText: 2011-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
-
+#
+# Contributed to Germano Cavalcante (mano-wii), Florian Meyer (testscreenings),
+# Brendon Murphy (meta-androcto),
 # Maintainer: Vladimir Spivak (cwolf3d)
 # Originally an addon by Bart Crouch
 

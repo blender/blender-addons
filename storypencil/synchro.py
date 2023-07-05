@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from typing import List, Sequence, Tuple
@@ -161,7 +159,7 @@ class STORYPENCIL_OT_AddSecondaryWindowOperator(Operator):
                 new_window.workspace = wk
                 return
         with context.temp_override(window=new_window):
-            bpy.ops.workspace.append_activate(idname=wrk_name, filepath=template_path)
+            bpy.ops.workspace.append_activate(context, idname=wrk_name, filepath=template_path)
 
 
 class STORYPENCIL_OT_WindowBringFront(Operator):

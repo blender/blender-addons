@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2011 Manfred Moitzi (mozman)
-#
 # SPDX-License-Identifier: MIT
+# Copyright 2011 Manfred Moitzi
 
 # Purpose: julian date
 # Created: 21.03.2011

@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2014 Manfred Moitzi (mozman)
-#
 # SPDX-License-Identifier: MIT
+# Copyright 2014 Manfred Moitzi
 
 # Purpose: decode DXF proprietary data
 # Created: 01.05.2014

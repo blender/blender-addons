@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: 2021-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -36,9 +34,7 @@ def convert_old_poselib(old_poselib: Action) -> Collection[Action]:
     # appropriate frame in the scene (to set up things like the background
     # colour), but the old-style poselib doesn't contain such information. All
     # we can do is just render on the current frame.
-    context_override = {'selected_ids': pose_assets}
-    with bpy.context.temp_override(**context_override):
-        bpy.ops.asset.mark()
+    bpy.ops.asset.mark({'selected_ids': pose_assets})
 
     return pose_assets
 

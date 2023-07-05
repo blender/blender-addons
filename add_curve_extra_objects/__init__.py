@@ -1,6 +1,9 @@
-# SPDX-FileCopyrightText: 2012-2022 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Contributed to by:
+# testscreenings, Alejandro Omar Chocano Vasquez, Jimmy Hazevoet, meta-androcto
+# Cmomoney, Jared Forsyth, Adam Newgas, Spivak Vladimir, Jared Forsyth, Atom
+# Antonio Osprite, Marius Giurgi (DolphinDream)
 
 bl_info = {
     "name": "Extra Objects",

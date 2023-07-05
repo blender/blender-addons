@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2018-2022 The glTF-Blender-IO authors
-#
 # SPDX-License-Identifier: Apache-2.0
+# Copyright 2018-2022 The glTF-Blender-IO authors.
 
 import bpy
 import typing
@@ -200,3 +199,4 @@ def __complete_key_tangents(key: Keyframe, non_keyed_values: typing.Tuple[typing
             key.set_value_index_in(i, non_keyed_values[i])
         if key.out_tangent is not None:
             key.set_value_index_out(i, non_keyed_values[i])
+

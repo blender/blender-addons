@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2016 Manfred Moitzi (mozman)
-#
 # SPDX-License-Identifier: MIT
+# Copyright 2016 Manfred Moitzi
 
 # Purpose: entity classes, new implementation without dxf12/dxf13 layer
 # Created: 17.04.2016

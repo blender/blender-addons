@@ -1,7 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
-
 import gpu
 from mathutils import Vector, Matrix
 
@@ -70,9 +67,9 @@ class SnapDrawn():
         clip_planes = self.rv3d.clip_planes if self.rv3d.use_clip_planes else None
         config = 'CLIPPED' if clip_planes else 'DEFAULT'
         self._program_unif_col = gpu.shader.from_builtin(
-            "UNIFORM_COLOR", config=config)
+            "3D_UNIFORM_COLOR", config=config)
         self._program_smooth_col = gpu.shader.from_builtin(
-            "SMOOTH_COLOR", config=config)
+            "3D_SMOOTH_COLOR", config=config)
 
         gpu.state.program_point_size_set(False)
         gpu.state.blend_set('ALPHA')

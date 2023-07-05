@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: 2021-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -16,7 +14,6 @@ from bpy.types import (
     WindowManager,
     WorkSpace,
 )
-from bl_ui_utils.layout import operator_context
 
 
 class PoseLibraryPanel:
@@ -89,8 +86,10 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
     layout.operator("poselib.apply_pose_asset", text="Apply Pose").flipped = False
     layout.operator("poselib.apply_pose_asset", text="Apply Pose Flipped").flipped = True
 
-    with operator_context(layout, 'INVOKE_DEFAULT'):
-        layout.operator("poselib.blend_pose_asset", text="Blend Pose")
+    old_op_ctx = layout.operator_context
+    layout.operator_context = 'INVOKE_DEFAULT'
+    props = layout.operator("poselib.blend_pose_asset", text="Blend Pose")
+    layout.operator_context = old_op_ctx
 
     layout.separator()
     props = layout.operator("poselib.pose_asset_select_bones", text="Select Pose Bones")

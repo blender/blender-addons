@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: 2017-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # --------------------------- LATTICE ALONG SURFACE -------------------------- #
@@ -327,6 +325,7 @@ class lattice_along_surface(Operator):
         grid_mesh = temp_grid_obj.data
         for v in grid_mesh.vertices:
             v.co = grid_obj.matrix_world @ v.co
+        grid_mesh.calc_normals()
 
         if len(grid_mesh.polygons) > 64 * 64:
             bpy.data.objects.remove(temp_grid_obj)

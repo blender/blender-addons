@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2021 The glTF-Blender-IO authors
-#
 # SPDX-License-Identifier: Apache-2.0
+# Copyright 2021 The glTF-Blender-IO authors.
 
 import bpy
 import uuid

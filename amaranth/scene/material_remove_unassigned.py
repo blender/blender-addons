@@ -1,7 +1,4 @@
-# SPDX-FileCopyrightText: 2019-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
-
 import bpy
 
 

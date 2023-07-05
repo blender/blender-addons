@@ -1,7 +1,7 @@
-# SPDX-FileCopyrightText: 2013 Campbell Barton
-# SPDX-FileCopyrightText: 2014 Bastien Montagne
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
+# Script copyright (C) Campbell Barton, Bastien Montagne
+
 
 import datetime
 import math
@@ -49,9 +49,6 @@ from .fbx_utils import (
     units_blender_to_fbx_factor, units_convertor, units_convertor_iter,
     matrix4_to_array, similar_values, shape_difference_exclude_similar, astype_view_signedness, fast_first_axis_unique,
     fast_first_axis_flat,
-    # Attribute helpers.
-    MESH_ATTRIBUTE_CORNER_EDGE, MESH_ATTRIBUTE_SHARP_EDGE, MESH_ATTRIBUTE_EDGE_VERTS, MESH_ATTRIBUTE_CORNER_VERT,
-    MESH_ATTRIBUTE_SHARP_FACE, MESH_ATTRIBUTE_POSITION, MESH_ATTRIBUTE_MATERIAL_INDEX,
     # Mesh transform helpers.
     vcos_transformed, nors_transformed,
     # UUID from key.
@@ -891,13 +888,13 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
     elem_data_single_int32(geom, b"GeometryVersion", FBX_GEOMETRY_VERSION)
 
-    attributes = me.attributes
-
     # Vertex cos.
-    pos_fbx_dtype = np.float64
-    t_pos = MESH_ATTRIBUTE_POSITION.to_ndarray(attributes)
-    elem_data_single_float64_array(geom, b"Vertices", vcos_transformed(t_pos, geom_mat_co, pos_fbx_dtype))
-    del t_pos
+    co_bl_dtype = np.single
+    co_fbx_dtype = np.float64
+    t_co = np.empty(len(me.vertices) * 3, dtype=co_bl_dtype)
+    me.vertices.foreach_get("co", t_co)
+    elem_data_single_float64_array(geom, b"Vertices", vcos_transformed(t_co, geom_mat_co, co_fbx_dtype))
+    del t_co
 
     # Polygon indices.
     #
@@ -910,26 +907,29 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
     # dtypes matching the C data. Matching the C datatype avoids iteration and casting of every element in foreach_get's
     # C code.
-    bl_loop_index_dtype = np.uintc
+    bl_vertex_index_dtype = bl_edge_index_dtype = bl_loop_index_dtype = np.uintc
 
-    # Start vertex indices of loops (corners). May contain elements for loops added for the export of loose edges.
-    t_lvi = MESH_ATTRIBUTE_CORNER_VERT.to_ndarray(attributes)
+    # Start vertex indices of loops. May contain elements for loops added for the export of loose edges.
+    t_lvi = np.empty(len(me.loops), dtype=bl_vertex_index_dtype)
 
     # Loop start indices of polygons. May contain elements for the polygons added for the export of loose edges.
     t_ls = np.empty(len(me.polygons), dtype=bl_loop_index_dtype)
 
     # Vertex indices of edges (unsorted, unlike Mesh.edge_keys), flattened into an array twice the length of the number
     # of edges.
-    t_ev = MESH_ATTRIBUTE_EDGE_VERTS.to_ndarray(attributes)
+    t_ev = np.empty(len(me.edges) * 2, dtype=bl_vertex_index_dtype)
     # Each edge has two vertex indices, so it's useful to view the array as 2d where each element on the first axis is a
     # pair of vertex indices
     t_ev_pair_view = t_ev.view()
     t_ev_pair_view.shape = (-1, 2)
 
-    # Edge indices of loops (corners). May contain elements for loops added for the export of loose edges.
-    t_lei = MESH_ATTRIBUTE_CORNER_EDGE.to_ndarray(attributes)
+    # Edge indices of loops. May contain elements for loops added for the export of loose edges.
+    t_lei = np.empty(len(me.loops), dtype=bl_edge_index_dtype)
 
+    me.loops.foreach_get("vertex_index", t_lvi)
     me.polygons.foreach_get("loop_start", t_ls)
+    me.edges.foreach_get("vertices", t_ev)
+    me.loops.foreach_get("edge_index", t_lei)
 
     # Add "fake" faces for loose edges. Each "fake" face consists of two loops creating a new 2-sided polygon.
     if scene_data.settings.use_mesh_edges:
@@ -1025,18 +1025,12 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     # Smoothing.
     if smooth_type in {'FACE', 'EDGE'}:
         ps_fbx_dtype = np.int32
+        poly_use_smooth_dtype = bool
+        edge_use_sharp_dtype = bool
         _map = b""
         if smooth_type == 'FACE':
-            # The FBX integer values are usually interpreted as boolean where 0 is False (sharp) and 1 is True
-            # (smooth).
-            # The values may also be used to represent smoothing group bitflags, but this does not seem well-supported.
-            t_ps = MESH_ATTRIBUTE_SHARP_FACE.get_ndarray(attributes)
-            if t_ps is not None:
-                # FBX sharp is False, but Blender sharp is True, so invert.
-                t_ps = np.logical_not(t_ps)
-            else:
-                # The mesh has no "sharp_face" attribute, so every face is smooth.
-                t_ps = np.ones(len(me.polygons), dtype=ps_fbx_dtype)
+            t_ps = np.empty(len(me.polygons), dtype=poly_use_smooth_dtype)
+            me.polygons.foreach_get("use_smooth", t_ps)
             _map = b"ByPolygon"
         else:  # EDGE
             _map = b"ByEdge"
@@ -1051,40 +1045,37 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                 mesh_t_ls_view = t_ls[:mesh_poly_nbr]
                 mesh_t_lei_view = t_lei[:mesh_loop_nbr]
 
+                # - Get sharp edges from flat shaded faces
+                # Get the 'use_smooth' attribute of all polygons.
+                p_use_smooth_mask = np.empty(mesh_poly_nbr, dtype=poly_use_smooth_dtype)
+                me.polygons.foreach_get('use_smooth', p_use_smooth_mask)
+                # Invert to get all flat shaded polygons.
+                p_flat_mask = np.invert(p_use_smooth_mask, out=p_use_smooth_mask)
+                # Convert flat shaded polygons to flat shaded loops by repeating each element by the number of sides of
+                # that polygon.
+                # Polygon sides can be calculated from the element-wise difference of loop starts appended by the number
+                # of loops. Alternatively, polygon sides can be retrieved directly from the 'loop_total' attribute of
+                # polygons, but since we already have t_ls, it tends to be quicker to calculate from t_ls when above
+                # around 10_000 polygons.
+                polygon_sides = np.diff(mesh_t_ls_view, append=mesh_loop_nbr)
+                p_flat_loop_mask = np.repeat(p_flat_mask, polygon_sides)
+                # Convert flat shaded loops to flat shaded (sharp) edge indices.
+                # Note that if an edge is in multiple loops that are part of flat shaded faces, its edge index will end
+                # up in sharp_edge_indices_from_polygons multiple times.
+                sharp_edge_indices_from_polygons = mesh_t_lei_view[p_flat_loop_mask]
+
+                # - Get sharp edges from edges marked as sharp
+                e_use_sharp_mask = np.empty(mesh_edge_nbr, dtype=edge_use_sharp_dtype)
+                me.edges.foreach_get('use_edge_sharp', e_use_sharp_mask)
+
                 # - Get sharp edges from edges used by more than two loops (and therefore more than two faces)
                 e_more_than_two_faces_mask = np.bincount(mesh_t_lei_view, minlength=mesh_edge_nbr) > 2
 
-                # - Get sharp edges from the "sharp_edge" attribute. The attribute may not exist, in which case, there
-                #   are no edges marked as sharp.
-                e_use_sharp_mask = MESH_ATTRIBUTE_SHARP_EDGE.get_ndarray(attributes)
-                if e_use_sharp_mask is not None:
-                    # - Combine with edges that are sharp because they're in more than two faces
-                    e_use_sharp_mask = np.logical_or(e_use_sharp_mask, e_more_than_two_faces_mask, out=e_use_sharp_mask)
-                else:
-                    e_use_sharp_mask = e_more_than_two_faces_mask
+                # - Combine with edges that are sharp because they're in more than two faces
+                e_use_sharp_mask = np.logical_or(e_use_sharp_mask, e_more_than_two_faces_mask, out=e_use_sharp_mask)
 
-                # - Get sharp edges from flat shaded faces
-                p_flat_mask = MESH_ATTRIBUTE_SHARP_FACE.get_ndarray(attributes)
-                if p_flat_mask is not None:
-                    # Convert flat shaded polygons to flat shaded loops by repeating each element by the number of sides
-                    # of that polygon.
-                    # Polygon sides can be calculated from the element-wise difference of loop starts appended by the
-                    # number of loops. Alternatively, polygon sides can be retrieved directly from the 'loop_total'
-                    # attribute of polygons, but since we already have t_ls, it tends to be quicker to calculate from
-                    # t_ls.
-                    polygon_sides = np.diff(mesh_t_ls_view, append=mesh_loop_nbr)
-                    p_flat_loop_mask = np.repeat(p_flat_mask, polygon_sides)
-                    # Convert flat shaded loops to flat shaded (sharp) edge indices.
-                    # Note that if an edge is in multiple loops that are part of flat shaded faces, its edge index will
-                    # end up in sharp_edge_indices_from_polygons multiple times.
-                    sharp_edge_indices_from_polygons = mesh_t_lei_view[p_flat_loop_mask]
-
-                    # - Combine with edges that are sharp because a polygon they're in has flat shading
-                    e_use_sharp_mask[sharp_edge_indices_from_polygons] = True
-                    del sharp_edge_indices_from_polygons
-                    del p_flat_loop_mask
-                    del polygon_sides
-                del p_flat_mask
+                # - Combine with edges that are sharp because a polygon they're in has flat shading
+                e_use_sharp_mask[sharp_edge_indices_from_polygons] = True
 
                 # - Convert sharp edges to sharp edge keys (t_pvi)
                 ek_use_sharp_mask = e_use_sharp_mask[t_pvi_edge_indices]
@@ -1093,6 +1084,11 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                 t_ps = np.invert(ek_use_sharp_mask, out=ek_use_sharp_mask)
                 del ek_use_sharp_mask
                 del e_use_sharp_mask
+                del sharp_edge_indices_from_polygons
+                del p_flat_loop_mask
+                del polygon_sides
+                del p_flat_mask
+                del p_use_smooth_mask
                 del mesh_t_lei_view
                 del mesh_t_ls_view
             else:
@@ -1113,25 +1109,19 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         ec_fbx_dtype = np.float64
         if t_pvi_edge_indices.size:
             ec_bl_dtype = np.single
-            edge_creases = me.edge_creases
-            if edge_creases:
-                t_ec_raw = np.empty(len(me.edges), dtype=ec_bl_dtype)
-                edge_creases.data.foreach_get("value", t_ec_raw)
+            t_ec_raw = np.empty(len(me.edges), dtype=ec_bl_dtype)
+            me.edges.foreach_get('crease', t_ec_raw)
 
-                # Convert to t_pvi edge-keys.
-                t_ec_ek_raw = t_ec_raw[t_pvi_edge_indices]
+            # Convert to t_pvi edge-keys.
+            t_ec_ek_raw = t_ec_raw[t_pvi_edge_indices]
 
-                # Blender squares those values before sending them to OpenSubdiv, when other software don't,
-                # so we need to compensate that to get similar results through FBX...
-                # Use the precision of the fbx dtype for the calculation since it's usually higher precision.
-                t_ec_ek_raw = t_ec_ek_raw.astype(ec_fbx_dtype, copy=False)
-                t_ec = np.square(t_ec_ek_raw, out=t_ec_ek_raw)
-                del t_ec_ek_raw
-                del t_ec_raw
-            else:
-                # todo: Blender edge creases are optional now, we may be able to avoid writing the array to FBX when
-                #  there are no edge creases.
-                t_ec = np.zeros(t_pvi_edge_indices.shape, dtype=ec_fbx_dtype)
+            # Blender squares those values before sending them to OpenSubdiv, when other software don't,
+            # so we need to compensate that to get similar results through FBX...
+            # Use the precision of the fbx dtype for the calculation since it's usually higher precision.
+            t_ec_ek_raw = t_ec_ek_raw.astype(ec_fbx_dtype, copy=False)
+            t_ec = np.square(t_ec_ek_raw, out=t_ec_ek_raw)
+            del t_ec_ek_raw
+            del t_ec_raw
         else:
             t_ec = np.empty(0, dtype=ec_fbx_dtype)
 
@@ -1346,7 +1336,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
             elem_data_single_string(lay_uv, b"MappingInformationType", b"ByPolygonVertex")
             elem_data_single_string(lay_uv, b"ReferenceInformationType", b"IndexToDirect")
 
-            uvlayer.uv.foreach_get("vector", t_luv)
+            uvlayer.data.foreach_get("uv", t_luv)
 
             # t_luv_fast_pair_view is a view in a dtype that compares elements by individual bytes, but float types have
             # separate byte representations of positive and negative zero. For uniqueness, these should be considered
@@ -1422,13 +1412,11 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
             elem_data_single_int32(lay_ma, b"Version", FBX_GEOMETRY_MATERIAL_VERSION)
             elem_data_single_string(lay_ma, b"Name", b"")
             nbr_mats = len(me_fbxmaterials_idx)
-            multiple_fbx_mats = nbr_mats > 1
-            # If a mesh does not have more than one material its material_index attribute can be ignored.
-            # If a mesh has multiple materials but all its polygons are assigned to the first material, its
-            # material_index attribute may not exist.
-            t_pm = None if not multiple_fbx_mats else MESH_ATTRIBUTE_MATERIAL_INDEX.get_ndarray(attributes)
-            if t_pm is not None:
+            if nbr_mats > 1:
+                bl_pm_dtype = np.uintc
                 fbx_pm_dtype = np.int32
+                t_pm = np.empty(len(me.polygons), dtype=bl_pm_dtype)
+                me.polygons.foreach_get("material_index", t_pm)
 
                 # We have to validate mat indices, and map them to FBX indices.
                 # Note a mat might not be in me_fbxmaterials_idx (e.g. node mats are ignored).
@@ -1440,10 +1428,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
                 # Set material indices that are out of bounds to the default material index
                 mat_idx_limit = len(me_blmaterials)
-                # Material indices shouldn't be negative, but they technically could be. Viewing as unsigned before
-                # checking for indices that are too large means that a single >= check will pick up both negative
-                # indices and indices that are too large.
-                t_pm[t_pm.view("u%i" % t_pm.itemsize) >= mat_idx_limit] = def_me_blmaterial_idx
+                t_pm[t_pm >= mat_idx_limit] = def_me_blmaterial_idx
 
                 # Map to FBX indices. Materials not in me_fbxmaterials_idx will be set to the default material index.
                 blmat_fbx_idx = np.fromiter((me_fbxmaterials_idx.get(m, def_ma) for m in me_blmaterials),
@@ -1457,18 +1442,11 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                 #     indices??? *sigh*).
                 elem_data_single_string(lay_ma, b"ReferenceInformationType", b"IndexToDirect")
                 elem_data_single_int32_array(lay_ma, b"Materials", t_pm)
+                del t_pm
             else:
                 elem_data_single_string(lay_ma, b"MappingInformationType", b"AllSame")
                 elem_data_single_string(lay_ma, b"ReferenceInformationType", b"IndexToDirect")
-                if multiple_fbx_mats:
-                    # There's no material_index attribute, so every material index is effectively zero.
-                    # In the order of the mesh's materials, get the FBX index of the first material that is exported.
-                    all_same_idx = next(me_fbxmaterials_idx[m] for m in me_blmaterials if m in me_fbxmaterials_idx)
-                else:
-                    # There's only one fbx material, so the index will always be zero.
-                    all_same_idx = 0
-                elem_data_single_int32_array(lay_ma, b"Materials", [all_same_idx])
-            del t_pm
+                elem_data_single_int32_array(lay_ma, b"Materials", [0])
 
     # And the "layer TOC"...
 
@@ -2657,10 +2635,10 @@ def fbx_data_from_scene(scene, depsgraph, settings):
         # Get and cache only the cos that we need
         @cache
         def sk_cos(shape_key):
+            _cos = np.empty(len(me.vertices) * 3, dtype=co_bl_dtype)
             if shape_key == sk_base:
-                _cos = MESH_ATTRIBUTE_POSITION.to_ndarray(me.attributes)
+                me.vertices.foreach_get("co", _cos)
             else:
-                _cos = np.empty(len(me.vertices) * 3, dtype=co_bl_dtype)
                 shape_key.data.foreach_get("co", _cos)
             return vcos_transformed(_cos, geom_mat_co, co_fbx_dtype)
 

@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: 2019-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 
@@ -53,7 +51,7 @@ def draw(self, context, splines, curve_vertcolor, matrix_world):
     for spline in splines:
         points = get_points(spline, matrix_world)
 
-        shader = gpu.shader.from_builtin('UNIFORM_COLOR')
+        shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
 
         batch = batch_for_shader(shader, 'POINTS', {"pos": points})
 

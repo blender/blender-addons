@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: 2012-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 bl_info = {
@@ -23,7 +21,7 @@ import bpy
 from . import operator
 
 def menu_func(self, context):
-    self.layout.operator(operator.DXFExporter.bl_idname, text="AutoCAD DXF (.dxf)")
+    self.layout.operator(operator.DXFExporter.bl_idname, text="AutoCAD DXF")
 
 classes = (
     operator.DXFExporter,

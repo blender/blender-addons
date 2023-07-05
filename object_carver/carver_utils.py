@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: 2019-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
@@ -310,16 +308,11 @@ def CreateBevel(context, CurrentObject):
 
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        bevel_weights = CurrentObject.data.attributes["bevel_weight_edge"]
-        if not bevel_weights:
-            bevel_weights = CurrentObject.data.attributes.new("bevel_weight_edge", 'FLOAT', 'EDGE')
-        if bevel_weights.data_type != 'FLOAT' or bevel_weights.domain != 'EDGE':
-            bevel_weights = None
+        CurrentObject.data.use_customdata_edge_bevel = True
 
         for i in range(len(CurrentObject.data.edges)):
             if CurrentObject.data.edges[i].select is True:
-                if bevel_weights:
-                    bevel_weights.data[i] = 1.0
+                CurrentObject.data.edges[i].bevel_weight = 1.0
                 CurrentObject.data.edges[i].use_edge_sharp = True
 
         bevel_modifier = False

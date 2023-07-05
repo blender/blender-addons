@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2011 Ryan Inch
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
+# Copyright 2011, Ryan Inch
 
 import time
 from math import cos, sin, pi, floor
@@ -762,8 +762,8 @@ def allocate_main_ui(self, context):
 def draw_callback_px(self, context):
     allocate_main_ui(self, context)
 
-    shader = gpu.shader.from_builtin('UNIFORM_COLOR')
-    line_shader = gpu.shader.from_builtin('POLYLINE_SMOOTH_COLOR')
+    shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+    line_shader = gpu.shader.from_builtin('3D_POLYLINE_SMOOTH_COLOR')
 
     addon_prefs = context.preferences.addons[__package__].preferences
 
@@ -783,7 +783,7 @@ def draw_callback_px(self, context):
     text_color = addon_prefs.qcd_ogl_widget_menu_back_text
     font_id = 0
     blf.position(font_id, x, y, 0)
-    blf.size(font_id, int(h))
+    blf.size(font_id, int(h), 72)
     blf.color(font_id, text_color[0], text_color[1], text_color[2], 1)
     blf.draw(font_id, text)
 
@@ -944,7 +944,7 @@ def draw_tooltip(self, context, shader, line_shader, message):
     font_id = 0
     line_height = 11 * scale_factor()
     text_color = addon_prefs.qcd_ogl_widget_tooltip_text
-    blf.size(font_id, int(line_height))
+    blf.size(font_id, int(line_height), 72)
     blf.color(font_id, text_color[0], text_color[1], text_color[2], 1)
 
     lines = message.split("\n")

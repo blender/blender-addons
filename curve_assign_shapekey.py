@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2019 Shrinivas Kulkarni
-#
 # SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2019  Shrinivas Kulkarni
 
 # This Blender add-on assigns one or more Bezier Curves as shape keys to another
 # Bezier Curve
@@ -853,7 +852,7 @@ class MarkerController:
 
     def __init__(self, context):
         self.smMap = self.createSMMap(context)
-        self.shader = gpu.shader.from_builtin('FLAT_COLOR')
+        self.shader = gpu.shader.from_builtin('3D_FLAT_COLOR')
         # self.shader.bind()
 
         MarkerController.drawHandlerRef = \

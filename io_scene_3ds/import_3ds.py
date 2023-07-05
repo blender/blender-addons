@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2005 Bob Holcomb
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2005 Bob Holcomb
 
 import os
 import bpy
@@ -93,8 +92,6 @@ MAT_MAP_BCOL = 0xA368  # Blue mapping
 OBJECT_MESH = 0x4100  # This lets us know that we are reading a new object
 OBJECT_LIGHT = 0x4600  # This lets us know we are reading a light object
 OBJECT_CAMERA = 0x4700  # This lets us know we are reading a camera object
-OBJECT_HIERARCHY = 0x4F00  # This lets us know the hierachy id of the object
-OBJECT_PARENT = 0x4F10  # This lets us know the parent id of the object
 
 # >------ Sub defines of LIGHT
 LIGHT_SPOTLIGHT = 0x4610  # The target of a spotlight
@@ -318,9 +315,6 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
     contextWrapper._grid_to_location(1, 0, dst_node=contextWrapper.node_out, ref_node=shader)
 
 
-childs_list = []
-parent_list = []
-
 def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAIN, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE):
 
     contextObName = None
@@ -465,7 +459,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     temp_chunk = Chunk()
 
     CreateBlenderObject = False
-    CreateCameraObject = False
     CreateLightObject = False
     CreateTrackData = False
 
@@ -929,23 +922,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextMatrix = mathutils.Matrix(
                 (data[:3] + [0], data[3:6] + [0], data[6:9] + [0], data[9:] + [1])).transposed()
 
-        # If hierarchy chunk
-        elif new_chunk.ID == OBJECT_HIERARCHY:
-            child_id = read_short(new_chunk)
-            childs_list.insert(child_id, contextObName)
-            parent_list.insert(child_id, None)
-            if child_id in parent_list:
-                idp = parent_list.index(child_id)
-                parent_list[idp] = contextObName
-        elif new_chunk.ID == OBJECT_PARENT:
-            parent_id = read_short(new_chunk)
-            if parent_id > len(childs_list):
-                parent_list[child_id] = parent_id
-                parent_list.extend([None]*(parent_id-len(parent_list)))
-                parent_list.insert(parent_id, contextObName)
-            elif parent_id < len(childs_list):
-                parent_list[child_id] = childs_list[parent_id]
-
         # If light chunk
         elif contextObName and new_chunk.ID == OBJECT_LIGHT:  # Basic lamp support
             newLamp = bpy.data.lights.new("Lamp", 'POINT')
@@ -956,9 +932,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.location = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
+            contextMatrix = None  # Reset matrix
             CreateBlenderObject = False
             CreateLightObject = True
-            contextMatrix = None  # Reset matrix
         elif CreateLightObject and new_chunk.ID == COLOR_F:  # Light color
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.color = struct.unpack('<3f', temp_data)
@@ -995,21 +971,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextLamp.data.show_cone = True
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_RECTANGLE:  # Square
             contextLamp.data.use_square = True
-        elif CreateLightObject and new_chunk.ID == OBJECT_HIERARCHY:
-            child_id = read_short(new_chunk)
-            childs_list.insert(child_id, contextObName)
-            parent_list.insert(child_id, None)
-            if child_id in parent_list:
-                idp = parent_list.index(child_id)
-                parent_list[idp] = contextObName
-        elif CreateLightObject and new_chunk.ID == OBJECT_PARENT:
-            parent_id = read_short(new_chunk)
-            if parent_id > len(childs_list):
-                parent_list[child_id] = parent_id
-                parent_list.extend([None]*(parent_id-len(parent_list)))
-                parent_list.insert(parent_id, contextObName)
-            elif parent_id < len(childs_list):
-                parent_list[child_id] = childs_list[parent_id]
 
         # If camera chunk
         elif contextObName and new_chunk.ID == OBJECT_CAMERA:  # Basic camera support
@@ -1033,24 +994,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_FLOAT)
             contextCamera.data.lens = float(struct.unpack('<f', temp_data)[0])  # Focus
             new_chunk.bytes_read += SZ_FLOAT
-            CreateBlenderObject = False
-            CreateCameraObject = True
             contextMatrix = None  # Reset matrix
-        elif CreateCameraObject and new_chunk.ID == OBJECT_HIERARCHY:
-            child_id = read_short(new_chunk)
-            childs_list.insert(child_id, contextObName)
-            parent_list.insert(child_id, None)
-            if child_id in parent_list:
-                idp = parent_list.index(child_id)
-                parent_list[idp] = contextObName
-        elif CreateCameraObject and new_chunk.ID == OBJECT_PARENT:
-            parent_id = read_short(new_chunk)
-            if parent_id > len(childs_list):
-                parent_list[child_id] = parent_id
-                parent_list.extend([None]*(parent_id-len(parent_list)))
-                parent_list.insert(parent_id, contextObName)
-            elif parent_id < len(childs_list):
-                parent_list[child_id] = childs_list[parent_id]
+            CreateBlenderObject = False
 
         # start keyframe section
         elif new_chunk.ID == EDITKEYFRAME:
@@ -1351,22 +1296,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         #pivot_list[ind] += pivot_list[parent]  # Not sure this is correct, should parent space matrix be applied before combining?
 
-    # if parent name
     for par, objs in parent_dictionary.items():
         parent = object_dictionary.get(par)
         for ob in objs:
             if parent is not None:
                 ob.parent = parent
-    parent_dictionary.clear()
-
-    # If hierarchy
-    hierarchy = dict(zip(childs_list, parent_list))
-    hierarchy.pop(None, ...)
-    for idt, (child, parent) in enumerate(hierarchy.items()):
-        child_obj = object_dictionary.get(child)
-        parent_obj = object_dictionary.get(parent)
-        if child_obj and parent_obj is not None:
-            child_obj.parent = parent_obj
 
     # fix pivots
     for ind, ob in enumerate(object_list):
@@ -1378,7 +1312,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             ob.data.transform(pivot_matrix)
 
 
-def load_3ds(filepath, context, CONSTRAIN=10.0, IMAGE_SEARCH=True, WORLD_MATRIX=False, KEYFRAME=True, APPLY_MATRIX=True, CONVERSE=None):
+def load_3ds(filepath,
+             context,
+             CONSTRAIN=10.0,
+             IMAGE_SEARCH=True,
+             WORLD_MATRIX=False,
+             KEYFRAME=True,
+             APPLY_MATRIX=True,
+             CONVERSE=None):
 
     print("importing 3DS: %r..." % (filepath), end="")
 

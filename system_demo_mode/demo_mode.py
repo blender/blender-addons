@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: 2011-2023 Blender Foundation
-#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -22,7 +20,7 @@ import bpy
 import time
 import os
 
-from . import DEMO_CFG
+DEMO_CFG = "demo.py"
 
 # populate from script
 global_config_files = []
@@ -123,6 +121,7 @@ def demo_mode_next_file(step=1):
         del global_config_files[global_state["demo_index"]]
         global_state["demo_index"] -= 1
 
+    print(global_state["demo_index"])
     demo_index_next = (global_state["demo_index"] + step) % len(global_config_files)
 
     if global_state["exit"] and step > 0:
@@ -133,7 +132,7 @@ def demo_mode_next_file(step=1):
 
     global_state["demo_index"] = demo_index_next
     print(global_state["demo_index"], "....")
-    print("func:demo_mode_next_file", global_state["demo_index"], "of", len(global_config_files))
+    print("func:demo_mode_next_file", global_state["demo_index"])
     filepath = global_config_files[global_state["demo_index"]]["file"]
     bpy.ops.wm.open_mainfile(filepath=filepath)
 
@@ -162,7 +161,7 @@ def demo_mode_temp_file():
     """ Initialize a temp config for the duration of the play time.
         Use this so we can initialize the demo intro screen but not show again.
     """
-    assert (global_state["demo_index"] == 0)
+    assert(global_state["demo_index"] == 0)
 
     temp_config = global_config_fallback.copy()
     temp_config["anim_time_min"] = 0.0
@@ -271,7 +270,7 @@ def demo_mode_update():
                 if scene != window.scene:
                     global_state["last_frame"] = -1
 
-                # if global_config["mode"] == 'PLAY':
+                #if global_config["mode"] == 'PLAY':
                 if 1:
                     global_state["reset_anim"] = True
 
@@ -370,11 +369,7 @@ class DemoMode(bpy.types.Operator):
             use_temp = True
 
         if not global_config_files:
-            self.report(
-                {'INFO'},
-                "No configuration found with text or file: %s. Run File -> Demo Mode Setup" %
-                DEMO_CFG,
-            )
+            self.report({'INFO'}, "No configuration found with text or file: %s. Run File -> Demo Mode Setup" % DEMO_CFG)
             return {'CANCELLED'}
 
         if use_temp:
@@ -410,11 +405,9 @@ class DemoModeControl(bpy.types.Operator):
     bl_label = "Control"
 
     mode: bpy.props.EnumProperty(
-        items=(
-            ('PREV', "Prev", ""),
-            ('PAUSE', "Pause", ""),
-            ('NEXT', "Next", ""),
-        ),
+        items=(('PREV', "Prev", ""),
+               ('PAUSE', "Pause", ""),
+               ('NEXT', "Next", "")),
         name="Mode"
     )
 
@@ -460,7 +453,7 @@ def unregister():
 
 def load_config(cfg_name=DEMO_CFG):
     namespace = {}
-    global_config_files.clear()
+    del global_config_files[:]
     basedir = os.path.dirname(bpy.data.filepath)
 
     text = bpy.data.texts.get(cfg_name)

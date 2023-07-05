@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: 2012 Manfred Moitzi (mozman)
-#
 # SPDX-License-Identifier: MIT
 
 __author__ = 'manfred'
