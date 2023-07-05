@@ -1394,9 +1394,9 @@ def make_target_node(ob, translation, rotation, scale, name_id):
                 if not target_pos:
                     target_pos.append(ob_pos)
                 if not target_rot:
-                    target_rot.insert(0, ob_rot.x)
-                    target_rot.insert(1, ob_rot.y)
-                    target_rot.insert(2, ob_rot.z)
+                    target_rot.insert(0, ob_rot.to_euler().x)
+                    target_rot.insert(1, ob_rot.to_euler().y)
+                    target_rot.insert(2, ob_rot.to_euler().z)
                 diagonal = math.copysign(math.sqrt(pow(target_pos[0],2) + pow(target_pos[1],2)), target_pos[1])
                 target_x = target_pos[0] + (target_pos[1] * math.tan(target_rot[2]))
                 target_y = target_pos[1] + (target_pos[0] * math.tan(math.radians(90) - target_rot[2]))
@@ -1630,9 +1630,17 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
         name_id[ob.name] = len(name_id)
 
     for ob in light_objects:
+        translation[ob.name] = ob.location
+        rotation[ob.name] = ob.rotation_euler.to_quaternion()
+        scale[ob.name] = ob.scale
+        name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
     for ob in camera_objects:
+        translation[ob.name] = ob.location
+        rotation[ob.name] = ob.rotation_euler.to_quaternion()
+        scale[ob.name] = ob.scale
+        name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
     # Create object chunks for all meshes
@@ -1731,10 +1739,6 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
 
         # Export light and spotlight target node
         if write_keyframe:
-            translation[ob.name] = ob.location
-            rotation[ob.name] = ob.rotation_euler.to_quaternion()
-            scale[ob.name] = ob.scale
-            name_id[ob.name] = len(name_id)
             kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
             if ob.data.type == 'SPOT':
                 kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale, name_id))
@@ -1771,10 +1775,6 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
 
         # Export camera and target node
         if write_keyframe:
-            translation[ob.name] = ob.location
-            rotation[ob.name] = ob.rotation_euler.to_quaternion()
-            scale[ob.name] = ob.scale
-            name_id[ob.name] = len(name_id)
             kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
             kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale, name_id))
 
