@@ -1102,14 +1102,13 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
             elif ID == ROT_TRACK_TAG:  # Rotation
                 for i, frame in enumerate(kframes):
                     rot_track = [fc for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
-                    rot_x = next((tc.evaluate(frame) for tc in rot_track if tc.array_index == 0), ob_rot.to_euler().x)
-                    rot_y = next((tc.evaluate(frame) for tc in rot_track if tc.array_index == 1), ob_rot.to_euler().y)
-                    rot_z = next((tc.evaluate(frame) for tc in rot_track if tc.array_index == 2), ob_rot.to_euler().z)
-                    quat = mathutils.Euler((rot_x, rot_y, rot_z)).to_quaternion()
-                    axis_angle = quat.angle, quat.axis[0], quat.axis[1], quat.axis[2]
+                    rot_x = next((tc.evaluate(frame) for tc in rot_track if tc.array_index == 0), ob_rot.x)
+                    rot_y = next((tc.evaluate(frame) for tc in rot_track if tc.array_index == 1), ob_rot.y)
+                    rot_z = next((tc.evaluate(frame) for tc in rot_track if tc.array_index == 2), ob_rot.z)
+                    quat = mathutils.Euler((rot_x, rot_y, rot_z)).to_quaternion().inverted()
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
-                    track_chunk.add_variable("rotation", _3ds_point_4d(axis_angle))
+                    track_chunk.add_variable("rotation", _3ds_point_4d((quat.angle, quat.axis[0], quat.axis[1], quat.axis[2])))
 
             elif ID == SCL_TRACK_TAG:  # Scale
                 for i, frame in enumerate(kframes):
@@ -1124,7 +1123,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
             elif ID == ROLL_TRACK_TAG:  # Roll
                 for i, frame in enumerate(kframes):
                     roll_track = [fc for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
-                    roll = next((tc.evaluate(frame) for tc in roll_track if tc.array_index == 1), ob_rot.to_euler().y)
+                    roll = next((tc.evaluate(frame) for tc in roll_track if tc.array_index == 1), ob_rot.y)
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("roll", _3ds_float(round(math.degrees(roll), 4)))
@@ -1197,13 +1196,14 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
             track_chunk.add_variable("position", _3ds_point_3d(ob_pos))
 
         elif ID == ROT_TRACK_TAG:  # Rotation (angle first [radians], followed by axis)
-            track_chunk.add_variable("rotation", _3ds_point_4d((ob_rot.angle, ob_rot.axis[0], ob_rot.axis[1], ob_rot.axis[2])))
+            quat = ob_rot.to_quaternion().inverted()
+            track_chunk.add_variable("rotation", _3ds_point_4d((quat.angle, quat.axis[0], quat.axis[1], quat.axis[2])))
 
         elif ID == SCL_TRACK_TAG:  # Scale vector
             track_chunk.add_variable("scale", _3ds_point_3d(ob_size))
 
         elif ID == ROLL_TRACK_TAG:  # Roll angle
-            track_chunk.add_variable("roll", _3ds_float(round(math.degrees(ob.rotation_euler[1]), 4)))
+            track_chunk.add_variable("roll", _3ds_float(round(math.degrees(ob_rot.y), 4)))
 
         elif ID == COL_TRACK_TAG:  # Color values
             track_chunk.add_variable("color", _3ds_float_color(ob.data.color))
@@ -1313,7 +1313,7 @@ def make_object_node(ob, translation, rotation, scale, name_id):
 
     else:  # Calculate child position and rotation of the object center, no scale applied
         ob_pos = translation[name] - translation[parent.name]
-        ob_rot = rotation[name].cross(rotation[parent.name].copy().inverted())
+        ob_rot = rotation[name].to_quaternion().cross(rotation[parent.name].to_quaternion().copy().inverted()).to_euler()
         ob_size = (1.0, 1.0, 1.0)
 
     obj_node.add_subchunk(make_track_chunk(POS_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
@@ -1362,7 +1362,7 @@ def make_target_node(ob, translation, rotation, scale, name_id):
 
     # Calculate target position
     ob_pos = translation[name]
-    ob_rot = rotation[name].to_euler()
+    ob_rot = rotation[name]
     ob_size = scale[name]
 
     diagonal = math.copysign(math.sqrt(pow(ob_pos[0],2) + pow(ob_pos[1],2)), ob_pos[1])
@@ -1618,27 +1618,27 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
 
     for ob, data, matrix in mesh_objects:
         translation[ob.name] = ob.location
-        rotation[ob.name] = ob.rotation_euler.to_quaternion().inverted()
+        rotation[ob.name] = ob.rotation_euler
         scale[ob.name] = ob.scale
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
     for ob in empty_objects:
         translation[ob.name] = ob.location
-        rotation[ob.name] = ob.rotation_euler.to_quaternion().inverted()
+        rotation[ob.name] = ob.rotation_euler
         scale[ob.name] = ob.scale
         name_id[ob.name] = len(name_id)
 
     for ob in light_objects:
         translation[ob.name] = ob.location
-        rotation[ob.name] = ob.rotation_euler.to_quaternion()
+        rotation[ob.name] = ob.rotation_euler
         scale[ob.name] = ob.scale
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
     for ob in camera_objects:
         translation[ob.name] = ob.location
-        rotation[ob.name] = ob.rotation_euler.to_quaternion()
+        rotation[ob.name] = ob.rotation_euler
         scale[ob.name] = ob.scale
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
