@@ -1145,19 +1145,15 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
 
             if ID == COL_TRACK_TAG:  # Color
                 for i, frame in enumerate(kframes):
-                    color = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'color']
-                    if not color:
-                        color = ob.data.color[:3]
+                    color = next((fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'color'), ob.data.color[:3])
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("color", _3ds_float_color(color))
 
             elif ID == FOV_TRACK_TAG:  # Field of view
                 for i, frame in enumerate(kframes):
-                    lens = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'lens']
-                    if not lens:
-                        lens.append(ob.data.lens)
-                    fov = 2 * math.atan(ob.data.sensor_width / (2 * lens[0]))
+                    lens = next((fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'lens'), ob.data.lens)
+                    fov = 2 * math.atan(ob.data.sensor_width / (2 * lens))
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("fov", _3ds_float(round(math.degrees(fov), 4)))
@@ -1165,22 +1161,18 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
             elif ID == HOTSPOT_TRACK_TAG:  # Hotspot
                 beam_angle = math.degrees(ob.data.spot_size)
                 for i, frame in enumerate(kframes):
-                    blend = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'spot_blend']
-                    if not blend:
-                        blend.append(ob.data.spot_blend)
-                    hot_spot = beam_angle - (blend[0] * math.floor(beam_angle))
+                    blend = next((fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'spot_blend'), ob.data.spot_blend)
+                    hot_spot = beam_angle - (blend * math.floor(beam_angle))
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("hotspot", _3ds_float(round(hot_spot, 4)))
 
             elif ID == FALLOFF_TRACK_TAG:  # Falloff
                 for i, frame in enumerate(kframes):
-                    fall_off = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'spot_size']
-                    if not fall_off:
-                        fall_off.append(ob.data.spot_size)
+                    fall_off = next((fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'spot_size'), ob.data.spot_size)
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
-                    track_chunk.add_variable("falloff", _3ds_float(round(math.degrees(fall_off[0]), 4)))
+                    track_chunk.add_variable("falloff", _3ds_float(round(math.degrees(fall_off), 4)))
 
     else:
         track_chunk.add_variable("track_flags", _3ds_ushort(0x40))  # Based on observation default flag is 0x40
@@ -1389,18 +1381,17 @@ def make_target_node(ob, translation, rotation, scale, name_id):
             track_chunk.add_variable("nkeys", _3ds_uint(nkeys))
 
             for i, frame in enumerate(kframes):
-                target_pos = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'location']
-                target_rot = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
-                if not target_pos:
-                    target_pos.append(ob_pos)
-                if not target_rot:
-                    target_rot.insert(0, ob_rot.x)
-                    target_rot.insert(1, ob_rot.y)
-                    target_rot.insert(2, ob_rot.z)
-                diagonal = math.copysign(math.sqrt(pow(target_pos[0],2) + pow(target_pos[1],2)), target_pos[1])
-                target_x = target_pos[0] + (target_pos[1] * math.tan(target_rot[2]))
-                target_y = target_pos[1] + (target_pos[0] * math.tan(math.radians(90) - target_rot[2]))
-                target_z = -1 * diagonal * math.tan(math.radians(90) - target_rot[0])
+                loc_target = [fc for fc in fcurves if fc is not None and fc.data_path == 'location']
+                locate_x = next((tc.evaluate(frame) for tc in loc_target if tc.array_index == 0), ob_pos.x)
+                locate_y = next((tc.evaluate(frame) for tc in loc_target if tc.array_index == 1), ob_pos.y)
+                locate_z = next((tc.evaluate(frame) for tc in loc_target if tc.array_index == 2), ob_pos.z)
+                rot_target = [fc for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
+                rotate_x = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 0), ob_rot.x)
+                rotate_z = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 2), ob_rot.z)
+                diagonal = math.copysign(math.sqrt(pow(locate_x, 2) + pow(locate_y, 2)), locate_y)
+                target_x = locate_x + (locate_y * math.tan(rotate_z))
+                target_y = locate_y + (locate_x * math.tan(math.radians(90) - rotate_z))
+                target_z = -1 * diagonal * math.tan(math.radians(90) - rotate_x)
                 track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                 track_chunk.add_variable("tcb_flags", _3ds_ushort())
                 track_chunk.add_variable("position", _3ds_point_3d((target_x, target_y, target_z)))
