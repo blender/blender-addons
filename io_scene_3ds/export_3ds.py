@@ -1145,7 +1145,9 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
 
             if ID == COL_TRACK_TAG:  # Color
                 for i, frame in enumerate(kframes):
-                    color = next((fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'color'), ob.data.color[:3])
+                    color = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'color']
+                    if not color:
+                        color = ob.data.color[:3]
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("color", _3ds_float_color(color))
@@ -1198,7 +1200,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
             track_chunk.add_variable("roll", _3ds_float(round(math.degrees(ob_rot.y), 4)))
 
         elif ID == COL_TRACK_TAG:  # Color values
-            track_chunk.add_variable("color", _3ds_float_color(ob.data.color))
+            track_chunk.add_variable("color", _3ds_float_color(ob.data.color[:3]))
 
         elif ID == FOV_TRACK_TAG:  # Field of view
             track_chunk.add_variable("fov", _3ds_float(round(math.degrees(ob.data.angle), 4)))
