@@ -1078,6 +1078,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
         action = ob.animation_data.action
         if action.fcurves:
             fcurves = action.fcurves
+            fcurves.update()
             kframes = [kf.co[0] for kf in [fc for fc in fcurves if fc is not None][0].keyframe_points]
             nkeys = len(kframes)
             if not 0 in kframes:
@@ -1132,6 +1133,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
         action = ob.data.animation_data.action
         if action.fcurves:
             fcurves = action.fcurves
+            fcurves.update()
             kframes = [kf.co[0] for kf in [fc for fc in fcurves if fc is not None][0].keyframe_points]
             nkeys = len(kframes)
             if not 0 in kframes:
@@ -1371,6 +1373,7 @@ def make_target_node(ob, translation, rotation, scale, name_id):
         action = ob.animation_data.action
         if action.fcurves:
             fcurves = action.fcurves
+            fcurves.update()
             kframes = [kf.co[0] for kf in [fc for fc in fcurves if fc is not None][0].keyframe_points]
             nkeys = len(kframes)
             if not 0 in kframes:
@@ -1437,6 +1440,7 @@ def make_ambient_node(world):
         action = world.animation_data.action
         if action.fcurves:
             fcurves = action.fcurves
+            fcurves.update()
             kframes = [kf.co[0] for kf in [fc for fc in fcurves if fc is not None][0].keyframe_points]
             nkeys = len(kframes)
             if not 0 in kframes:
