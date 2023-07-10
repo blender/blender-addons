@@ -672,7 +672,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             path, filename = os.path.split(file.name)
             realname, ext = os.path.splitext(filename)
             world = bpy.data.worlds.new("Ambient: " + realname)
-            world.light_settings.use_ambient_occlusion = True
             context.scene.world = world
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == COLOR_F:
