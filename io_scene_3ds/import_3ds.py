@@ -584,7 +584,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             else:
                 tilt = -1 * (math.copysign(pitch, pos[0]))
                 pan = -1 * (math.radians(90) - math.atan(pos[1] / foc))
-            if abs(location[1]) < abs(target[1]):
+            if abs(location[0]) < abs(target[0]):
                 tilt = -1 * tilt
                 pan = -1 * pan
         elif abs(location[1] - target[1]) > abs(location[0] - target[0]):
@@ -597,7 +597,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             else:
                 tilt = -1 * (math.copysign(pitch, pos[1]))
                 pan = -1 * (math.radians(90) - math.acos(pos[0] / foc))
-            if abs(location[0]) < abs(target[0]):
+            if abs(location[1]) < abs(target[1]):
                 tilt = -1 * tilt
                 pan = -1 * pan
         direction = tilt, pan
