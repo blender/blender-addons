@@ -1419,7 +1419,7 @@ def make_target_node(ob, translation, rotation, scale, name_id):
 def make_ambient_node(world):
     """Make an ambient node for the world color, if the color is animated."""
 
-    amb_color = world.color
+    amb_color = world.color[:3]
     amb_node = _3ds_chunk(AMBIENT_NODE_TAG)
     track_chunk = _3ds_chunk(COL_TRACK_TAG)
 
@@ -1455,7 +1455,7 @@ def make_ambient_node(world):
             for i, frame in enumerate(kframes):
                 ambient = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'color']
                 if not ambient:
-                    ambient.append(world.color)
+                    ambient = amb_color
                 track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                 track_chunk.add_variable("tcb_flags", _3ds_ushort())
                 track_chunk.add_variable("color", _3ds_float_color(ambient))
@@ -1708,6 +1708,14 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
             spotlight_chunk.add_variable("angle", _3ds_float(round(cone_angle, 4)))
             spot_roll_chunk.add_variable("roll", _3ds_float(round(ob.rotation_euler[1], 6)))
             spotlight_chunk.add_subchunk(spot_roll_chunk)
+            if ob.data.use_shadow:
+                spot_shadow_flag = _3ds_chunk(LIGHT_SPOT_SHADOWED)
+                spot_shadow_chunk = _3ds_chunk(LIGHT_SPOT_LSHADOW)
+                spot_shadow_chunk.add_variable("bias", _3ds_float(round(ob.data.shadow_buffer_bias,4)))
+                spot_shadow_chunk.add_variable("filter", _3ds_float(round(ob.data.shadow_buffer_clip_start,4)))
+                spot_shadow_chunk.add_variable("size", _3ds_ushort(int(ob.data.shadow_buffer_size)))
+                spotlight_chunk.add_subchunk(spot_shadow_flag)
+                spotlight_chunk.add_subchunk(spot_shadow_chunk)
             if ob.data.show_cone:
                 spot_cone_chunk = _3ds_chunk(LIGHT_SPOT_SEE_CONE)
                 spotlight_chunk.add_subchunk(spot_cone_chunk)
