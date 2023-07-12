@@ -977,7 +977,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOTLIGHT:  # Spotlight
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.type = 'SPOT'
-            contextLamp.data.use_shadow = True
+            contextLamp.data.use_shadow = False
             spot = mathutils.Vector(struct.unpack('<3f', temp_data))
             aim = calc_target(contextLamp.location, spot)  # Target
             contextLamp.rotation_euler[0] = aim[0]
