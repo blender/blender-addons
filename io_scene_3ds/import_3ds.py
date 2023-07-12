@@ -977,6 +977,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOTLIGHT:  # Spotlight
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.type = 'SPOT'
+            contextLamp.data.use_shadow = True
             spot = mathutils.Vector(struct.unpack('<3f', temp_data))
             aim = calc_target(contextLamp.location, spot)  # Target
             contextLamp.rotation_euler[0] = aim[0]
@@ -994,11 +995,15 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             temp_data = file.read(SZ_FLOAT)
             contextLamp.rotation_euler[1] = float(struct.unpack('<f', temp_data)[0])
             new_chunk.bytes_read += SZ_FLOAT
-        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_SHADOWED:  # Shadow
+        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_SHADOWED:  # Shadow flag
             contextLamp.data.use_shadow = True
-        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_SEE_CONE:  # Cone
+        elif CreateLightObject and new_chunk.ID == LIGHT_LOCAL_SHADOW2:  # Shadow parameters
+            contextLamp.data.shadow_buffer_bias = read_float(new_chunk)
+            contextLamp.data.shadow_buffer_clip_start = read_float(new_chunk)
+            contextLamp.data.shadow_buffer_size = read_short(new_chunk)
+        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_SEE_CONE:  # Cone flag
             contextLamp.data.show_cone = True
-        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_RECTANGLE:  # Square
+        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_RECTANGLE:  # Square flag
             contextLamp.data.use_square = True
         elif CreateLightObject and new_chunk.ID == OBJECT_HIERARCHY:
             child_id = read_short(new_chunk)
@@ -1305,7 +1310,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             cone_angle = math.degrees(child.data.spot_size)
             default_value = cone_angle-(child.data.spot_blend * math.floor(cone_angle))
             hot_spot = math.degrees(read_track_angle(temp_chunk)[0])
-            child.data.spot_blend = 1.0 - (hot_spot/cone_angle)
+            child.data.spot_blend = 1.0 - (hot_spot / cone_angle)
             for keydata in keyframe_angle.items():
                 child.data.spot_blend = 1.0 - (math.degrees(keydata[1]) / cone_angle)
                 child.data.keyframe_insert(data_path="spot_blend", frame=keydata[0])
