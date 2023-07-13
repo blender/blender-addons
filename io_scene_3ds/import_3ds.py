@@ -1000,7 +1000,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif CreateLightObject and new_chunk.ID == LIGHT_LOCAL_SHADOW2:  # Shadow parameters
             contextLamp.data.shadow_buffer_bias = read_float(new_chunk)
             contextLamp.data.shadow_buffer_clip_start = read_float(new_chunk)
-            contextLamp.data.shadow_buffer_size = read_short(new_chunk)
+            temp_data = file.read(SZ_U_SHORT)
+            new_chunk.bytes_read += SZ_U_SHORT
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_SEE_CONE:  # Cone flag
             contextLamp.data.show_cone = True
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_RECTANGLE:  # Square flag
