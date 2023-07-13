@@ -1351,14 +1351,17 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     for ind, ob in enumerate(object_list):
         parent = object_parent[ind]
         if parent == ROOT_OBJECT:
-            if ob.parent is not None:
-                ob.parent = None
+            ob.parent = None
         elif parent not in object_dict:
-            if ob.parent != object_list[parent]:
+            try:
                 ob.parent = object_list[parent]
-        else:
-            if ob.parent != object_dict[parent]:
+            except:  # seems one object is missing, so take previous one
+                ob.parent = object_list[parent - 1]
+        else:  # get parent from node_id number
+            try:
                 ob.parent = object_dict.get(parent)
+            except:  # self to parent exception
+                ob.parent = None
 
         #pivot_list[ind] += pivot_list[parent]  # Not sure this is correct, should parent space matrix be applied before combining?
 
@@ -1396,7 +1399,7 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, IMAGE_SEARCH=True, WORLD_MATRIX=
     if bpy.ops.object.select_all.poll():
         bpy.ops.object.select_all(action='DESELECT')
 
-    time1 = time.time()
+    duration = time.time()
     current_chunk = Chunk()
     file = open(filepath, 'rb')
 
@@ -1498,7 +1501,7 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, IMAGE_SEARCH=True, WORLD_MATRIX=
                 obj.matrix_world = mtx_scale @ obj.matrix_world
 
     # Select all new objects.
-    print(" done in %.4f sec." % (time.time() - time1))
+    print(" done in %.4f sec." % (time.time() - duration))
     file.close()
 
 
