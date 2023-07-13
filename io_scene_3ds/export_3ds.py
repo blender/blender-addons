@@ -1713,7 +1713,7 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
                 spot_shadow_flag = _3ds_chunk(LIGHT_SPOT_SHADOWED)
                 spot_shadow_chunk = _3ds_chunk(LIGHT_SPOT_LSHADOW)
                 spot_shadow_chunk.add_variable("bias", _3ds_float(round(ob.data.shadow_buffer_bias,4)))
-                spot_shadow_chunk.add_variable("filter", _3ds_float(round(ob.data.shadow_buffer_clip_start,4)))
+                spot_shadow_chunk.add_variable("filter", _3ds_float(round((ob.data.shadow_buffer_clip_start * 10),4)))
                 spot_shadow_chunk.add_variable("buffer", _3ds_ushort(0x200))
                 spotlight_chunk.add_subchunk(spot_shadow_flag)
                 spotlight_chunk.add_subchunk(spot_shadow_chunk)
