@@ -1491,11 +1491,10 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, IMAGE_SEARCH=True, WORLD_MATRIX=
         while global_clamp_size < max_axis * scale:
             scale = scale / 10.0
 
-        scale_mat = mathutils.Matrix.Scale(scale, 4)
-
+        mtx_scale = mathutils.Matrix.Scale(scale, 4)
         for obj in imported_objects:
-            if obj.parent is None:
-                obj.matrix_world = scale_mat @ obj.matrix_world
+            if obj.type in {'MESH', 'EMPTY'} and obj.parent is None:
+                obj.matrix_world = mtx_scale @ obj.matrix_world
 
     # Select all new objects.
     print(" done in %.4f sec." % (time.time() - time1))
