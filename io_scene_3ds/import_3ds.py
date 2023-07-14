@@ -487,7 +487,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     def read_float_array(temp_chunk):
         temp_data = file.read(SZ_3FLOAT)
         temp_chunk.bytes_read += SZ_3FLOAT
-        return [float(ary) for ary in struct.unpack('<3f', temp_data)]
+        return [float(val) for val in struct.unpack('<3f', temp_data)]
 
     def read_byte_color(temp_chunk):
         temp_data = file.read(struct.calcsize('3B'))
@@ -753,13 +753,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MAT_SHINESS:
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == PCT_SHORT:
-                temp_data = file.read(SZ_U_SHORT)
-                temp_chunk.bytes_read += SZ_U_SHORT
-                contextMaterial.roughness = 1 - (float(struct.unpack('<H', temp_data)[0]) / 100)
+                contextMaterial.roughness = 1 - (float(read_short(temp_chunk) / 100))
             elif temp_chunk.ID == PCT_FLOAT:
-                temp_data = file.read(SZ_FLOAT)
-                temp_chunk.bytes_read += SZ_FLOAT
-                contextMaterial.roughness = 1 - float(struct.unpack('<f', temp_data)[0])
+                contextMaterial.roughness = 1.0 - float(read_float(temp_chunk))
             else:
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -767,13 +763,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MAT_SHIN2:
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == PCT_SHORT:
-                temp_data = file.read(SZ_U_SHORT)
-                temp_chunk.bytes_read += SZ_U_SHORT
-                contextMaterial.specular_intensity = (float(struct.unpack('<H', temp_data)[0]) / 100)
+                contextMaterial.specular_intensity = float(read_short(temp_chunk) / 100)
             elif temp_chunk.ID == PCT_FLOAT:
-                temp_data = file.read(SZ_FLOAT)
-                temp_chunk.bytes_read += SZ_FLOAT
-                contextMaterial.specular_intensity = float(struct.unpack('<f', temp_data)[0])
+                contextMaterial.specular_intensity = float(read_float(temp_chunk))
             else:
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -781,13 +773,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MAT_SHIN3:
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == PCT_SHORT:
-                temp_data = file.read(SZ_U_SHORT)
-                temp_chunk.bytes_read += SZ_U_SHORT
-                contextMaterial.metallic = (float(struct.unpack('<H', temp_data)[0]) / 100)
+                contextMaterial.metallic = float(read_short(temp_chunk) / 100)
             elif temp_chunk.ID == PCT_FLOAT:
-                temp_data = file.read(SZ_FLOAT)
-                temp_chunk.bytes_read += SZ_FLOAT
-                contextMaterial.metallic = float(struct.unpack('<f', temp_data)[0])
+                contextMaterial.metallic = float(read_float(temp_chunk))
             else:
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -795,13 +783,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MAT_TRANSPARENCY:
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == PCT_SHORT:
-                temp_data = file.read(SZ_U_SHORT)
-                temp_chunk.bytes_read += SZ_U_SHORT
-                contextMaterial.diffuse_color[3] = 1 - (float(struct.unpack('<H', temp_data)[0]) / 100)
+                contextMaterial.diffuse_color[3] = 1 - (float(read_short(temp_chunk) / 100))
             elif temp_chunk.ID == PCT_FLOAT:
-                temp_data = file.read(SZ_FLOAT)
-                temp_chunk.bytes_read += SZ_FLOAT
-                contextMaterial.diffuse_color[3] = 1 - float(struct.unpack('<f', temp_data)[0])
+                contextMaterial.diffuse_color[3] = 1.0 - float(read_float(temp_chunk))
             else:
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -809,13 +793,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MAT_SELF_ILPCT:
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == PCT_SHORT:
-                temp_data = file.read(SZ_U_SHORT)
-                temp_chunk.bytes_read += SZ_U_SHORT
-                contextMaterial.line_priority = int(struct.unpack('<H', temp_data)[0])
+                contextMaterial.line_priority = int(read_short(temp_chunk))
             elif temp_chunk.ID == PCT_FLOAT:
-                temp_data = file.read(SZ_FLOAT)
-                temp_chunk.bytes_read += SZ_FLOAT
-                contextMaterial.line_priority = (float(struct.unpack('<f', temp_data)[0]) * 100)
+                contextMaterial.line_priority = (float(read_float(temp_chunk)) * 100)
             else:
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -853,13 +833,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MAT_BUMP_PERCENT:
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == PCT_SHORT:
-                temp_data = file.read(SZ_U_SHORT)
-                temp_chunk.bytes_read += SZ_U_SHORT
-                contextWrapper.normalmap_strength = (float(struct.unpack('<H', temp_data)[0]) / 100)
+                contextWrapper.normalmap_strength = (float(read_short(temp_chunk) / 100))
             elif temp_chunk.ID == PCT_FLOAT:
-                temp_data = file.read(SZ_FLOAT)
-                temp_chunk.bytes_read += SZ_FLOAT
-                contextWrapper.normalmap_strength = float(struct.unpack('<f', temp_data)[0])
+                contextWrapper.normalmap_strength = float(read_float(temp_chunk))
             else:
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -879,16 +855,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif new_chunk.ID == OBJECT_VERTICES:
             """Worldspace vertex locations"""
-            temp_data = file.read(SZ_U_SHORT)
-            num_verts = struct.unpack('<H', temp_data)[0]
-            new_chunk.bytes_read += 2
+            num_verts = read_short(new_chunk)
             contextMesh_vertls = struct.unpack('<%df' % (num_verts * 3), file.read(SZ_3FLOAT * num_verts))
             new_chunk.bytes_read += SZ_3FLOAT * num_verts
 
         elif new_chunk.ID == OBJECT_FACES:
-            temp_data = file.read(SZ_U_SHORT)
-            num_faces = struct.unpack('<H', temp_data)[0]
-            new_chunk.bytes_read += 2
+            num_faces = read_short(new_chunk)
             temp_data = file.read(SZ_4U_SHORT * num_faces)
             new_chunk.bytes_read += SZ_4U_SHORT * num_faces  # 4 short ints x 2 bytes each
             contextMesh_facels = struct.unpack('<%dH' % (num_faces * 4), temp_data)
@@ -898,9 +870,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == OBJECT_MATERIAL:
             material_name, read_str_len = read_string(file)
             new_chunk.bytes_read += read_str_len  # remove 1 null character.
-            temp_data = file.read(SZ_U_SHORT)
-            num_faces_using_mat = struct.unpack('<H', temp_data)[0]
-            new_chunk.bytes_read += SZ_U_SHORT
+            num_faces_using_mat = read_short(new_chunk)
             temp_data = file.read(SZ_U_SHORT * num_faces_using_mat)
             new_chunk.bytes_read += SZ_U_SHORT * num_faces_using_mat
             temp_data = struct.unpack('<%dH' % (num_faces_using_mat), temp_data)
@@ -914,9 +884,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextMesh_smooth = smoothgroup
 
         elif new_chunk.ID == OBJECT_UV:
-            temp_data = file.read(SZ_U_SHORT)
-            num_uv = struct.unpack('<H', temp_data)[0]
-            new_chunk.bytes_read += 2
+            num_uv = read_short(new_chunk)
             temp_data = file.read(SZ_2FLOAT * num_uv)
             new_chunk.bytes_read += SZ_2FLOAT * num_uv
             contextMeshUV = struct.unpack('<%df' % (num_uv * 2), temp_data)
@@ -924,10 +892,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == OBJECT_TRANS_MATRIX:
             # How do we know the matrix size? 54 == 4x4 48 == 4x3
             temp_data = file.read(SZ_4x3MAT)
-            data = list(struct.unpack('<ffffffffffff', temp_data))
+            mtx = list(struct.unpack('<ffffffffffff', temp_data))
             new_chunk.bytes_read += SZ_4x3MAT
             contextMatrix = mathutils.Matrix(
-                (data[:3] + [0], data[3:6] + [0], data[6:9] + [0], data[9:] + [1])).transposed()
+                (mtx[:3] + [0], mtx[3:6] + [0], mtx[6:9] + [0], mtx[9:] + [1])).transposed()
 
         # If hierarchy chunk
         elif new_chunk.ID == OBJECT_HIERARCHY:
@@ -1205,7 +1173,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                     temp_data = file.read(SZ_FLOAT)  # Check for spline term values
                     new_chunk.bytes_read += SZ_FLOAT
                 temp_data = file.read(SZ_4FLOAT)
-                rotation = struct.unpack("<4f", temp_data)
+                rotation = struct.unpack('<4f', temp_data)
                 new_chunk.bytes_read += SZ_4FLOAT
                 keyframe_rotation[nframe] = rotation
             rad, axis_x, axis_y, axis_z = keyframe_rotation[0]
