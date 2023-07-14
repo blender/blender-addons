@@ -220,16 +220,16 @@ def read_string(file):
     return str(b''.join(s), "utf-8", "replace"), len(s) + 1
 
 
-##########
-# IMPORT #
-##########
-
 def skip_to_end(file, skip_chunk):
     buffer_size = skip_chunk.length - skip_chunk.bytes_read
     binary_format = '%ic' % buffer_size
     file.read(struct.calcsize(binary_format))
     skip_chunk.bytes_read += buffer_size
 
+
+#############
+# MATERIALS #
+#############
 
 def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, offset, angle, tintcolor, mapto):
     shader = contextWrapper.node_principled_bsdf
@@ -317,6 +317,10 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
     shader.location = (300, 300)
     contextWrapper._grid_to_location(1, 0, dst_node=contextWrapper.node_out, ref_node=shader)
 
+
+#############
+# MESH DATA #
+#############
 
 childs_list = []
 parent_list = []
@@ -574,6 +578,24 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         convector = mathutils.Vector.Fill(3, (CONSTRAIN * 0.1))
         consize = mathutils.Vector(vec) * convector if CONSTRAIN != 0.0 else mathutils.Vector(vec)
         return consize
+
+    def get_hierarchy(tree_chunk):
+        child_id = read_short(tree_chunk)
+        childs_list.insert(child_id, contextObName)
+        parent_list.insert(child_id, None)
+        if child_id in parent_list:
+            idp = parent_list.index(child_id)
+            parent_list[idp] = contextObName
+        return child_id
+
+    def get_parent(tree_chunk, child_id):
+        parent_id = read_short(tree_chunk)
+        if parent_id > len(childs_list):
+            parent_list[child_id] = parent_id
+            parent_list.extend([None] * (parent_id - len(parent_list)))
+            parent_list.insert(parent_id, contextObName)
+        elif parent_id < len(childs_list):
+            parent_list[child_id] = childs_list[parent_id]
 
     def calc_target(location, target):
         pan = 0.0
@@ -899,20 +921,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         # If hierarchy chunk
         elif new_chunk.ID == OBJECT_HIERARCHY:
-            child_id = read_short(new_chunk)
-            childs_list.insert(child_id, contextObName)
-            parent_list.insert(child_id, None)
-            if child_id in parent_list:
-                idp = parent_list.index(child_id)
-                parent_list[idp] = contextObName
+            child_id = get_hierarchy(new_chunk)
         elif new_chunk.ID == OBJECT_PARENT:
-            parent_id = read_short(new_chunk)
-            if parent_id > len(childs_list):
-                parent_list[child_id] = parent_id
-                parent_list.extend([None]*(parent_id-len(parent_list)))
-                parent_list.insert(parent_id, contextObName)
-            elif parent_id < len(childs_list):
-                parent_list[child_id] = childs_list[parent_id]
+            get_parent(new_chunk, child_id)
 
         # If light chunk
         elif contextObName and new_chunk.ID == OBJECT_LIGHT:  # Basic lamp support
@@ -957,20 +968,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_RECTANGLE:  # Square flag
             contextLamp.data.use_square = True
         elif CreateLightObject and new_chunk.ID == OBJECT_HIERARCHY:  # Hierarchy
-            child_id = read_short(new_chunk)
-            childs_list.insert(child_id, contextObName)
-            parent_list.insert(child_id, None)
-            if child_id in parent_list:
-                idp = parent_list.index(child_id)
-                parent_list[idp] = contextObName
+            child_id = get_hierarchy(new_chunk)
         elif CreateLightObject and new_chunk.ID == OBJECT_PARENT:
-            parent_id = read_short(new_chunk)
-            if parent_id > len(childs_list):
-                parent_list[child_id] = parent_id
-                parent_list.extend([None]*(parent_id-len(parent_list)))
-                parent_list.insert(parent_id, contextObName)
-            elif parent_id < len(childs_list):
-                parent_list[child_id] = childs_list[parent_id]
+            get_parent(new_chunk, child_id)
 
         # If camera chunk
         elif contextObName and new_chunk.ID == OBJECT_CAMERA:  # Basic camera support
@@ -990,20 +990,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             CreateCameraObject = True
             contextMatrix = None  # Reset matrix
         elif CreateCameraObject and new_chunk.ID == OBJECT_HIERARCHY:  # Hierarchy
-            child_id = read_short(new_chunk)
-            childs_list.insert(child_id, contextObName)
-            parent_list.insert(child_id, None)
-            if child_id in parent_list:
-                idp = parent_list.index(child_id)
-                parent_list[idp] = contextObName
+            child_id = get_hierarchy(new_chunk)
         elif CreateCameraObject and new_chunk.ID == OBJECT_PARENT:
-            parent_id = read_short(new_chunk)
-            if parent_id > len(childs_list):
-                parent_list[child_id] = parent_id
-                parent_list.extend([None]*(parent_id-len(parent_list)))
-                parent_list.insert(parent_id, contextObName)
-            elif parent_id < len(childs_list):
-                parent_list[child_id] = childs_list[parent_id]
+            get_parent(new_chunk, child_id)
 
         # start keyframe section
         elif new_chunk.ID == EDITKEYFRAME:
@@ -1313,6 +1302,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             # pivot_matrix = mathutils.Matrix.Translation(pivot_matrix.to_3x3() @ -pivot)
             ob.data.transform(pivot_matrix)
 
+
+##########
+# IMPORT #
+##########
 
 def load_3ds(filepath, context, CONSTRAIN=10.0, IMAGE_SEARCH=True, WORLD_MATRIX=False, KEYFRAME=True, APPLY_MATRIX=True, CONVERSE=None):
 
