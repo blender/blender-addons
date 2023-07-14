@@ -69,7 +69,7 @@ MAT_MAP_USCALE = 0xA354   # U axis scaling
 MAT_MAP_VSCALE = 0xA356   # V axis scaling
 MAT_MAP_UOFFSET = 0xA358  # U axis offset
 MAT_MAP_VOFFSET = 0xA35A  # V axis offset
-MAT_MAP_ANG = 0xA35C      # UV rotation around the z-axis in rad
+MAT_MAP_ANG = 0xA35C  # UV rotation around the z-axis in rad
 MAP_COL1 = 0xA360  # Tint Color1
 MAP_COL2 = 0xA362  # Tint Color2
 MAP_RCOL = 0xA364  # Red tint
@@ -96,7 +96,7 @@ LIGHT_MULTIPLIER = 0x465B  # The light energy factor
 LIGHT_SPOTLIGHT = 0x4610  # The target of a spotlight
 LIGHT_SPOT_ROLL = 0x4656  # Light spot roll angle
 LIGHT_SPOT_SHADOWED = 0x4630  # Light spot shadow flag
-LIGHT_SPOT_LSHADOW   = 0x4641  # Light spot shadow parameters
+LIGHT_SPOT_LSHADOW = 0x4641  # Light spot shadow parameters
 LIGHT_SPOT_SEE_CONE = 0x4650  # Light spot show cone flag
 LIGHT_SPOT_RECTANGLE = 0x4651  # Light spot rectangle flag
 
