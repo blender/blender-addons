@@ -947,12 +947,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 parent_list[child_id] = childs_list[parent_id]
 
         # If light chunk
-        elif newObject and new_chunk.ID == OBJECT_LIGHT:  # Basic lamp support
-            lamp = bpy.data.lights.new("Lamp", 'POINT')
-            contextLamp = bpy.data.objects.new(newObject, lamp)
+        elif contextObName and new_chunk.ID == OBJECT_LIGHT:  # Basic lamp support
+            newLamp = bpy.data.lights.new("Lamp", 'POINT')
+            contextLamp = bpy.data.objects.new(contextObName, newLamp)
             context.view_layer.active_layer_collection.collection.objects.link(contextLamp)
             imported_objects.append(contextLamp)
-            object_dictionary[newObject] = contextLamp
+            object_dictionary[contextObName] = contextLamp
             contextLamp.location = read_float_array(new_chunk)  # Position
             CreateBlenderObject = False
             CreateLightObject = True
