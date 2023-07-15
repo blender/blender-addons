@@ -563,34 +563,34 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         consize = mathutils.Vector(vec) * convector if CONSTRAIN != 0.0 else mathutils.Vector(vec)
         return consize
 
-    def calc_target(location, target):
+    def calc_target(loc, target):
         pan = 0.0
         tilt = 0.0
-        pos = location + target  # Target triangulation
-        if abs(location[0] - target[0]) > abs(location[1] - target[1]):
-            foc = math.copysign(math.sqrt(pow(pos[0],2) + pow(pos[1],2)), pos[0])
-            dia = math.copysign(math.sqrt(pow(foc,2) + pow(target[2],2)), pos[0])
-            pitch = math.radians(90) - math.copysign(math.acos(foc / dia), pos[2])
-            if location[0] > target[0]:
-                tilt = math.copysign(pitch, pos[0])
-                pan = math.radians(90) + math.atan(pos[1] / foc)
+        pos = loc + target  # Target triangulation
+        if abs(loc.x - target.x) > abs(loc.y - target.y):
+            foc = math.copysign(math.sqrt(pow(pos.x,2) + pow(pos.y,2)), pos.x)
+            dia = math.copysign(math.sqrt(pow(foc,2) + pow(target.z,2)), pos.x)
+            pitch = math.radians(90) - math.copysign(math.acos(foc / dia), loc.z)
+            if loc.x > target.x:
+                tilt = math.copysign(pitch, pos.x)
+                pan = math.radians(90) + math.atan(pos.y / foc)
             else:
-                tilt = -1 * (math.copysign(pitch, pos[0]))
-                pan = -1 * (math.radians(90) - math.atan(pos[1] / foc))
-            if abs(location[0]) < abs(target[0]):
+                tilt = -1 * (math.copysign(pitch, pos.x))
+                pan = -1 * (math.radians(90) - math.atan(pos.y / foc))
+            if abs(loc.x) < abs(target.x):
                 tilt = -1 * tilt
                 pan = -1 * pan
-        elif abs(location[1] - target[1]) > abs(location[0] - target[0]):
-            foc = math.copysign(math.sqrt(pow(pos[1],2) + pow(pos[0],2)), pos[1])
-            dia = math.copysign(math.sqrt(pow(foc,2) + pow(target[2],2)), pos[1])
-            pitch = math.radians(90) - math.copysign(math.acos(foc / dia), pos[2])
-            if location[1] > target[1]:
-                tilt = math.copysign(pitch, pos[1])
-                pan = math.radians(90) + math.acos(pos[0] / foc)
+        elif abs(loc.y - target.y) > abs(loc.x - target.x):
+            foc = math.copysign(math.sqrt(pow(pos.y,2) + pow(pos.x,2)), pos.y)
+            dia = math.copysign(math.sqrt(pow(foc,2) + pow(target.z,2)), pos.y)
+            pitch = math.radians(90) - math.copysign(math.acos(foc / dia), loc.z)
+            if loc.y > target.y:
+                tilt = math.copysign(pitch, pos.y)
+                pan = math.radians(90) + math.acos(pos.x / foc)
             else:
-                tilt = -1 * (math.copysign(pitch, pos[1]))
-                pan = -1 * (math.radians(90) - math.acos(pos[0] / foc))
-            if abs(location[1]) < abs(target[1]):
+                tilt = -1 * (math.copysign(pitch, pos.y))
+                pan = -1 * (math.radians(90) - math.acos(pos.x / foc))
+            if abs(loc.y) < abs(target.y):
                 tilt = -1 * tilt
                 pan = -1 * pan
         direction = tilt, pan
