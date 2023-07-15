@@ -1390,7 +1390,7 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, IMAGE_SEARCH=True, WORLD_MATRIX=
 
     axis_min = [1000000000] * 3
     axis_max = [-1000000000] * 3
-    global_clamp_size = CONSTRAIN
+    global_clamp_size = CONSTRAIN * 10000
     if global_clamp_size != 0.0:
         # Get all object bounds
         for ob in imported_objects:
@@ -1412,8 +1412,14 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, IMAGE_SEARCH=True, WORLD_MATRIX=
 
         mtx_scale = mathutils.Matrix.Scale(scale, 4)
         for obj in imported_objects:
-            if obj.type in {'MESH', 'EMPTY'} and obj.parent is None:
+            if obj.parent is None:
                 obj.matrix_world = mtx_scale @ obj.matrix_world
+
+        for screen in bpy.data.screens:
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    area.spaces[0].clip_start = scale * 0.1
+                    area.spaces[0].clip_end = scale * 10000
 
     # Select all new objects.
     print(" done in %.4f sec." % (time.time() - duration))
