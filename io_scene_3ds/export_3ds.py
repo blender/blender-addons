@@ -1362,10 +1362,10 @@ def make_target_node(ob, translation, rotation, scale, name_id):
     ob_rot = rotation[name]
     ob_size = scale[name]
 
-    diagonal = math.copysign(math.sqrt(pow(ob_pos[0],2) + pow(ob_pos[1],2)), ob_pos[1])
-    target_x = math.copysign(ob_pos[0] + (ob_pos[1] * math.tan(ob_rot[2])), ob_pos[0])
-    target_y = math.copysign(ob_pos[1] + (ob_pos[0] * math.tan(math.radians(90) - ob_rot[2])), ob_pos[1])
-    target_z = -1 * diagonal * math.tan(math.radians(90) - ob_rot[0])
+    diagonal = math.copysign(math.sqrt(pow(ob_pos.x,2) + pow(ob_pos.y,2)), ob_pos.y)
+    target_x = ob_pos.x + (abs(ob_pos.y) * math.tan(ob_rot.z))
+    target_y = ob_pos.y + (abs(ob_pos.x) * math.tan(math.radians(90) - ob_rot.z))
+    target_z = -1 * math.copysign(diagonal * math.tan(math.radians(90) - ob_rot.x), ob_rot.z)
 
     # Add track chunks for target position
     track_chunk = _3ds_chunk(POS_TRACK_TAG)
@@ -1394,10 +1394,10 @@ def make_target_node(ob, translation, rotation, scale, name_id):
                 rot_target = [fc for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
                 rotate_x = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 0), ob_rot.x)
                 rotate_z = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 2), ob_rot.z)
-                diagonal = math.copysign(math.sqrt(pow(locate_x, 2) + pow(locate_y, 2)), locate_y)
-                target_x = math.copysign(locate_x + (locate_y * math.tan(rotate_z)), locate_x)
-                target_y = math.copysign(locate_y + (locate_x * math.tan(math.radians(90) - rotate_z)), locate_y)
-                target_z = -1 * diagonal * math.tan(math.radians(90) - rotate_x)
+                diagonal = math.copysign(math.sqrt(pow(locate_x,2) + pow(locate_y,2)), locate_y)
+                target_x = locate_x + (abs(locate_y) * math.tan(rotate_z))
+                target_y = locate_y + (abs(locate_x) * math.tan(math.radians(90) - rotate_z))
+                target_z = -1 * math.copysign(diagonal * math.tan(math.radians(90) - rotate_x), rotate_z)
                 track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                 track_chunk.add_variable("tcb_flags", _3ds_ushort())
                 track_chunk.add_variable("position", _3ds_point_3d((target_x, target_y, target_z)))
