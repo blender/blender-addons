@@ -1364,7 +1364,7 @@ def make_target_node(ob, translation, rotation, scale, name_id):
 
     diagonal = math.copysign(math.sqrt(pow(ob_pos.x, 2) + pow(ob_pos.y, 2)), ob_pos.y)
     target_x = -1 * math.copysign(ob_pos.x + (ob_pos.y * math.tan(ob_rot.z)), ob_rot.x)
-    target_y = -1 * math.copysign(ob_pos.y + (ob_pos.x * math.tan(math.radians(90) - ob_rot.z)), ob_rot.y)
+    target_y = -1 * math.copysign(ob_pos.y + (ob_pos.x * math.tan(math.radians(90) - ob_rot.z)), ob_rot.z)
     target_z = -1 * math.copysign(diagonal * math.tan(math.radians(90) - ob_rot.x), ob_pos.z)
 
     # Add track chunks for target position
@@ -1396,7 +1396,7 @@ def make_target_node(ob, translation, rotation, scale, name_id):
                 rot_z = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 2), ob_rot.z)
                 diagonal = math.copysign(math.sqrt(pow(loc_x, 2) + pow(loc_y, 2)), loc_y)
                 target_x = -1 * math.copysign(loc_x + (loc_y * math.tan(rot_z)), rot_x)
-                target_y = -1 * math.copysign(loc_y + (loc_x * math.tan(math.radians(90) - rot_z)), rot_y)
+                target_y = -1 * math.copysign(loc_y + (loc_x * math.tan(math.radians(90) - rot_z)), rot_z)
                 target_z = -1 * math.copysign(diagonal * math.tan(math.radians(90) - rot_x), loc_z)
                 track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                 track_chunk.add_variable("tcb_flags", _3ds_ushort())
