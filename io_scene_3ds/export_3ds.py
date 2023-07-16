@@ -1362,10 +1362,10 @@ def make_target_node(ob, translation, rotation, scale, name_id):
     ob_rot = rotation[name]
     ob_size = scale[name]
 
-    diagonal = math.copysign(math.sqrt(pow(ob_pos.x,2) + pow(ob_pos.y,2)), ob_pos.y)
-    target_x = ob_pos.x + (abs(ob_pos.y) * math.tan(ob_rot.z))
-    target_y = ob_pos.y + (abs(ob_pos.x) * math.tan(math.radians(90) - ob_rot.z))
-    target_z = -1 * math.copysign(diagonal * math.tan(math.radians(90) - ob_rot.x), ob_rot.z)
+    diagonal = math.copysign(math.sqrt(pow(ob_pos.x, 2) + pow(ob_pos.y, 2)), ob_pos.y)
+    target_x = -1 * math.copysign(ob_pos.x + (ob_pos.y * math.tan(ob_rot.z)), ob_rot.x)
+    target_y = -1 * math.copysign(ob_pos.y + (ob_pos.x * math.tan(math.radians(90) - ob_rot.z)), ob_rot.y)
+    target_z = -1 * math.copysign(diagonal * math.tan(math.radians(90) - ob_rot.x), ob_pos.z)
 
     # Add track chunks for target position
     track_chunk = _3ds_chunk(POS_TRACK_TAG)
@@ -1388,16 +1388,16 @@ def make_target_node(ob, translation, rotation, scale, name_id):
 
             for i, frame in enumerate(kframes):
                 loc_target = [fc for fc in fcurves if fc is not None and fc.data_path == 'location']
-                locate_x = next((tc.evaluate(frame) for tc in loc_target if tc.array_index == 0), ob_pos.x)
-                locate_y = next((tc.evaluate(frame) for tc in loc_target if tc.array_index == 1), ob_pos.y)
-                locate_z = next((tc.evaluate(frame) for tc in loc_target if tc.array_index == 2), ob_pos.z)
+                loc_x = next((tc.evaluate(frame) for tc in loc_target if tc.array_index == 0), ob_pos.x)
+                loc_y = next((tc.evaluate(frame) for tc in loc_target if tc.array_index == 1), ob_pos.y)
+                loc_z = next((tc.evaluate(frame) for tc in loc_target if tc.array_index == 2), ob_pos.z)
                 rot_target = [fc for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
-                rotate_x = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 0), ob_rot.x)
-                rotate_z = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 2), ob_rot.z)
-                diagonal = math.copysign(math.sqrt(pow(locate_x,2) + pow(locate_y,2)), locate_y)
-                target_x = locate_x + (abs(locate_y) * math.tan(rotate_z))
-                target_y = locate_y + (abs(locate_x) * math.tan(math.radians(90) - rotate_z))
-                target_z = -1 * math.copysign(diagonal * math.tan(math.radians(90) - rotate_x), rotate_z)
+                rot_x = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 0), ob_rot.x)
+                rot_z = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 2), ob_rot.z)
+                diagonal = math.copysign(math.sqrt(pow(loc_x, 2) + pow(loc_y, 2)), loc_y)
+                target_x = -1 * math.copysign(loc_x + (loc_y * math.tan(rot_z)), rot_x)
+                target_y = -1 * math.copysign(loc_y + (loc_x * math.tan(math.radians(90) - rot_z)), rot_y)
+                target_z = -1 * math.copysign(diagonal * math.tan(math.radians(90) - rot_x), loc_z)
                 track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                 track_chunk.add_variable("tcb_flags", _3ds_ushort())
                 track_chunk.add_variable("position", _3ds_point_3d((target_x, target_y, target_z)))
