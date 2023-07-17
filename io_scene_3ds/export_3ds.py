@@ -1045,6 +1045,19 @@ def make_mesh_chunk(ob, mesh, matrix, materialDict, translation):
     return mesh_chunk
 
 
+def calc_target(posi, tilt=0.0, pan=0.0):
+    """Calculate target position for cameras and spotlights."""
+    lean = tilt if abs(tilt) < (math.pi / 2) else -1 * tilt
+    turn = pan if abs(pan) < math.pi else -1 * pan
+    adjacent = math.radians(90)
+    diagonal = math.copysign(math.sqrt(pow(posi.x ,2) + pow(posi.y ,2)), posi.y)
+    target_x = math.copysign(posi.x + (posi.y * math.tan(pan)), turn)
+    target_y = math.copysign(posi.y + (posi.x * math.tan(adjacent - pan)), turn)
+    target_z = math.copysign(diagonal * math.tan(adjacent - tilt), lean)
+
+    return target_x, target_y, target_z
+
+
 #################
 # KEYFRAME DATA #
 #################
@@ -1362,10 +1375,7 @@ def make_target_node(ob, translation, rotation, scale, name_id):
     ob_rot = rotation[name]
     ob_size = scale[name]
 
-    diagonal = math.copysign(math.sqrt(pow(ob_pos.x, 2) + pow(ob_pos.y, 2)), ob_pos.y)
-    target_x = -1 * math.copysign(ob_pos.x + (ob_pos.y * math.tan(ob_rot.z)), ob_rot.x)
-    target_y = -1 * math.copysign(ob_pos.y + (ob_pos.x * math.tan(math.radians(90) - ob_rot.z)), ob_rot.z)
-    target_z = -1 * math.copysign(diagonal * math.tan(math.radians(90) - ob_rot.x), ob_pos.z)
+    target_pos = calc_target(ob_pos, ob_rot.x, ob_rot.z)
 
     # Add track chunks for target position
     track_chunk = _3ds_chunk(POS_TRACK_TAG)
@@ -1394,13 +1404,10 @@ def make_target_node(ob, translation, rotation, scale, name_id):
                 rot_target = [fc for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
                 rot_x = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 0), ob_rot.x)
                 rot_z = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 2), ob_rot.z)
-                diagonal = math.copysign(math.sqrt(pow(loc_x, 2) + pow(loc_y, 2)), loc_y)
-                target_x = -1 * math.copysign(loc_x + (loc_y * math.tan(rot_z)), rot_x)
-                target_y = -1 * math.copysign(loc_y + (loc_x * math.tan(math.radians(90) - rot_z)), rot_z)
-                target_z = -1 * math.copysign(diagonal * math.tan(math.radians(90) - rot_x), loc_z)
+                target_pos = calc_target(mathutils.Vector((loc_x, loc_y, loc_z)), rot_x, rot_z)
                 track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                 track_chunk.add_variable("tcb_flags", _3ds_ushort())
-                track_chunk.add_variable("position", _3ds_point_3d((target_x, target_y, target_z)))
+                track_chunk.add_variable("position", _3ds_point_3d(target_pos))
 
     else:  # Track header
         track_chunk.add_variable("track_flags", _3ds_ushort(0x40))  # Based on observation default flag is 0x40
@@ -1410,7 +1417,7 @@ def make_target_node(ob, translation, rotation, scale, name_id):
         # Keyframe header
         track_chunk.add_variable("tcb_frame", _3ds_uint(0))
         track_chunk.add_variable("tcb_flags", _3ds_ushort())
-        track_chunk.add_variable("position", _3ds_point_3d((target_x, target_y, target_z)))
+        track_chunk.add_variable("position", _3ds_point_3d(target_pos))
 
     tar_node.add_subchunk(track_chunk)
 
@@ -1697,15 +1704,12 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
 
         if ob.data.type == 'SPOT':
             cone_angle = math.degrees(ob.data.spot_size)
-            hotspot = cone_angle - (ob.data.spot_blend * math.floor(cone_angle))
-            hypo = math.copysign(math.sqrt(pow(ob.location.x, 2) + pow(ob.location.y, 2)), ob.location.y)
-            pos_x = -1 * math.copysign(ob.location.x + (ob.location.y * math.tan(ob.rotation_euler.z)), ob.rotation_euler.x)
-            pos_y = -1 * math.copysign(ob.location.y + (ob.location.x * math.tan(math.radians(90) - ob.rotation_euler.z)), ob.rotation_euler.z)
-            pos_z = -1 * math.copysign(hypo * math.tan(math.radians(90) - ob.rotation_euler.x), ob.location.z)
+            hot_spot = cone_angle - (ob.data.spot_blend * math.floor(cone_angle))
+            spot_pos = calc_target(ob.location, ob.rotation_euler.x, ob.rotation_euler.z)
             spotlight_chunk = _3ds_chunk(LIGHT_SPOTLIGHT)
             spot_roll_chunk = _3ds_chunk(LIGHT_SPOT_ROLL)
-            spotlight_chunk.add_variable("target", _3ds_point_3d((pos_x, pos_y, pos_z)))
-            spotlight_chunk.add_variable("hotspot", _3ds_float(round(hotspot, 4)))
+            spotlight_chunk.add_variable("target", _3ds_point_3d(spot_pos))
+            spotlight_chunk.add_variable("hotspot", _3ds_float(round(hot_spot, 4)))
             spotlight_chunk.add_variable("angle", _3ds_float(round(cone_angle, 4)))
             spot_roll_chunk.add_variable("roll", _3ds_float(round(ob.rotation_euler.y, 6)))
             spotlight_chunk.add_subchunk(spot_roll_chunk)
@@ -1753,13 +1757,10 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
     for ob in camera_objects:
         object_chunk = _3ds_chunk(OBJECT)
         camera_chunk = _3ds_chunk(OBJECT_CAMERA)
-        diagonal = math.copysign(math.sqrt(pow(ob.location.x, 2) + pow(ob.location.y, 2)), ob.location.y)
-        focus_x = -1 * math.copysign(ob.location.x + (ob.location.y * math.tan(ob.rotation_euler.z)), ob.rotation_euler.x)
-        focus_y = -1 * math.copysign(ob.location.y + (ob.location.x * math.tan(math.radians(90) - ob.rotation_euler.z)), ob.rotation_euler.z)
-        focus_z = -1 * math.copysign(diagonal * math.tan(math.radians(90) - ob.rotation_euler.x), ob.location.z)
+        camera_target = calc_target(ob.location, ob.rotation_euler.x, ob.rotation_euler.z)
         object_chunk.add_variable("camera", _3ds_string(sane_name(ob.name)))
         camera_chunk.add_variable("location", _3ds_point_3d(ob.location))
-        camera_chunk.add_variable("target", _3ds_point_3d((focus_x, focus_y, focus_z)))
+        camera_chunk.add_variable("target", _3ds_point_3d(camera_target))
         camera_chunk.add_variable("roll", _3ds_float(round(ob.rotation_euler.y, 6)))
         camera_chunk.add_variable("lens", _3ds_float(ob.data.lens))
         object_chunk.add_subchunk(camera_chunk)
