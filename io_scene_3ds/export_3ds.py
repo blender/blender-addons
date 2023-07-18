@@ -1048,8 +1048,8 @@ def make_mesh_chunk(ob, mesh, matrix, materialDict, translation):
 def calc_target(posi, tilt=0.0, pan=0.0):
     """Calculate target position for cameras and spotlights."""
     adjacent = math.radians(90)
-    turn = pan if abs(pan) < adjacent else -1 * pan
-    lean = tilt if abs(tilt) < adjacent else -1 * tilt
+    turn = 0.0 if abs(pan) < adjacent else -0.0
+    lean = 0.0 if abs(tilt) < adjacent else -0.0
     diagonal = math.copysign(math.sqrt(pow(posi.x ,2) + pow(posi.y ,2)), posi.y)
     target_x = math.copysign(posi.x + (posi.y * math.tan(pan)), pan)
     target_y = math.copysign(posi.y + (posi.x * math.tan(adjacent - pan)), turn)
