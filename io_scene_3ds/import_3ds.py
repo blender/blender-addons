@@ -588,7 +588,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             parent_list[idp] = contextObName
         return child_id
 
-    def get_parent(tree_chunk, child_id):
+    def get_parent(tree_chunk, child_id=-1):
         parent_id = read_short(tree_chunk)
         if parent_id > len(childs_list):
             parent_list[child_id] = parent_id
