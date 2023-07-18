@@ -597,36 +597,20 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif parent_id < len(childs_list):
             parent_list[child_id] = childs_list[parent_id]
 
-    def calc_target(loc, target):
+    def calc_target(loca, target):
         pan = 0.0
         tilt = 0.0
-        pos = loc + target  # Target triangulation
-        if abs(loc.x - target.x) > abs(loc.y - target.y):
-            foc = math.copysign(math.sqrt(pow(pos.x,2) + pow(pos.y,2)), pos.x)
-            dia = math.copysign(math.sqrt(pow(foc,2) + pow(target.z,2)), pos.x)
-            pitch = math.radians(90) - math.copysign(math.acos(foc / dia), loc.z)
-            if loc.x > target.x:
-                tilt = math.copysign(pitch, pos.x)
-                pan = math.radians(90) + math.atan(pos.y / foc)
-            else:
-                tilt = -1 * (math.copysign(pitch, pos.x))
-                pan = -1 * (math.radians(90) - math.atan(pos.y / foc))
-            if abs(loc.x) < abs(target.x):
-                tilt = -1 * tilt
-                pan = -1 * pan
-        elif abs(loc.y - target.y) > abs(loc.x - target.x):
-            foc = math.copysign(math.sqrt(pow(pos.y,2) + pow(pos.x,2)), pos.y)
-            dia = math.copysign(math.sqrt(pow(foc,2) + pow(target.z,2)), pos.y)
-            pitch = math.radians(90) - math.copysign(math.acos(foc / dia), loc.z)
-            if loc.y > target.y:
-                tilt = math.copysign(pitch, pos.y)
-                pan = math.radians(90) + math.acos(pos.x / foc)
-            else:
-                tilt = -1 * (math.copysign(pitch, pos.y))
-                pan = -1 * (math.radians(90) - math.acos(pos.x / foc))
-            if abs(loc.y) < abs(target.y):
-                tilt = -1 * tilt
-                pan = -1 * pan
+        posi = loca + target
+        adjacent = math.radians(90)  # Target triangulation
+        hyp = math.copysign(math.sqrt(pow(posi.x,2) + pow(posi.y,2)), posi.y)
+        dia = math.copysign(math.sqrt(pow(hyp,2) + pow(target.z,2)), posi.y)
+        tilt = adjacent - math.copysign(math.acos(hyp / dia), posi.z)
+        if abs(loca.x - target.x) > abs(loca.y - target.y):
+            yaw = math.atan(posi.y / hyp)
+            pan = adjacent + yaw if loca.x > target.x else -1 * (adjacent - yaw)
+        elif abs(loca.y - target.y) > abs(loca.x - target.x):
+            yaw = math.pi + math.atan2(hyp, posi.x)
+            pan = adjacent + yaw if abs(loca.y) < abs(target.y) else -1 * (adjacent - yaw)
         direction = tilt, pan
         return direction
 
