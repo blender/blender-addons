@@ -601,18 +601,20 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         pan = 0.0
         tilt = 0.0
         posi = loca + target
-        adjacent = math.radians(90)  # Target triangulation
-        hyp = math.copysign(math.sqrt(pow(posi.x,2) + pow(posi.y,2)), posi.y)
-        dia = math.copysign(math.sqrt(pow(hyp,2) + pow(target.z,2)), posi.y)
-        tilt = adjacent - math.copysign(math.acos(hyp / dia), posi.z)
-        if abs(loca.x - target.x) > abs(loca.y - target.y):
-            yaw = math.atan(posi.y / hyp)
-            pan = adjacent + yaw if loca.x > target.x else -1 * (adjacent - yaw)
-        elif abs(loca.y - target.y) > abs(loca.x - target.x):
-            yaw = math.pi + math.atan2(hyp, posi.x)
-            pan = adjacent + yaw if abs(loca.y) < abs(target.y) else -1 * (adjacent - yaw)
-        direction = tilt, pan
-        return direction
+        angle = math.radians(90)  # Target triangulation
+        check_sign = abs(loca.y) < abs (target.y)
+        check_axes = abs(loca.x - target.x) > abs(loca.y - target.y)
+        sign_t = 0.0 if loca.z > target.z else -0.0
+        posi_p = posi.y if check_sign else -1 * posi.y
+        sign_xy = posi.x if check_axes else posi.y
+        axis_xy = posi_p if check_axes else posi.x
+        hyp = math.sqrt(pow(posi.x,2) + pow(posi.y,2))
+        dia = math.sqrt(pow(hyp,2) + pow(target.z,2))
+        yaw = math.atan2(math.copysign(hyp, sign_xy), axis_xy)
+        turn = angle - yaw if check_sign else angle + yaw
+        tilt = angle - math.copysign(math.acos(hyp / dia), sign_t)
+        pan = yaw if check_axes else turn
+        return tilt, pan
 
     def read_track_data(track_chunk):
         """Trackflags 0x1, 0x2 and 0x3 are for looping. 0x8, 0x10 and 0x20
