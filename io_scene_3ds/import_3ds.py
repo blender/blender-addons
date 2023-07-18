@@ -602,7 +602,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         tilt = 0.0
         posi = loca + target
         angle = math.radians(90)  # Target triangulation
-        check_sign = abs(loca.y) < abs (target.y)
+        check_sign = abs(loca.y) < abs(target.y)
         check_axes = abs(loca.x - target.x) > abs(loca.y - target.y)
         sign_t = 0.0 if loca.z > target.z else -0.0
         posi_p = posi.y if check_sign else -1 * posi.y
