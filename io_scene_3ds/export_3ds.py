@@ -1050,10 +1050,10 @@ def calc_target(posi, tilt=0.0, pan=0.0):
     adjacent = math.radians(90)
     turn = 0.0 if abs(pan) < adjacent else -0.0
     lean = 0.0 if abs(tilt) > adjacent else -0.0
-    diagonal = math.ceil(math.sqrt(pow(posi.x ,2) + pow(posi.y ,2)))
+    diagonal = math.sqrt(pow(posi.x ,2) + pow(posi.y ,2))
     target_x = math.copysign(posi.x + (posi.y * math.tan(pan)), pan)
     target_y = math.copysign(posi.y + (posi.x * math.tan(adjacent - pan)), turn)
-    target_z = math.copysign(diagonal * math.tan(adjacent - tilt), lean)
+    target_z = math.copysign(posi.z + diagonal * math.tan(adjacent - tilt), lean)
 
     return target_x, target_y, target_z
 
