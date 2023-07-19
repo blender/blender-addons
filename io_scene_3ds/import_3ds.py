@@ -508,7 +508,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         contextWrapper.emission_color = contextMaterial.line_color[:3]
         contextWrapper.emission_strength = contextMaterial.line_priority / 100
-        contextWrapper.base_color = contextMaterial.diffuse_color[:3]
+        contextWrapper.base_color[:3] = contextMaterial.diffuse_color[:3]
         contextWrapper.specular = contextMaterial.specular_intensity
         contextWrapper.roughness = contextMaterial.roughness
         contextWrapper.metallic = contextMaterial.metallic
@@ -608,10 +608,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         sign_xy = plane.x if check_axes else plane.y
         axis_xy = plane_y if check_axes else plane.x
         hyp = math.sqrt(pow(plane.x,2) + pow(plane.y,2))
-        dia = math.sqrt(pow(hyp,2) + pow(target.z,2))
+        dia = math.sqrt(pow(hyp,2) + pow(plane.z,2))
         yaw = math.atan2(math.copysign(hyp, sign_xy), axis_xy)
+        bow = math.acos(hyp / dia)
         turn = angle - yaw if check_sign else angle + yaw
-        tilt = angle + math.copysign(math.acos(hyp / dia), target.z)
+        tilt = angle - bow if loca.z > target.z else angle + bow
         pan = yaw if check_axes else turn
         return tilt, pan
 
@@ -813,7 +814,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 contextWrapper.use_nodes = True
                 contextWrapper.emission_color = contextMaterial.line_color[:3]
                 contextWrapper.emission_strength = contextMaterial.line_priority / 100
-                contextWrapper.base_color = contextMaterial.diffuse_color[:3]
+                contextWrapper.base_color[:3] = contextMaterial.diffuse_color[:3]
                 contextWrapper.specular = contextMaterial.specular_intensity
                 contextWrapper.roughness = contextMaterial.roughness
                 contextWrapper.metallic = contextMaterial.metallic
