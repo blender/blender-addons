@@ -600,19 +600,20 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     def calc_target(loca, target):
         pan = 0.0
         tilt = 0.0
-        posi = loca + target
+        plane = loca + target
         angle = math.radians(90)  # Target triangulation
+        plane_z = math.floor(abs(loca.z - target.z))
         check_sign = abs(loca.y) < abs(target.y)
         check_axes = abs(loca.x - target.x) > abs(loca.y - target.y)
-        sign_t = 0.0 if loca.z > target.z else -0.0
-        posi_p = posi.y if check_sign else -1 * posi.y
-        sign_xy = posi.x if check_axes else posi.y
-        axis_xy = posi_p if check_axes else posi.x
-        hyp = math.sqrt(pow(posi.x,2) + pow(posi.y,2))
-        dia = math.sqrt(pow(hyp,2) + pow(target.z,2))
+        angle_z = 0.0 if loca.z > target.z else -0.0
+        plane_y = plane.y if check_sign else -1 * plane.y
+        sign_xy = plane.x if check_axes else plane.y
+        axis_xy = plane_y if check_axes else plane.x
+        hyp = math.sqrt(pow(plane.x,2) + pow(plane.y,2))
+        dia = math.sqrt(pow(hyp,2) + pow(plane_z,2))
         yaw = math.atan2(math.copysign(hyp, sign_xy), axis_xy)
         turn = angle - yaw if check_sign else angle + yaw
-        tilt = angle - math.copysign(math.acos(hyp / dia), sign_t)
+        tilt = angle - math.copysign(math.acos(hyp / dia), angle_z)
         pan = yaw if check_axes else turn
         return tilt, pan
 
