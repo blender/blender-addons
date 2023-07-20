@@ -922,7 +922,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             CreateBlenderObject = False
             CreateLightObject = True
             contextMatrix = None # Reset matrix
-        elif CreateLightObject and new_chunk.ID == RGB:  # Color
+        elif CreateLightObject and new_chunk.ID == COLOR_F:  # Color
             contextLamp.data.color = read_float_array(new_chunk)
         elif CreateLightObject and new_chunk.ID == LIGHT_MULTIPLIER:  # Intensity
             contextLamp.data.energy = (read_float(new_chunk) * 1000)
