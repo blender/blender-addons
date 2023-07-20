@@ -111,7 +111,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         description="Export selected objects only",
         default=False,
     )
-    use_hierarchy: bpy.props.BoolProperty(
+    use_hierarchy: BoolProperty(
         name="Export Hierarchy",
         description="Export hierarchy chunks",
         default=False,
