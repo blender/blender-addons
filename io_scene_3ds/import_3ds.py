@@ -929,7 +929,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         # If spotlight chunk
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOTLIGHT:  # Spotlight
-            temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.type = 'SPOT'
             contextLamp.data.use_shadow = False
             spot = mathutils.Vector(read_float_array(new_chunk))  # Spot location
