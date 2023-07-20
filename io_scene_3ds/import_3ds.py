@@ -1061,11 +1061,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'AMBIENT':  # Ambient
             keyframe_data = {}
             default_data = child.color[:]
-            child.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_track_data(new_chunk)[0]
+            child.color = read_track_data(new_chunk)[0]
+            child.node_tree.nodes['Background'].inputs[0].default_value[:3] = child.color
             for keydata in keyframe_data.items():
+                child.color = keydata[1]
+                child.keyframe_insert(data_path="color", frame=keydata[0])
                 child.node_tree.nodes['Background'].inputs[0].default_value[:3] = keydata[1]
                 child.node_tree.keyframe_insert(data_path="nodes[\"Background\"].inputs[0].default_value", frame=keydata[0])
-            contextTrack_flag = False
+            newTrack_flag = False
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and colortrack == 'LIGHT':  # Color
             keyframe_data = {}
