@@ -331,6 +331,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     contextLamp = None
     contextCamera = None
     contextMaterial = None
+    contextAlpha = None
+    contextColor = None
     contextWrapper = None
     contextMatrix = None
     contextMesh_vertls = None
@@ -506,13 +508,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         alpha = False
         pct = 50
 
+        contextWrapper.base_color = contextColor[:]
+        contextWrapper.metallic = contextMaterial.metallic
+        contextWrapper.roughness = contextMaterial.roughness
+        contextWrapper.specular = contextMaterial.specular_intensity
         contextWrapper.emission_color = contextMaterial.line_color[:3]
         contextWrapper.emission_strength = contextMaterial.line_priority / 100
-        contextWrapper.base_color[:3] = contextMaterial.diffuse_color[:3]
-        contextWrapper.specular = contextMaterial.specular_intensity
-        contextWrapper.roughness = contextMaterial.roughness
-        contextWrapper.metallic = contextMaterial.metallic
-        contextWrapper.alpha = contextMaterial.diffuse_color[3]
+        contextWrapper.alpha = contextMaterial.diffuse_color[3] = contextAlpha
 
         while (new_chunk.bytes_read < new_chunk.length):
             read_chunk(file, temp_chunk)
@@ -717,6 +719,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         # is it a material chunk?
         elif new_chunk.ID == MATERIAL:
+            contextAlpha = True
+            contextColor = mathutils.Color((0.8, 0.8, 0.8))
             contextMaterial = bpy.data.materials.new('Material')
             contextWrapper = PrincipledBSDFWrapper(contextMaterial, is_readonly=False, use_nodes=False)
 
@@ -741,9 +745,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MAT_DIFFUSE:
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == COLOR_F:
-                contextMaterial.diffuse_color[:3] = read_float_array(temp_chunk)
+                contextColor = mathutils.Color(read_float_array(temp_chunk))
+                contextMaterial.diffuse_color[:3] = contextColor
             elif temp_chunk.ID == COLOR_24:
-                contextMaterial.diffuse_color[:3] = read_byte_color(temp_chunk)
+                contextColor = mathutils.Color(read_byte_color(temp_chunk))
+                contextMaterial.diffuse_color[:3] = contextColor
             else:
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -791,11 +797,15 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MAT_TRANSPARENCY:
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == PCT_SHORT:
-                contextMaterial.diffuse_color[3] = 1 - (float(read_short(temp_chunk) / 100))
+                contextAlpha = 1 - (float(read_short(temp_chunk) / 100))
+                contextMaterial.diffuse_color[3] = contextAlpha
             elif temp_chunk.ID == PCT_FLOAT:
-                contextMaterial.diffuse_color[3] = 1.0 - float(read_float(temp_chunk))
+                contextAlpha = 1.0 - float(read_float(temp_chunk))
+                contextMaterial.diffuse_color[3] = contextAlpha
             else:
                 skip_to_end(file, temp_chunk)
+            if contextAlpha < 1:
+                contextMaterial.blend_method = 'BLEND'
             new_chunk.bytes_read += temp_chunk.bytes_read
 
         elif new_chunk.ID == MAT_SELF_ILPCT:
@@ -812,13 +822,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             shading = read_short(new_chunk)
             if shading >= 2:
                 contextWrapper.use_nodes = True
+                contextWrapper.base_color = contextColor[:]
+                contextWrapper.metallic = contextMaterial.metallic
+                contextWrapper.roughness = contextMaterial.roughness
+                contextWrapper.specular = contextMaterial.specular_intensity
                 contextWrapper.emission_color = contextMaterial.line_color[:3]
                 contextWrapper.emission_strength = contextMaterial.line_priority / 100
-                contextWrapper.base_color[:3] = contextMaterial.diffuse_color[:3]
-                contextWrapper.specular = contextMaterial.specular_intensity
-                contextWrapper.roughness = contextMaterial.roughness
-                contextWrapper.metallic = contextMaterial.metallic
-                contextWrapper.alpha = contextMaterial.diffuse_color[3]
+                contextWrapper.alpha = contextMaterial.diffuse_color[3] = contextAlpha
                 contextWrapper.use_nodes = False
                 if shading >= 3:
                     contextWrapper.use_nodes = True
