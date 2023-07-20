@@ -1315,6 +1315,7 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, IMAGE_SEARCH=True, WORLD_MATRIX=
     duration = time.time()
     current_chunk = Chunk()
     file = open(filepath, 'rb')
+    context.window.cursor_set('WAIT')
 
     # here we go!
     read_chunk(file, current_chunk)
@@ -1331,7 +1332,6 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, IMAGE_SEARCH=True, WORLD_MATRIX=
     # fixme, make unglobal, clear in case
     object_dictionary.clear()
     object_matrix.clear()
-
     scn = context.scene
 
     imported_objects = []  # Fill this list with objects
@@ -1347,12 +1347,12 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, IMAGE_SEARCH=True, WORLD_MATRIX=
                 me = ob.data
                 me.transform(ob.matrix_local.inverted())
 
-    # print(imported_objects)
     if CONVERSE and not KEYFRAME:
         for ob in imported_objects:
             ob.location.rotate(CONVERSE)
             ob.rotation_euler.rotate(CONVERSE)
 
+    # Select all new objects
     for ob in imported_objects:
         ob.select_set(True)
         if not APPLY_MATRIX:  # Reset transform
@@ -1419,7 +1419,7 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, IMAGE_SEARCH=True, WORLD_MATRIX=
                     area.spaces[0].clip_start = scale * 0.1
                     area.spaces[0].clip_end = scale * 10000
 
-    # Select all new objects.
+    context.window.cursor_set('DEFAULT')
     print(" done in %.4f sec." % (time.time() - duration))
     file.close()
 
