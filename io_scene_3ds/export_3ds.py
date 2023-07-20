@@ -1492,6 +1492,7 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
     """Save the Blender scene to a 3ds file."""
     # Time the export
     duration = time.time()
+    context.window.cursor_set('WAIT')
 
     scene = context.scene
     layer = context.view_layer
@@ -1792,8 +1793,7 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
     if write_keyframe:
         primary.add_subchunk(kfdata)
 
-    # At this point, the chunk hierarchy is completely built
-    # Check the size
+    # The chunk hierarchy is completely built, now check the size
     primary.get_size()
 
     # Open the file for writing
@@ -1810,6 +1810,7 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
     name_mapping.clear()
 
     # Debugging only: report the exporting time
+    context.window.cursor_set('DEFAULT')
     print("3ds export time: %.2f" % (time.time() - duration))
 
     # Debugging only: dump the chunk hierarchy
