@@ -1086,6 +1086,7 @@ def make_kfdata(revision, start=0, stop=100, curtime=0):
 def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
     """Make a chunk for track data. Depending on the ID, this will construct
     a position, rotation, scale, roll, color, fov, hotspot or falloff track."""
+    ob_distance = mathutils.Matrix.Diagonal(ob_size)
     track_chunk = _3ds_chunk(ID)
 
     if ID in {POS_TRACK_TAG, ROT_TRACK_TAG, SCL_TRACK_TAG, ROLL_TRACK_TAG} and ob.animation_data and ob.animation_data.action:
@@ -1110,9 +1111,10 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     pos_x = next((tc.evaluate(frame) for tc in pos_track if tc.array_index == 0), ob_pos.x)
                     pos_y = next((tc.evaluate(frame) for tc in pos_track if tc.array_index == 1), ob_pos.y)
                     pos_z = next((tc.evaluate(frame) for tc in pos_track if tc.array_index == 2), ob_pos.z)
+                    pos = ob_distance @ mathutils.Vector((pos_x, pos_y, pos_z))
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
-                    track_chunk.add_variable("position", _3ds_point_3d((pos_x, pos_y, pos_z)))
+                    track_chunk.add_variable("position", _3ds_point_3d((pos.x, pos.y, pos.z)))
 
             elif ID == ROT_TRACK_TAG:  # Rotation
                 for i, frame in enumerate(kframes):
@@ -1373,8 +1375,7 @@ def make_target_node(ob, translation, rotation, scale, name_id):
     # Calculate target position
     ob_pos = translation[name]
     ob_rot = rotation[name]
-    ob_size = scale[name]
-
+    ob_size = mathutils.Matrix.Diagonal(scale[name])
     target_pos = calc_target(ob_pos, ob_rot.x, ob_rot.z)
 
     # Add track chunks for target position
@@ -1404,7 +1405,8 @@ def make_target_node(ob, translation, rotation, scale, name_id):
                 rot_target = [fc for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
                 rot_x = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 0), ob_rot.x)
                 rot_z = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 2), ob_rot.z)
-                target_pos = calc_target(mathutils.Vector((loc_x, loc_y, loc_z)), rot_x, rot_z)
+                target_distance = ob_size @ mathutils.Vector((loc_x, loc_y, loc_z))
+                target_pos = calc_target(target_distance, rot_x, rot_z)
                 track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                 track_chunk.add_variable("tcb_flags", _3ds_ushort())
                 track_chunk.add_variable("position", _3ds_point_3d(target_pos))
@@ -1487,9 +1489,11 @@ def make_ambient_node(world):
 # EXPORT #
 ##########
 
-def save(operator, context, filepath="", use_selection=False, use_hierarchy=False, write_keyframe=False, global_matrix=None):
+def save(operator, context, filepath="", scale_factor=1.0, use_selection=False, use_hierarchy=False, write_keyframe=False, global_matrix=None):
 
     """Save the Blender scene to a 3ds file."""
+    mtx_scale = mathutils.Matrix.Scale(scale_factor, 4)
+
     # Time the export
     duration = time.time()
     context.window.cursor_set('WAIT')
@@ -1575,6 +1579,7 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
             if data:
                 matrix = global_matrix @ mtx
                 data.transform(matrix)
+                data.transform(mtx_scale)
                 mesh_objects.append((ob_derived, data, matrix))
                 ma_ls = data.materials
                 ma_ls_len = len(ma_ls)
@@ -1623,29 +1628,29 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
     name_id = {}
 
     for ob, data, matrix in mesh_objects:
-        translation[ob.name] = ob.location
+        translation[ob.name] = mtx_scale @ ob.location.copy()
         rotation[ob.name] = ob.rotation_euler
         scale[ob.name] = ob.scale
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
     for ob in empty_objects:
-        translation[ob.name] = ob.location
+        translation[ob.name] = mtx_scale @ ob.location.copy()
         rotation[ob.name] = ob.rotation_euler
         scale[ob.name] = ob.scale
         name_id[ob.name] = len(name_id)
 
     for ob in light_objects:
-        translation[ob.name] = ob.location
+        translation[ob.name] = mtx_scale @ ob.location.copy()
         rotation[ob.name] = ob.rotation_euler
-        scale[ob.name] = ob.scale
+        scale[ob.name] = mtx_scale.to_scale()
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
     for ob in camera_objects:
-        translation[ob.name] = ob.location
+        translation[ob.name] = mtx_scale @ ob.location.copy()
         rotation[ob.name] = ob.rotation_euler
-        scale[ob.name] = ob.scale
+        scale[ob.name] = mtx_scale.to_scale()
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
@@ -1695,9 +1700,10 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
         object_chunk = _3ds_chunk(OBJECT)
         obj_light_chunk = _3ds_chunk(OBJECT_LIGHT)
         color_float_chunk = _3ds_chunk(RGB)
+        light_distance = mtx_scale @ ob.location.copy()
         light_energy_factor = _3ds_chunk(LIGHT_MULTIPLIER)
         object_chunk.add_variable("light", _3ds_string(sane_name(ob.name)))
-        obj_light_chunk.add_variable("location", _3ds_point_3d(ob.location))
+        obj_light_chunk.add_variable("location", _3ds_point_3d(light_distance))
         color_float_chunk.add_variable("color", _3ds_float_color(ob.data.color))
         light_energy_factor.add_variable("energy", _3ds_float(ob.data.energy * 0.001))
         obj_light_chunk.add_subchunk(color_float_chunk)
@@ -1706,7 +1712,7 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
         if ob.data.type == 'SPOT':
             cone_angle = math.degrees(ob.data.spot_size)
             hot_spot = cone_angle - (ob.data.spot_blend * math.floor(cone_angle))
-            spot_pos = calc_target(ob.location, ob.rotation_euler.x, ob.rotation_euler.z)
+            spot_pos = calc_target(light_distance, ob.rotation_euler.x, ob.rotation_euler.z)
             spotlight_chunk = _3ds_chunk(LIGHT_SPOTLIGHT)
             spot_roll_chunk = _3ds_chunk(LIGHT_SPOT_ROLL)
             spotlight_chunk.add_variable("target", _3ds_point_3d(spot_pos))
@@ -1758,9 +1764,10 @@ def save(operator, context, filepath="", use_selection=False, use_hierarchy=Fals
     for ob in camera_objects:
         object_chunk = _3ds_chunk(OBJECT)
         camera_chunk = _3ds_chunk(OBJECT_CAMERA)
-        camera_target = calc_target(ob.location, ob.rotation_euler.x, ob.rotation_euler.z)
+        camera_distance = mtx_scale @ ob.location.copy()
+        camera_target = calc_target(camera_distance, ob.rotation_euler.x, ob.rotation_euler.z)
         object_chunk.add_variable("camera", _3ds_string(sane_name(ob.name)))
-        camera_chunk.add_variable("location", _3ds_point_3d(ob.location))
+        camera_chunk.add_variable("location", _3ds_point_3d(camera_distance))
         camera_chunk.add_variable("target", _3ds_point_3d(camera_target))
         camera_chunk.add_variable("roll", _3ds_float(round(ob.rotation_euler.y, 6)))
         camera_chunk.add_variable("lens", _3ds_float(ob.data.lens))

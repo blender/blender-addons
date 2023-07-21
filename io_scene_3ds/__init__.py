@@ -106,6 +106,13 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         options={'HIDDEN'},
     )
 
+    scale_factor: FloatProperty(
+        name="Scale",
+        description="Scale factor for all objects",
+        min=0.0, max=100000.0,
+        soft_min=0.0, soft_max=100000.0,
+        default=1.0,
+        )
     use_selection: BoolProperty(
         name="Selection Only",
         description="Export selected objects only",
