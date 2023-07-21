@@ -659,7 +659,7 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, (0.8, 0.8, 0.8)))
         material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1.0, 1.0, 1.0)))
         material_chunk.add_subchunk(make_percent_subchunk(MATSHINESS, 0.8))
-        material_chunk.add_subchunk(make_percent_subchunk(MATSHIN2, 1))
+        material_chunk.add_subchunk(make_percent_subchunk(MATSHIN2, 0.5))
         material_chunk.add_subchunk(shading)
 
     elif material and material.use_nodes:
@@ -1125,14 +1125,14 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     quat = mathutils.Euler((rot_x, rot_y, rot_z)).to_quaternion().inverted()
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
-                    track_chunk.add_variable("rotation", _3ds_point_4d((quat.angle, quat.axis[0], quat.axis[1], quat.axis[2])))
+                    track_chunk.add_variable("rotation", _3ds_point_4d((quat.angle, quat.axis.x, quat.axis.y, quat.axis.z)))
 
             elif ID == SCL_TRACK_TAG:  # Scale
                 for i, frame in enumerate(kframes):
                     scale_track = [fc for fc in fcurves if fc is not None and fc.data_path == 'scale']
-                    size_x = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 0), ob_size[0])
-                    size_y = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 1), ob_size[1])
-                    size_z = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 2), ob_size[2])
+                    size_x = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 0), ob_size.x)
+                    size_y = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 1), ob_size.y)
+                    size_z = next((tc.evaluate(frame) for tc in scale_track if tc.array_index == 2), ob_size.z)
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("scale", _3ds_point_3d((size_x, size_y, size_z)))
@@ -1209,7 +1209,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
 
         elif ID == ROT_TRACK_TAG:  # Rotation (angle first [radians], followed by axis)
             quat = ob_rot.to_quaternion().inverted()
-            track_chunk.add_variable("rotation", _3ds_point_4d((quat.angle, quat.axis[0], quat.axis[1], quat.axis[2])))
+            track_chunk.add_variable("rotation", _3ds_point_4d((quat.angle, quat.axis.x, quat.axis.y, quat.axis.z)))
 
         elif ID == SCL_TRACK_TAG:  # Scale vector
             track_chunk.add_variable("scale", _3ds_point_3d(ob_size))
@@ -1326,7 +1326,7 @@ def make_object_node(ob, translation, rotation, scale, name_id):
     else:  # Calculate child position and rotation of the object center, no scale applied
         ob_pos = translation[name] - translation[parent.name]
         ob_rot = rotation[name].to_quaternion().cross(rotation[parent.name].to_quaternion().copy().inverted()).to_euler()
-        ob_size = (1.0, 1.0, 1.0)
+        ob_size = mathutils.Vector((1.0, 1.0, 1.0))
 
     obj_node.add_subchunk(make_track_chunk(POS_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
 
@@ -1643,14 +1643,14 @@ def save(operator, context, filepath="", scale_factor=1.0, use_selection=False, 
     for ob in light_objects:
         translation[ob.name] = mtx_scale @ ob.location.copy()
         rotation[ob.name] = ob.rotation_euler
-        scale[ob.name] = mtx_scale.to_scale()
+        scale[ob.name] = mtx_scale.copy().to_scale()
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
     for ob in camera_objects:
         translation[ob.name] = mtx_scale @ ob.location.copy()
         rotation[ob.name] = ob.rotation_euler
-        scale[ob.name] = mtx_scale.to_scale()
+        scale[ob.name] = mtx_scale.copy().to_scale()
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
