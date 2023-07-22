@@ -55,6 +55,11 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         soft_min=0.0, soft_max=1000.0,
         default=10.0,
     )
+    convert_measure: BoolProperty(
+        name="Convert Measure",
+        description="Convert from millimeters to meters",
+        default=False,
+    )
     use_image_search: BoolProperty(
         name="Image Search",
         description="Search subdirectories for any associated images "
@@ -112,7 +117,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         min=0.0, max=100000.0,
         soft_min=0.0, soft_max=100000.0,
         default=1.0,
-        )
+    )
     use_selection: BoolProperty(
         name="Selection Only",
         description="Export selected objects only",
