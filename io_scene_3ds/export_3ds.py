@@ -1629,27 +1629,27 @@ def save(operator, context, filepath="", scale_factor=1.0, use_selection=False, 
 
     for ob, data, matrix in mesh_objects:
         translation[ob.name] = mtx_scale @ ob.location.copy()
-        rotation[ob.name] = ob.rotation_euler
-        scale[ob.name] = ob.scale
+        rotation[ob.name] = ob.rotation_euler.copy()
+        scale[ob.name] = ob.scale.copy()
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
     for ob in empty_objects:
         translation[ob.name] = mtx_scale @ ob.location.copy()
-        rotation[ob.name] = ob.rotation_euler
-        scale[ob.name] = ob.scale
+        rotation[ob.name] = ob.rotation_euler.copy()
+        scale[ob.name] = ob.scale.copy()
         name_id[ob.name] = len(name_id)
 
     for ob in light_objects:
         translation[ob.name] = mtx_scale @ ob.location.copy()
-        rotation[ob.name] = ob.rotation_euler
+        rotation[ob.name] = ob.rotation_euler.copy()
         scale[ob.name] = mtx_scale.copy().to_scale()
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
     for ob in camera_objects:
         translation[ob.name] = mtx_scale @ ob.location.copy()
-        rotation[ob.name] = ob.rotation_euler
+        rotation[ob.name] = ob.rotation_euler.copy()
         scale[ob.name] = mtx_scale.copy().to_scale()
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
@@ -1700,7 +1700,7 @@ def save(operator, context, filepath="", scale_factor=1.0, use_selection=False, 
         object_chunk = _3ds_chunk(OBJECT)
         obj_light_chunk = _3ds_chunk(OBJECT_LIGHT)
         color_float_chunk = _3ds_chunk(RGB)
-        light_distance = mtx_scale @ ob.location.copy()
+        light_distance = translation[ob.name]
         light_energy_factor = _3ds_chunk(LIGHT_MULTIPLIER)
         object_chunk.add_variable("light", _3ds_string(sane_name(ob.name)))
         obj_light_chunk.add_variable("location", _3ds_point_3d(light_distance))
@@ -1712,13 +1712,13 @@ def save(operator, context, filepath="", scale_factor=1.0, use_selection=False, 
         if ob.data.type == 'SPOT':
             cone_angle = math.degrees(ob.data.spot_size)
             hot_spot = cone_angle - (ob.data.spot_blend * math.floor(cone_angle))
-            spot_pos = calc_target(light_distance, ob.rotation_euler.x, ob.rotation_euler.z)
+            spot_pos = calc_target(light_distance, rotation[ob.name].x, rotation[ob.name].z)
             spotlight_chunk = _3ds_chunk(LIGHT_SPOTLIGHT)
             spot_roll_chunk = _3ds_chunk(LIGHT_SPOT_ROLL)
             spotlight_chunk.add_variable("target", _3ds_point_3d(spot_pos))
             spotlight_chunk.add_variable("hotspot", _3ds_float(round(hot_spot, 4)))
             spotlight_chunk.add_variable("angle", _3ds_float(round(cone_angle, 4)))
-            spot_roll_chunk.add_variable("roll", _3ds_float(round(ob.rotation_euler.y, 6)))
+            spot_roll_chunk.add_variable("roll", _3ds_float(round(rotation[ob.name].y, 6)))
             spotlight_chunk.add_subchunk(spot_roll_chunk)
             if ob.data.use_shadow:
                 spot_shadow_flag = _3ds_chunk(LIGHT_SPOT_SHADOWED)
@@ -1764,12 +1764,12 @@ def save(operator, context, filepath="", scale_factor=1.0, use_selection=False, 
     for ob in camera_objects:
         object_chunk = _3ds_chunk(OBJECT)
         camera_chunk = _3ds_chunk(OBJECT_CAMERA)
-        camera_distance = mtx_scale @ ob.location.copy()
-        camera_target = calc_target(camera_distance, ob.rotation_euler.x, ob.rotation_euler.z)
+        camera_distance = translation[ob.name]
+        camera_target = calc_target(camera_distance, rotation[ob.name].x, rotation[ob.name].z)
         object_chunk.add_variable("camera", _3ds_string(sane_name(ob.name)))
         camera_chunk.add_variable("location", _3ds_point_3d(camera_distance))
         camera_chunk.add_variable("target", _3ds_point_3d(camera_target))
-        camera_chunk.add_variable("roll", _3ds_float(round(ob.rotation_euler.y, 6)))
+        camera_chunk.add_variable("roll", _3ds_float(round(rotation[ob.name].y, 6)))
         camera_chunk.add_variable("lens", _3ds_float(ob.data.lens))
         object_chunk.add_subchunk(camera_chunk)
 
