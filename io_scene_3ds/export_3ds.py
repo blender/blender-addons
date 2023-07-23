@@ -1086,7 +1086,6 @@ def make_kfdata(revision, start=0, stop=100, curtime=0):
 def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
     """Make a chunk for track data. Depending on the ID, this will construct
     a position, rotation, scale, roll, color, fov, hotspot or falloff track."""
-    ob_distance = mathutils.Matrix.Diagonal(ob_size)
     track_chunk = _3ds_chunk(ID)
 
     if ID in {POS_TRACK_TAG, ROT_TRACK_TAG, SCL_TRACK_TAG, ROLL_TRACK_TAG} and ob.animation_data and ob.animation_data.action:
@@ -1111,7 +1110,7 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     pos_x = next((tc.evaluate(frame) for tc in pos_track if tc.array_index == 0), ob_pos.x)
                     pos_y = next((tc.evaluate(frame) for tc in pos_track if tc.array_index == 1), ob_pos.y)
                     pos_z = next((tc.evaluate(frame) for tc in pos_track if tc.array_index == 2), ob_pos.z)
-                    pos = ob_distance @ mathutils.Vector((pos_x, pos_y, pos_z))
+                    pos = ob_size @ mathutils.Vector((pos_x, pos_y, pos_z))
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("position", _3ds_point_3d((pos.x, pos.y, pos.z)))
@@ -1317,7 +1316,8 @@ def make_object_node(ob, translation, rotation, scale, name_id):
             obj_morph_smooth.add_variable("angle", _3ds_float(round(ob.data.auto_smooth_angle, 6)))
             obj_node.add_subchunk(obj_morph_smooth)
 
-    # Add track chunks for color, position, rotation and scale
+    # Add track chunks for position, rotation, size
+    ob_scale = scale[name]  # and collect masterscale
     if parent is None or (parent.name not in name_id):
         ob_pos = translation[name]
         ob_rot = rotation[name]
@@ -1328,7 +1328,7 @@ def make_object_node(ob, translation, rotation, scale, name_id):
         ob_rot = rotation[name].to_quaternion().cross(rotation[parent.name].to_quaternion().copy().inverted()).to_euler()
         ob_size = mathutils.Vector((1.0, 1.0, 1.0))
 
-    obj_node.add_subchunk(make_track_chunk(POS_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
+    obj_node.add_subchunk(make_track_chunk(POS_TRACK_TAG, ob, ob_pos, ob_rot, ob_scale))
 
     if ob.type in {'MESH', 'EMPTY'}:
         obj_node.add_subchunk(make_track_chunk(ROT_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
@@ -1375,7 +1375,7 @@ def make_target_node(ob, translation, rotation, scale, name_id):
     # Calculate target position
     ob_pos = translation[name]
     ob_rot = rotation[name]
-    ob_size = mathutils.Matrix.Diagonal(scale[name])
+    ob_scale = scale[name]
     target_pos = calc_target(ob_pos, ob_rot.x, ob_rot.z)
 
     # Add track chunks for target position
@@ -1405,7 +1405,7 @@ def make_target_node(ob, translation, rotation, scale, name_id):
                 rot_target = [fc for fc in fcurves if fc is not None and fc.data_path == 'rotation_euler']
                 rot_x = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 0), ob_rot.x)
                 rot_z = next((tc.evaluate(frame) for tc in rot_target if tc.array_index == 2), ob_rot.z)
-                target_distance = ob_size @ mathutils.Vector((loc_x, loc_y, loc_z))
+                target_distance = ob_scale @ mathutils.Vector((loc_x, loc_y, loc_z))
                 target_pos = calc_target(target_distance, rot_x, rot_z)
                 track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                 track_chunk.add_variable("tcb_flags", _3ds_ushort())
@@ -1628,29 +1628,29 @@ def save(operator, context, filepath="", scale_factor=1.0, use_selection=False, 
     name_id = {}
 
     for ob, data, matrix in mesh_objects:
-        translation[ob.name] = mtx_scale @ ob.location.copy()
-        rotation[ob.name] = ob.rotation_euler.copy()
-        scale[ob.name] = ob.scale.copy()
+        translation[ob.name] = mtx_scale @ ob.location
+        rotation[ob.name] = ob.rotation_euler
+        scale[ob.name] = mtx_scale.copy()
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
     for ob in empty_objects:
-        translation[ob.name] = mtx_scale @ ob.location.copy()
-        rotation[ob.name] = ob.rotation_euler.copy()
-        scale[ob.name] = ob.scale.copy()
+        translation[ob.name] = mtx_scale @ ob.location
+        rotation[ob.name] = ob.rotation_euler
+        scale[ob.name] = mtx_scale.copy()
         name_id[ob.name] = len(name_id)
 
     for ob in light_objects:
-        translation[ob.name] = mtx_scale @ ob.location.copy()
-        rotation[ob.name] = ob.rotation_euler.copy()
-        scale[ob.name] = mtx_scale.copy().to_scale()
+        translation[ob.name] = mtx_scale @ ob.location
+        rotation[ob.name] = ob.rotation_euler
+        scale[ob.name] = mtx_scale.copy()
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
     for ob in camera_objects:
-        translation[ob.name] = mtx_scale @ ob.location.copy()
-        rotation[ob.name] = ob.rotation_euler.copy()
-        scale[ob.name] = mtx_scale.copy().to_scale()
+        translation[ob.name] = mtx_scale @ ob.location
+        rotation[ob.name] = ob.rotation_euler
+        scale[ob.name] = mtx_scale.copy()
         name_id[ob.name] = len(name_id)
         object_id[ob.name] = len(object_id)
 
