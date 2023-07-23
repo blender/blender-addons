@@ -1321,7 +1321,7 @@ def make_object_node(ob, translation, rotation, scale, name_id):
     if parent is None or (parent.name not in name_id):
         ob_pos = translation[name]
         ob_rot = rotation[name]
-        ob_size = scale[name]
+        ob_size = ob.scale
 
     else:  # Calculate child position and rotation of the object center, no scale applied
         ob_pos = translation[name] - translation[parent.name]
