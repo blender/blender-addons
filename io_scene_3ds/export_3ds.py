@@ -1489,7 +1489,7 @@ def make_ambient_node(world):
 # EXPORT #
 ##########
 
-def save(operator, context, filepath="", scale_factor=1.0, unit_convert=False,
+def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False,
          use_selection=False, use_hierarchy=False, write_keyframe=False, global_matrix=None):
     """Save the Blender scene to a 3ds file."""
 
@@ -1503,7 +1503,7 @@ def save(operator, context, filepath="", scale_factor=1.0, unit_convert=False,
     world = scene.world
 
     unit_measure = 1.0
-    if unit_convert:
+    if apply_unit:
         unit_length = sce.unit_settings.length_unit
         if unit_length == 'KILOMETERS':
             unit_measure = 0.001
