@@ -1489,10 +1489,9 @@ def make_ambient_node(world):
 # EXPORT #
 ##########
 
-def save(operator, context, filepath="", scale_factor=1.0, use_selection=False, use_hierarchy=False, write_keyframe=False, global_matrix=None):
-
+def save(operator, context, filepath="", scale_factor=1.0, convert_unit=False,
+         use_selection=False, use_hierarchy=False, write_keyframe=False, global_matrix=None):
     """Save the Blender scene to a 3ds file."""
-    mtx_scale = mathutils.Matrix.Scale(scale_factor, 4)
 
     # Time the export
     duration = time.time()
@@ -1502,6 +1501,20 @@ def save(operator, context, filepath="", scale_factor=1.0, use_selection=False, 
     layer = context.view_layer
     depsgraph = context.evaluated_depsgraph_get()
     world = scene.world
+
+    unit_measure = 1.0
+    if unit_convert:
+        unit_length = sce.unit_settings.length_unit
+        if unit_length == 'KILOMETERS':
+            unit_measure = 0.001
+        elif unit_length == 'CENTIMETERS':
+            unit_measure = 100
+        elif unit_length == 'MILLIMETERS':
+            unit_measure = 1000
+        elif unit_length == 'MICROMETERS':
+            unit_measure = 1000000
+
+    mtx_scale = mathutils.Matrix.Scale((scale_factor * unit_measure),4)
 
     if global_matrix is None:
         global_matrix = mathutils.Matrix()

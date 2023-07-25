@@ -176,6 +176,11 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         soft_min=0.0, soft_max=100000.0,
         default=1.0,
     )
+    unit_convert: BoolProperty(
+        name="Convert Units",
+        description="Converts to scene unit length settings",
+        default=False,
+    )
     use_selection: BoolProperty(
         name="Selection Only",
         description="Export selected objects only",
@@ -259,6 +264,7 @@ class MAX3DS_PT_export_transform(bpy.types.Panel):
         operator = sfile.active_operator
 
         layout.prop(operator, "scale_factor")
+        layout.prop(operator, "unit_convert")
         layout.prop(operator, "axis_forward")
         layout.prop(operator, "axis_up")
 
