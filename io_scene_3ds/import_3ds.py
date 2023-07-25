@@ -1101,8 +1101,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             for keydata in keyframe_data.items():
                 trackposition[keydata[0]] = keydata[1]  # Keep track to position for target calculation
                 child.location = apply_constrain(keydata[1]) if hierarchy == ROOT_OBJECT else mathutils.Vector(keydata[1])
-                if MEASURE:
-                    child.location = child.location * 0.001
+                if MEASURE != 1.0:
+                    child.location = child.location * MEASURE
                 if hierarchy == ROOT_OBJECT:
                     child.location.rotate(CONVERSE)
                 if not contextTrack_flag & 0x100:  # Flag 0x100 unlinks X axis
@@ -1129,8 +1129,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 scale = mathutils.Vector.Fill(3, (CONSTRAIN * 0.1)) if CONSTRAIN != 0.0 else child.scale
                 transformation = mathutils.Matrix.LocRotScale(locate, rotate, scale)
                 child.matrix_world = transformation
-                if MEASURE:
-                    child.matrix_world = mathutils.Matrix.Scale(0.001,4) @ child.matrix_world
+                if MEASURE != 1.0:
+                    child.matrix_world = mathutils.Matrix.Scale(MEASURE,4) @ child.matrix_world
                 if hierarchy == ROOT_OBJECT:
                     child.matrix_world = CONVERSE @ child.matrix_world
                 child.keyframe_insert(data_path="rotation_euler", index=0, frame=keydata[0])
@@ -1305,7 +1305,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 # IMPORT #
 ##########
 
-def load_3ds(filepath, context, CONSTRAIN=10.0, MEASURE=False, IMAGE_SEARCH=True,
+def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True,
              WORLD_MATRIX=False, KEYFRAME=True, APPLY_MATRIX=True, CONVERSE=None):
 
     print("importing 3DS: %r..." % (filepath), end="")
@@ -1313,6 +1313,7 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, MEASURE=False, IMAGE_SEARCH=True
     if bpy.ops.object.select_all.poll():
         bpy.ops.object.select_all(action='DESELECT')
 
+    MEASURE = 1.0
     duration = time.time()
     current_chunk = Chunk()
     file = open(filepath, 'rb')
@@ -1335,6 +1336,17 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, MEASURE=False, IMAGE_SEARCH=True
     object_matrix.clear()
     scn = context.scene
 
+    if UNITS:
+        unit_length = sce.unit_settings.length_unit
+        if unit_length == 'KILOMETERS':
+            MEASURE = 1000.0
+        elif unit_length == 'CENTIMETERS':
+            MEASURE = 0.01
+        elif unit_length == 'MILLIMETERS':
+            MEASURE = 0.001
+        elif unit_length == 'MICROMETERS':
+            MEASURE = 0.000001
+
     imported_objects = []  # Fill this list with objects
     process_next_chunk(context, file, current_chunk, imported_objects, CONSTRAIN,
                        IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE, MEASURE)
@@ -1348,8 +1360,8 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, MEASURE=False, IMAGE_SEARCH=True
             if ob.type == 'MESH':
                 ob.data.transform(ob.matrix_local.inverted())
 
-    if MEASURE:
-        unit_mtx = mathutils.Matrix.Scale(0.001,4)
+    if UNITS:
+        unit_mtx = mathutils.Matrix.Scale(MEASURE,4)
         for ob in imported_objects:
             if ob.type == 'MESH':
                 ob.data.transform(unit_mtx)
@@ -1432,13 +1444,13 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, MEASURE=False, IMAGE_SEARCH=True
 
 
 def load(operator, context, filepath="", constrain_size=0.0,
-         convert_measure=False, use_image_search=True,
+         convert_unit=False, use_image_search=True,
          use_world_matrix=False, read_keyframe=True,
          use_apply_transform=True, global_matrix=None,
          ):
 
     load_3ds(filepath, context, CONSTRAIN=constrain_size,
-             MEASURE=convert_measure, IMAGE_SEARCH=use_image_search,
+             UNITS=convert_unit, IMAGE_SEARCH=use_image_search,
              WORLD_MATRIX=use_world_matrix, KEYFRAME=read_keyframe,
              APPLY_MATRIX=use_apply_transform, CONVERSE=global_matrix,
              )

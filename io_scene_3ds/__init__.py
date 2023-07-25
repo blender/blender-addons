@@ -55,9 +55,9 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         soft_min=0.0, soft_max=1000.0,
         default=10.0,
     )
-    convert_measure: BoolProperty(
-        name="Convert Measure",
-        description="Convert from millimeters to meters",
+    convert_unit: BoolProperty(
+        name="Convert Units",
+        description="Converts to scene unit length settings",
         default=False,
     )
     use_image_search: BoolProperty(
@@ -149,7 +149,7 @@ class MAX3DS_PT_import_transform(bpy.types.Panel):
         operator = sfile.active_operator
 
         layout.prop(operator, "constrain_size")
-        layout.prop(operator, "convert_measure")
+        layout.prop(operator, "convert_unit")
         layout.prop(operator, "use_apply_transform")
         layout.prop(operator, "use_world_matrix")
         layout.prop(operator, "axis_forward")
