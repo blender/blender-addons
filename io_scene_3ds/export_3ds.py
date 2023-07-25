@@ -1489,8 +1489,8 @@ def make_ambient_node(world):
 # EXPORT #
 ##########
 
-def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False,
-         use_selection=False, use_hierarchy=False, write_keyframe=False, global_matrix=None):
+def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use_selection=False,
+         object_filter=None, use_hierarchy=False, write_keyframe=False, global_matrix=None):
     """Save the Blender scene to a 3ds file."""
 
     # Time the export
@@ -1504,7 +1504,7 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False,
 
     unit_measure = 1.0
     if apply_unit:
-        unit_length = sce.unit_settings.length_unit
+        unit_length = scene.unit_settings.length_unit
         if unit_length == 'KILOMETERS':
             unit_measure = 0.001
         elif unit_length == 'CENTIMETERS':
@@ -1566,7 +1566,7 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False,
     if use_selection:
         objects = [ob for ob in scene.objects if ob.visible_get(view_layer=layer) and ob.select_get(view_layer=layer)]
     else:
-        objects = [ob for ob in scene.objects if ob.visible_get(view_layer=layer)]
+        objects = [ob for ob in scene.objects if ob.type in object_filter and ob.visible_get(view_layer=layer)]
 
     empty_objects = [ob for ob in objects if ob.type == 'EMPTY']
     light_objects = [ob for ob in objects if ob.type == 'LIGHT']

@@ -18,7 +18,7 @@ import bpy
 bl_info = {
     "name": "Autodesk 3DS format",
     "author": "Bob Holcomb, Campbell Barton, Andreas Atteneder, Sebastian Schrand",
-    "version": (2, 4, 4),
+    "version": (2, 4, 5),
     "blender": (3, 6, 0),
     "location": "File > Import-Export",
     "description": "3DS Import/Export meshes, UVs, materials, textures, "
@@ -170,14 +170,14 @@ class Export3DS(bpy.types.Operator, ExportHelper):
     )
 
     scale_factor: FloatProperty(
-        name="Scale",
-        description="Scale factor for all objects",
+        name="Scale Factor",
+        description="Master scale factor for all objects",
         min=0.0, max=100000.0,
         soft_min=0.0, soft_max=100000.0,
         default=1.0,
     )
     apply_unit: BoolProperty(
-        name="Apply Units",
+        name="Scene Units",
         description="Take the scene unit length settings into account",
         default=False,
     )
@@ -186,13 +186,23 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         description="Export selected objects only",
         default=False,
     )
+    object_filter: bpy.props.EnumProperty(
+        name="Object Filter", options={'ENUM_FLAG'},
+        items=(('MESH',"Mesh".rjust(11),"",'MESH_DATA',0x1),
+                ('LIGHT',"Light".rjust(12),"",'LIGHT_DATA',0x2),
+                ('CAMERA',"Camera".rjust(11),"",'CAMERA_DATA',0x4),
+                ('EMPTY',"Empty".rjust(11),"",'EMPTY_DATA',0x8),
+                ),
+        description="Object types to export",
+        default={'MESH', 'LIGHT', 'CAMERA', 'EMPTY'},
+    )
     use_hierarchy: BoolProperty(
         name="Export Hierarchy",
         description="Export hierarchy chunks",
         default=False,
     )
     write_keyframe: BoolProperty(
-        name="Write Keyframe",
+        name="Export Keyframes",
         description="Write the keyframe data",
         default=False,
     )
@@ -238,7 +248,10 @@ class MAX3DS_PT_export_include(bpy.types.Panel):
         operator = sfile.active_operator
 
         layout.prop(operator, "use_selection")
-        layout.prop(operator, "use_hierarchy")
+        laysub = layout.column(align=True)
+        laysub.enabled = (not operator.use_selection)
+        laysub.prop(operator, "object_filter")
+        layout.column().prop(operator, "use_hierarchy")
         layout.prop(operator, "write_keyframe")
 
 
