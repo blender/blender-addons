@@ -1538,7 +1538,7 @@ def save(operator, context, filepath="", scale_factor=1.0, unit_convert=False,
 
     # Add MASTERSCALE element
     mscale = _3ds_chunk(MASTERSCALE)
-    mscale.add_variable("scale", _3ds_float(1.0))
+    mscale.add_variable("scale", _3ds_float(unit_measure))
     object_info.add_subchunk(mscale)
 
     # Init main keyframe data chunk
