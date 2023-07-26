@@ -18,7 +18,7 @@ import bpy
 bl_info = {
     "name": "Autodesk 3DS format",
     "author": "Bob Holcomb, Campbell Barton, Andreas Atteneder, Sebastian Schrand",
-    "version": (2, 4, 5),
+    "version": (2, 4, 6),
     "blender": (3, 6, 0),
     "location": "File > Import-Export",
     "description": "3DS Import/Export meshes, UVs, materials, textures, "
@@ -188,13 +188,14 @@ class Export3DS(bpy.types.Operator, ExportHelper):
     )
     object_filter: bpy.props.EnumProperty(
         name="Object Filter", options={'ENUM_FLAG'},
-        items=(('MESH',"Mesh".rjust(11),"",'MESH_DATA',0x1),
-                ('LIGHT',"Light".rjust(12),"",'LIGHT_DATA',0x2),
-                ('CAMERA',"Camera".rjust(11),"",'CAMERA_DATA',0x4),
-                ('EMPTY',"Empty".rjust(11),"",'EMPTY_DATA',0x8),
-                ),
+        items=(('WORLD', "World".rjust(11), "", 'WORLD_DATA',0x1),
+               ('MESH', "Mesh".rjust(11), "", 'MESH_DATA', 0x2),
+               ('LIGHT', "Light".rjust(12), "", 'LIGHT_DATA',0x4),
+               ('CAMERA', "Camera".rjust(11), "", 'CAMERA_DATA',0x8),
+               ('EMPTY', "Empty".rjust(11), "", 'EMPTY_DATA',0x10),
+               ),
         description="Object types to export",
-        default={'MESH', 'LIGHT', 'CAMERA', 'EMPTY'},
+        default={'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY'},
     )
     use_hierarchy: BoolProperty(
         name="Export Hierarchy",
@@ -248,10 +249,8 @@ class MAX3DS_PT_export_include(bpy.types.Panel):
         operator = sfile.active_operator
 
         layout.prop(operator, "use_selection")
-        laysub = layout.column(align=True)
-        laysub.enabled = (not operator.use_selection)
-        laysub.prop(operator, "object_filter")
-        layout.column().prop(operator, "use_hierarchy")
+        layout.column().prop(operator, "object_filter")
+        layout.prop(operator, "use_hierarchy")
         layout.prop(operator, "write_keyframe")
 
 

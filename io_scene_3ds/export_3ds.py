@@ -30,6 +30,12 @@ KFDATA = 0xB000  # This is the header for all of the keyframe info
 # >----- sub defines of OBJECTINFO
 OBJECTINFO = 0x3D3D  # Main mesh object chunk before material and object information
 MESHVERSION = 0x3D3E  # This gives the version of the mesh
+BITMAP = 0x1100  # The background image name
+USE_BITMAP = 0x1101  # The background image flag
+SOLIDBACKGND = 0x1200  # The background color (RGB)
+USE_SOLIDBGND = 0x1201  # The background color flag
+VGRADIENT = 0x1300  # The background gradient colors
+USE_VGRADIENT = 0x1301  # The background gradient flag
 AMBIENTLIGHT = 0x2100  # The color of the ambient light
 MATERIAL = 45055  # 0xAFFF // This stored the texture info
 OBJECT = 16384  # 0x4000 // This stores the faces, vertices, etc...
@@ -1549,13 +1555,30 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
         curtime = scene.frame_current
         kfdata = make_kfdata(revision, start, stop, curtime)
 
-    # Add AMBIENT color
-    if world is not None:
+    # Add AMBIENT and BACKGROUND color
+    if world is not None and 'WORLD' in object_filter:
         ambient_chunk = _3ds_chunk(AMBIENTLIGHT)
         ambient_light = _3ds_chunk(RGB)
         ambient_light.add_variable("ambient", _3ds_float_color(world.color))
         ambient_chunk.add_subchunk(ambient_light)
         object_info.add_subchunk(ambient_chunk)
+        if world.use_nodes:
+            ntree = world.node_tree.links
+            background_color = _3ds_chunk(RGB)
+            background_chunk = _3ds_chunk(SOLIDBACKGND)
+            background_flag = _3ds_chunk(USE_SOLIDBGND)
+            bgcol, bgtex, nworld = 'BACKGROUND', 'TEX_IMAGE', 'OUTPUT_WORLD'
+            bg_color = next((lk.from_node.inputs[0].default_value[:3] for lk in ntree if lk.to_node.type == nworld), world.color)
+            bg_image = next((lk.from_node.image.name for lk in ntree if lk.from_node.type == bgtex and lk.to_node.type in {bgcol, nworld}), False)
+            background_color.add_variable("color", _3ds_float_color(bg_color))
+            background_chunk.add_subchunk(background_color)
+            if bg_image:
+                background_image = _3ds_chunk(BITMAP)
+                background_flag = _3ds_chunk(USE_BITMAP)
+                background_image.add_variable("image", _3ds_string(sane_name(bg_image)))
+                object_info.add_subchunk(background_image)
+            object_info.add_subchunk(background_chunk)
+            object_info.add_subchunk(background_flag)
         if write_keyframe and world.animation_data:
             kfdata.add_subchunk(make_ambient_node(world))
 
@@ -1564,7 +1587,7 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
     mesh_objects = []
 
     if use_selection:
-        objects = [ob for ob in scene.objects if ob.visible_get(view_layer=layer) and ob.select_get(view_layer=layer)]
+        objects = [ob for ob in scene.objects if ob.type in object_filter and ob.visible_get(view_layer=layer) and ob.select_get(view_layer=layer)]
     else:
         objects = [ob for ob in scene.objects if ob.type in object_filter and ob.visible_get(view_layer=layer)]
 
