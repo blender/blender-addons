@@ -74,7 +74,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
                ('CAMERA',"Camera".rjust(11),"",'CAMERA_DATA',0x8),
                ('EMPTY',"Empty".rjust(11),"",'EMPTY_DATA',0x10),
                ),
-        description="Object types to export",
+        description="Object types to import",
         default={'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY'},
     )
     use_apply_transform: BoolProperty(
