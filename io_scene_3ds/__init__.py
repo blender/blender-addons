@@ -66,6 +66,17 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         "(Warning, may be slow)",
         default=True,
     )
+    object_filter: EnumProperty(
+        name="Object Filter", options={'ENUM_FLAG'},
+        items=(('WORLD',"World".rjust(11),"",'WORLD_DATA',0x1),
+               ('MESH',"Mesh".rjust(11),"",'MESH_DATA',0x2),
+               ('LIGHT',"Light".rjust(12),"",'LIGHT_DATA',0x4),
+               ('CAMERA',"Camera".rjust(11),"",'CAMERA_DATA',0x8),
+               ('EMPTY',"Empty".rjust(11),"",'EMPTY_DATA',0x10),
+               ),
+        description="Object types to export",
+        default={'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY'},
+    )
     use_apply_transform: BoolProperty(
         name="Apply Transform",
         description="Workaround for object transformations "
@@ -124,6 +135,7 @@ class MAX3DS_PT_import_include(bpy.types.Panel):
         operator = sfile.active_operator
 
         layout.prop(operator, "use_image_search")
+        layout.column().prop(operator, "object_filter")
         layout.prop(operator, "read_keyframe")
 
 
@@ -186,7 +198,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         description="Export selected objects only",
         default=False,
     )
-    object_filter: bpy.props.EnumProperty(
+    object_filter: EnumProperty(
         name="Object Filter", options={'ENUM_FLAG'},
         items=(('WORLD', "World".rjust(11), "", 'WORLD_DATA',0x1),
                ('MESH', "Mesh".rjust(11), "", 'MESH_DATA', 0x2),
