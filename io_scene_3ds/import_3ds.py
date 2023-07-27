@@ -696,7 +696,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         # is it an object chunk?
         elif new_chunk.ID == OBJECT:
-
             if CreateBlenderObject:
                 putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMesh_flag,
                                contextMeshMaterials, contextMesh_smooth, WORLD_MATRIX)
@@ -1036,7 +1035,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == OBJECT_NODE_HDR:
             object_name, read_str_len = read_string(file)
             new_chunk.bytes_read += read_str_len
-            new_data = file.read(SZ_U_INT)
+            temp_data = file.read(SZ_U_INT)
             new_chunk.bytes_read += SZ_U_INT
             hierarchy = read_short(new_chunk)
             child = object_dictionary.get(object_name)
