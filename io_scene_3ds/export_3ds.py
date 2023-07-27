@@ -24,12 +24,12 @@ from bpy_extras import node_shader_utils
 PRIMARY = 0x4D4D
 
 # >----- Main Chunks
+OBJECTINFO = 0x3D3D  # Main mesh object chunk before material and object information
+MESHVERSION = 0x3D3E  # This gives the version of the mesh
 VERSION = 0x0002  # This gives the version of the .3ds file
 KFDATA = 0xB000  # This is the header for all of the keyframe info
 
 # >----- sub defines of OBJECTINFO
-OBJECTINFO = 0x3D3D  # Main mesh object chunk before material and object information
-MESHVERSION = 0x3D3E  # This gives the version of the mesh
 BITMAP = 0x1100  # The background image name
 USE_BITMAP = 0x1101  # The background image flag
 SOLIDBACKGND = 0x1200  # The background color (RGB)
