@@ -169,6 +169,7 @@ def elem_prop_first(elem, default=None):
 # ----
 # Support for
 # Properties70: { ... P:
+# Custom properties ("user properties" in FBX) are ignored here and get handled separately (see #104773).
 def elem_props_find_first(elem, elem_prop_id):
     if elem is None:
         # When properties are not found... Should never happen, but happens - as usual.
@@ -185,7 +186,8 @@ def elem_props_find_first(elem, elem_prop_id):
 
     for subelem in elem.elems:
         assert(subelem.id == b'P')
-        if subelem.props[0] == elem_prop_id:
+        # 'U' flag indicates that the property has been defined by the user.
+        if subelem.props[0] == elem_prop_id and b'U' not in subelem.props[3]:
             return subelem
     return None
 
