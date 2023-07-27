@@ -1267,6 +1267,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextMeshMaterials, contextMesh_smooth, WORLD_MATRIX)
 
     # Assign parents to objects
+    while None in object_list:
+        object_list.remove(None)
+
     # check _if_ we need to assign first because doing so recalcs the depsgraph
     for ind, ob in enumerate(object_list):
         parent = object_parent[ind]
