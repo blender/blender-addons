@@ -1049,7 +1049,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                     imported_objects.append(child)
                 else:
                     tracking = tracktype = None
-            if tracktype != 'TARGET' and tracking != 'AMBIENT':
+            if child is not None and tracktype != 'TARGET' and tracking != 'AMBIENT':
                 object_dict[object_id] = child
                 object_list.append(child)
                 object_parent.append(hierarchy)
