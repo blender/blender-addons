@@ -1281,13 +1281,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif parent not in object_dict:
             try:
                 ob.parent = object_list[parent]
-            except:  # seems one object is missing, so take previous one
-                ob.parent = object_list[parent - 1]
+            except:  # seems object is None or not in list
+                object_list.pop(ind)
         else:  # get parent from node_id number
             try:
                 ob.parent = object_dict.get(parent)
-            except:  # self to parent exception
-                object_list.remove(ob)
+            except:  # object is None or self to parent exception
+                object_list.pop(ind)
 
         #pivot_list[ind] += pivot_list[parent]  # Not sure this is correct, should parent space matrix be applied before combining?
 
@@ -1311,7 +1311,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     # fix pivots
     for ind, ob in enumerate(object_list):
         if ob is None:  # remove None
-            object_list.pop(ind)
+            object_list.remove(ob)
         elif ob.type == 'MESH':
             pivot = pivot_list[ind]
             pivot_matrix = object_matrix.get(ob, mathutils.Matrix())  # unlikely to fail
