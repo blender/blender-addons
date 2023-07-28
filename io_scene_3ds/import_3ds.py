@@ -37,6 +37,11 @@ PCT_FLOAT = 0x0031  # percentage float
 MASTERSCALE = 0x0100  # Master scale factor
 
 # >----- sub defines of OBJECTINFO
+USE_BITMAP = 0x1101  # The background image flag
+SOLIDBACKGND = 0x1200  # The background color (RGB)
+USE_SOLIDBGND = 0x1201  # The background color flag
+VGRADIENT = 0x1300  # The background gradient colors
+USE_VGRADIENT = 0x1301  # The background gradient flag
 AMBIENTLIGHT = 0x2100  # The color of the ambient light
 MATERIAL = 0xAFFF  # This stored the texture info
 OBJECT = 0x4000  # This stores the faces, vertices, etc...
@@ -363,24 +368,24 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     pivot_list = []  # pivots with hierarchy handling
     trackposition = {}  # keep track to position for target calculation
 
-    def putContextMesh(context, myContextMesh_vertls, myContextMesh_facels, myContextMesh_flag,
-                       myContextMeshMaterials, myContextMesh_smooth, WORLD_MATRIX):
+    def putContextMesh(context, ContextMesh_vertls, ContextMesh_facels, ContextMesh_flag,
+                       ContextMeshMaterials, ContextMesh_smooth, WORLD_MATRIX):
 
         bmesh = bpy.data.meshes.new(contextObName)
 
-        if myContextMesh_facels is None:
-            myContextMesh_facels = []
+        if ContextMesh_facels is None:
+            ContextMesh_facels = []
 
-        if myContextMesh_vertls:
+        if ContextMesh_vertls:
 
-            bmesh.vertices.add(len(myContextMesh_vertls) // 3)
-            bmesh.vertices.foreach_set("co", myContextMesh_vertls)
+            bmesh.vertices.add(len(ContextMesh_vertls) // 3)
+            bmesh.vertices.foreach_set("co", ContextMesh_vertls)
 
-            nbr_faces = len(myContextMesh_facels)
+            nbr_faces = len(ContextMesh_facels)
             bmesh.polygons.add(nbr_faces)
             bmesh.loops.add(nbr_faces * 3)
             eekadoodle_faces = []
-            for v1, v2, v3 in myContextMesh_facels:
+            for v1, v2, v3 in ContextMesh_facels:
                 eekadoodle_faces.extend((v3, v1, v2) if v3 == 0 else (v1, v2, v3))
             bmesh.polygons.foreach_set("loop_start", range(0, nbr_faces * 3, 3))
             bmesh.loops.foreach_set("vertex_index", eekadoodle_faces)
@@ -391,7 +396,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             else:
                 uv_faces = None
 
-            for mat_idx, (matName, faces) in enumerate(myContextMeshMaterials):
+            for mat_idx, (matName, faces) in enumerate(ContextMeshMaterials):
                 if matName is None:
                     bmat = None
                 else:
@@ -405,7 +410,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             if uv_faces:
                 uvl = bmesh.uv_layers.active.data[:]
                 for fidx, pl in enumerate(bmesh.polygons):
-                    face = myContextMesh_facels[fidx]
+                    face = ContextMesh_facels[fidx]
                     v1, v2, v3 = face
 
                     # eekadoodle
@@ -425,12 +430,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         context.view_layer.active_layer_collection.collection.objects.link(ob)
         imported_objects.append(ob)
 
-        if myContextMesh_flag:
+        if ContextMesh_flag:
             """Bit 0 (0x1) sets edge CA visible, Bit 1 (0x2) sets edge BC visible and
                Bit 2 (0x4) sets edge AB visible. In Blender we use sharp edges for those flags."""
             for f, pl in enumerate(bmesh.polygons):
-                face = myContextMesh_facels[f]
-                faceflag = myContextMesh_flag[f]
+                face = ContextMesh_facels[f]
+                faceflag = ContextMesh_flag[f]
                 edge_ab = bmesh.edges[bmesh.loops[pl.loop_start].edge_index]
                 edge_bc = bmesh.edges[bmesh.loops[pl.loop_start + 1].edge_index]
                 edge_ca = bmesh.edges[bmesh.loops[pl.loop_start + 2].edge_index]
@@ -443,9 +448,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 if faceflag & 0x4:
                     edge_ab.use_edge_sharp = True
 
-        if myContextMesh_smooth:
+        if ContextMesh_smooth:
             for f, pl in enumerate(bmesh.polygons):
-                smoothface = myContextMesh_smooth[f]
+                smoothface = ContextMesh_smooth[f]
                 if smoothface > 0:
                     bmesh.polygons[f].use_smooth = True
                 else:
@@ -507,7 +512,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         tintcolor = None
         extend = 'wrap'
         alpha = False
-        pct = 50
+        pct = 70
 
         contextWrapper.base_color = contextColor[:]
         contextWrapper.metallic = contextMaterial.metallic
@@ -601,8 +606,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             parent_list[child_id] = childs_list[parent_id]
 
     def calc_target(loca, target):
-        pan = 0.0
-        tilt = 0.0
+        pan = tilt = 0.0
         plane = loca + target
         angle = math.radians(90)  # Target triangulation
         check_sign = abs(loca.y) < abs(target.y)
