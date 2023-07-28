@@ -676,7 +676,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             if version > 3:
                 print("\tNon-Fatal Error:  Version greater than 3, may not load correctly: ", version)
 
-        # is it an ambient light chunk?
+        # If ambient light chunk
         elif CreateWorld and new_chunk.ID == AMBIENTLIGHT:
             path, filename = os.path.split(file.name)
             realname, ext = os.path.splitext(filename)
@@ -690,6 +690,42 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             else:
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
+
+        # If background chunk
+        elif CreateWorld and new_chunk.ID == SOLIDBACKGND:
+            if context.scene.world is None:
+                path, filename = os.path.split(file.name)
+                realname, ext = os.path.splitext(filename)
+                world = bpy.data.worlds.new("Background: " + realname)
+                context.scene.world = world
+            world = context.scene.world
+            world.use_nodes = True
+            read_chunk(file, temp_chunk)
+            if temp_chunk.ID == RGB:
+                world.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
+            elif temp_chunk.ID == RGBF:
+                world.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
+            else: skip_to_end(file, temp_chunk)
+            new_chunk.bytes_read += temp_chunk.bytes_read
+
+        # If bitmap chunk
+        elif CreateWorld and new_chunk.ID == BITMAP:
+            bitmap_name, read_str_len = read_string(file)
+            bitmap = load_image(bitmap_name, dirname, place_holder=False, recursive=image_search, check_existing=True)
+            if context.scene.world is None:
+                path, filename = os.path.split(file.name)
+                realname, ext = os.path.splitext(filename)
+                world = bpy.data.worlds.new("Bitmap: " + realname)
+                context.scene.world = world
+            world = context.scene.world
+            world.use_nodes = True
+            links = world.node_tree.links
+            nodes = world.node_tree.nodes
+            bitmapnode = nodes.new(type='ShaderNodeTexImage')
+            bitmapnode.label = bitmap_name
+            bitmapnode.location = (-300, 300)
+            links.new(bitmapnode.outputs['Color'], nodes['Background'].inputs[0])
+            new_chunk.bytes_read += read_str_len
 
         # is it an object info chunk?
         elif new_chunk.ID == OBJECTINFO:
@@ -1045,10 +1081,23 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             hierarchy = read_short(new_chunk)
             child = object_dictionary.get(object_name)
             if child is None:
-                if CreateWorld and object_name == '$AMBIENT$':
+                if CreateWorld and tracking == 'AMBIENT':
                     child = context.scene.world
                     child.use_nodes = True
-                elif CreateEmpty and object_name == '$$$DUMMY':
+                    nodetree = child.node_tree
+                    links = nodetree.links
+                    nodes = nodetree.nodes
+                    worldout = nodes['World Output']
+                    mixshade = nodes.new(type='ShaderNodeMixShader')
+                    ambinode = nodes.new(type='ShaderNodeEmission')
+                    ambinode.inputs[0].default_value[:3] = child.color
+                    worldout.location = (600, 250)
+                    mixshade.location = (300, 250)
+                    links.new(mixshade.outputs[0], worldout.inputs['Surface'])
+                    links.new(nodes['Background'].outputs[0], mixshade.inputs[1])
+                    links.new(ambinode.outputs[0], mixshade.inputs[2])
+                    ambinode.label = object_name if object_name != '$AMBIENT$' else "Ambient"
+                elif CreateEmpty and tracking == 'OBJECT' and object_name == '$$$DUMMY':
                     child = bpy.data.objects.new(object_name, None)  # Create an empty object
                     context.view_layer.active_layer_collection.collection.objects.link(child)
                     imported_objects.append(child)
@@ -1083,9 +1132,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             pivot_list[len(pivot_list) - 1] = mathutils.Vector(pivot)
 
         elif new_chunk.ID == MORPH_SMOOTH and tracking == 'OBJECT':  # Smooth angle
-            child.data.use_auto_smooth = True
             smooth_angle = read_float(new_chunk)
-            child.data.auto_smooth_angle = smooth_angle
+            if child.data is not None:  # Check if child is a dummy
+                child.data.use_auto_smooth = True
+                child.data.auto_smooth_angle = smooth_angle
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and tracking == 'AMBIENT':  # Ambient
             keyframe_data = {}
@@ -1292,6 +1342,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         #pivot_list[ind] += pivot_list[parent]  # Not sure this is correct, should parent space matrix be applied before combining?
 
     # if parent name
+    parent_dictionary.pop(None, ...)
     for par, objs in parent_dictionary.items():
         parent = object_dictionary.get(par)
         for ob in objs:
