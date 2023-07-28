@@ -37,6 +37,7 @@ PCT_FLOAT = 0x0031  # percentage float
 MASTERSCALE = 0x0100  # Master scale factor
 
 # >----- sub defines of OBJECTINFO
+BITMAP = 0x1100  # The background image name
 USE_BITMAP = 0x1101  # The background image flag
 SOLIDBACKGND = 0x1200  # The background color (RGB)
 USE_SOLIDBGND = 0x1201  # The background color flag
