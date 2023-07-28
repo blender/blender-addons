@@ -44,6 +44,8 @@ USE_SOLIDBGND = 0x1201  # The background color flag
 VGRADIENT = 0x1300  # The background gradient colors
 USE_VGRADIENT = 0x1301  # The background gradient flag
 AMBIENTLIGHT = 0x2100  # The color of the ambient light
+LAYER_FOG = 0x2302  # The fog atmosphere settings
+USE_LAYER_FOG = 0x2303  # The fog atmosphere flag
 MATERIAL = 0xAFFF  # This stored the texture info
 OBJECT = 0x4000  # This stores the faces, vertices, etc...
 
@@ -335,6 +337,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                        FILTER, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE, MEASURE):
 
     contextObName = None
+    contextWorld = None
     contextLamp = None
     contextCamera = None
     contextMaterial = None
@@ -680,52 +683,52 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif CreateWorld and new_chunk.ID == AMBIENTLIGHT:
             path, filename = os.path.split(file.name)
             realname, ext = os.path.splitext(filename)
-            world = bpy.data.worlds.new("Ambient: " + realname)
-            context.scene.world = world
+            contextWorld = bpy.data.worlds.new("Ambient: " + realname)
+            context.scene.world = contextWorld
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == COLOR_F:
-                context.scene.world.color[:] = read_float_array(temp_chunk)
+                contextWorld.color[:] = read_float_array(temp_chunk)
             elif temp_chunk.ID == LIN_COLOR_F:
-                context.scene.world.color[:] = read_float_array(temp_chunk)
+                contextWorld.color[:] = read_float_array(temp_chunk)
             else:
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
 
         # If background chunk
         elif CreateWorld and new_chunk.ID == SOLIDBACKGND:
-            if context.scene.world is None:
+            if contextWorld is None:
                 path, filename = os.path.split(file.name)
                 realname, ext = os.path.splitext(filename)
-                world = bpy.data.worlds.new("Background: " + realname)
-                context.scene.world = world
-            world = context.scene.world
-            world.use_nodes = True
-            read_chunk(file, temp_chunk)
-            if temp_chunk.ID == RGB:
-                world.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
-            elif temp_chunk.ID == RGBF:
-                world.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
-            else: skip_to_end(file, temp_chunk)
-            new_chunk.bytes_read += temp_chunk.bytes_read
+                contextWorld = bpy.data.worlds.new("Background: " + realname)
+                context.scene.world = contextWorld
+            else:
+                contextWorld.use_nodes = True
+                read_chunk(file, temp_chunk)
+                if temp_chunk.ID == RGB:
+                    contextWorld.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
+                elif temp_chunk.ID == RGBF:
+                    contextWorld.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
+                else: skip_to_end(file, temp_chunk)
+                new_chunk.bytes_read += temp_chunk.bytes_read
 
         # If bitmap chunk
         elif CreateWorld and new_chunk.ID == BITMAP:
             bitmap_name, read_str_len = read_string(file)
-            bitmap = load_image(bitmap_name, dirname, place_holder=False, recursive=image_search, check_existing=True)
-            if context.scene.world is None:
+            if contextWorld is None:
                 path, filename = os.path.split(file.name)
                 realname, ext = os.path.splitext(filename)
-                world = bpy.data.worlds.new("Bitmap: " + realname)
-                context.scene.world = world
-            world = context.scene.world
-            world.use_nodes = True
-            links = world.node_tree.links
-            nodes = world.node_tree.nodes
-            bitmapnode = nodes.new(type='ShaderNodeTexImage')
-            bitmapnode.label = bitmap_name
-            bitmapnode.location = (-300, 300)
-            links.new(bitmapnode.outputs['Color'], nodes['Background'].inputs[0])
-            new_chunk.bytes_read += read_str_len
+                contextWorld = bpy.data.worlds.new("Bitmap: " + realname)
+                context.scene.world = contextWorld
+            else:
+                contextWorld.use_nodes = True
+                links = contextWorld.node_tree.links
+                nodes = contextWorld.node_tree.nodes
+                bitmapnode = nodes.new(type='ShaderNodeTexEnvironment')
+                bitmapnode.label = bitmap_name
+                bitmapnode.location = (-300, 300)
+                bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=image_search, check_existing=True)
+                links.new(bitmapnode.outputs['Color'], nodes['Background'].inputs[0])
+                new_chunk.bytes_read += read_str_len
 
         # is it an object info chunk?
         elif new_chunk.ID == OBJECTINFO:
@@ -1091,8 +1094,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                     mixshade = nodes.new(type='ShaderNodeMixShader')
                     ambinode = nodes.new(type='ShaderNodeEmission')
                     ambinode.inputs[0].default_value[:3] = child.color
-                    worldout.location = (600, 250)
-                    mixshade.location = (300, 250)
+                    ambinode.location = (10, 150)
+                    worldout.location = (600, 200)
+                    mixshade.location = (300, 300)
                     links.new(mixshade.outputs[0], worldout.inputs['Surface'])
                     links.new(nodes['Background'].outputs[0], mixshade.inputs[1])
                     links.new(ambinode.outputs[0], mixshade.inputs[2])
@@ -1141,12 +1145,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             keyframe_data = {}
             default_data = child.color[:]
             child.color = read_track_data(new_chunk)[0]
-            child.node_tree.nodes['Background'].inputs[0].default_value[:3] = child.color
+            ambinode.inputs[0].default_value[:3] = child.color
             for keydata in keyframe_data.items():
                 child.color = keydata[1]
                 child.keyframe_insert(data_path="color", frame=keydata[0])
-                child.node_tree.nodes['Background'].inputs[0].default_value[:3] = keydata[1]
-                child.node_tree.keyframe_insert(data_path="nodes[\"Background\"].inputs[0].default_value", frame=keydata[0])
+                ambinode.inputs[0].default_value[:3] = keydata[1]
+                nodetree.keyframe_insert(data_path="nodes[\"Emission\"].inputs[0].default_value", frame=keydata[0])
             contextTrack_flag = False
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and tracking == 'LIGHT':  # Color

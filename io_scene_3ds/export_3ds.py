@@ -37,6 +37,8 @@ USE_SOLIDBGND = 0x1201  # The background color flag
 VGRADIENT = 0x1300  # The background gradient colors
 USE_VGRADIENT = 0x1301  # The background gradient flag
 AMBIENTLIGHT = 0x2100  # The color of the ambient light
+LAYER_FOG = 0x2302  # The fog atmosphere settings
+USE_LAYER_FOG = 0x2303  # The fog atmosphere flag
 MATERIAL = 45055  # 0xAFFF // This stored the texture info
 OBJECT = 16384  # 0x4000 // This stores the faces, vertices, etc...
 
@@ -1567,17 +1569,17 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
             background_color = _3ds_chunk(RGB)
             background_chunk = _3ds_chunk(SOLIDBACKGND)
             background_flag = _3ds_chunk(USE_SOLIDBGND)
-            bgcol, bgtex, nworld = 'BACKGROUND', 'TEX_IMAGE', 'OUTPUT_WORLD'
-            bg_color = next((lk.from_node.inputs[0].default_value[:3] for lk in ntree if lk.to_node.type == nworld), world.color)
-            bg_image = next((lk.from_node.image.name for lk in ntree if lk.from_node.type == bgtex and lk.to_node.type in {bgcol, nworld}), False)
+            amcol, bgcol, bgtex, nworld = 'EMISSION', 'BACKGROUND', 'TEX_ENVIRONMENT', 'OUTPUT_WORLD'
+            bg_color = next((lk.from_node.inputs[0].default_value[:3] for lk in ntree if lk.to_node.type == bgcol), world.color)
+            bg_image = next((lk.from_node.image.name for lk in ntree if lk.from_node.type == bgtex and lk.to_node.type in {amcol, bgcol}), False)
             background_color.add_variable("color", _3ds_float_color(bg_color))
             background_chunk.add_subchunk(background_color)
+            object_info.add_subchunk(background_chunk)
             if bg_image:
                 background_image = _3ds_chunk(BITMAP)
                 background_flag = _3ds_chunk(USE_BITMAP)
                 background_image.add_variable("image", _3ds_string(sane_name(bg_image)))
                 object_info.add_subchunk(background_image)
-            object_info.add_subchunk(background_chunk)
             object_info.add_subchunk(background_flag)
         if write_keyframe and world.animation_data:
             kfdata.add_subchunk(make_ambient_node(world))
