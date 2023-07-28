@@ -56,7 +56,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         default=10.0,
     )
     convert_unit: BoolProperty(
-        name="Convert Units",
+        name="Scene Units",
         description="Converts to scene unit length settings",
         default=False,
     )
@@ -68,11 +68,11 @@ class Import3DS(bpy.types.Operator, ImportHelper):
     )
     object_filter: EnumProperty(
         name="Object Filter", options={'ENUM_FLAG'},
-        items=(('WORLD',"World".rjust(11),"",'WORLD_DATA',0x1),
-               ('MESH',"Mesh".rjust(11),"",'MESH_DATA',0x2),
-               ('LIGHT',"Light".rjust(12),"",'LIGHT_DATA',0x4),
-               ('CAMERA',"Camera".rjust(11),"",'CAMERA_DATA',0x8),
-               ('EMPTY',"Empty".rjust(11),"",'EMPTY_DATA',0x10),
+        items=(('WORLD', "World".rjust(11), "", 'WORLD_DATA', 0x1),
+               ('MESH', "Mesh".rjust(11), "", 'MESH_DATA', 0x2),
+               ('LIGHT', "Light".rjust(12), "", 'LIGHT_DATA', 0x4),
+               ('CAMERA', "Camera".rjust(11), "", 'CAMERA_DATA', 0x8),
+               ('EMPTY', "Empty".rjust(11), "", 'EMPTY_DATA', 0x10),
                ),
         description="Object types to import",
         default={'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY'},
@@ -84,7 +84,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         default=True,
     )
     read_keyframe: BoolProperty(
-        name="Read Keyframe",
+        name="Animation",
         description="Read the keyframe data",
         default=True,
     )
@@ -134,9 +134,13 @@ class MAX3DS_PT_import_include(bpy.types.Panel):
         sfile = context.space_data
         operator = sfile.active_operator
 
-        layout.prop(operator, "use_image_search")
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "use_image_search")
+        layrow.label(text="", icon='OUTLINER_OB_IMAGE' if operator.use_image_search else 'IMAGE_DATA')
         layout.column().prop(operator, "object_filter")
-        layout.prop(operator, "read_keyframe")
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "read_keyframe")
+        layrow.label(text="", icon='ANIM' if operator.read_keyframe else 'DECORATE_DRIVER')
 
 
 class MAX3DS_PT_import_transform(bpy.types.Panel):
@@ -161,9 +165,15 @@ class MAX3DS_PT_import_transform(bpy.types.Panel):
         operator = sfile.active_operator
 
         layout.prop(operator, "constrain_size")
-        layout.prop(operator, "convert_unit")
-        layout.prop(operator, "use_apply_transform")
-        layout.prop(operator, "use_world_matrix")
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "convert_unit")
+        layrow.label(text="", icon='EMPTY_ARROWS' if operator.convert_unit else 'EMPTY_DATA')
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "use_apply_transform")
+        layrow.label(text="", icon='MESH_CUBE' if operator.use_apply_transform else 'MOD_SOLIDIFY')
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "use_world_matrix")
+        layrow.label(text="", icon='WORLD' if operator.use_world_matrix else 'META_BALL')
         layout.prop(operator, "axis_forward")
         layout.prop(operator, "axis_up")
 
@@ -194,7 +204,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         default=False,
     )
     use_selection: BoolProperty(
-        name="Selection Only",
+        name="Selection",
         description="Export selected objects only",
         default=False,
     )
@@ -210,12 +220,12 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         default={'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY'},
     )
     use_hierarchy: BoolProperty(
-        name="Export Hierarchy",
+        name="Hierarchy",
         description="Export hierarchy chunks",
         default=False,
     )
     write_keyframe: BoolProperty(
-        name="Export Keyframes",
+        name="Animation",
         description="Write the keyframe data",
         default=False,
     )
@@ -260,10 +270,17 @@ class MAX3DS_PT_export_include(bpy.types.Panel):
         sfile = context.space_data
         operator = sfile.active_operator
 
-        layout.prop(operator, "use_selection")
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "use_selection")
+        layrow.label(text="", icon='RESTRICT_SELECT_OFF' if operator.use_selection else 'RESTRICT_SELECT_ON')
         layout.column().prop(operator, "object_filter")
-        layout.prop(operator, "use_hierarchy")
-        layout.prop(operator, "write_keyframe")
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "use_hierarchy")
+        layrow.label(text="", icon='OUTLINER' if operator.use_hierarchy else 'CON_CHILDOF')
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "write_keyframe")
+        layrow.label(text="", icon='ANIM' if operator.write_keyframe else 'DECORATE_DRIVER')
+        layout.use_property_split = True
 
 
 class MAX3DS_PT_export_transform(bpy.types.Panel):
@@ -288,7 +305,9 @@ class MAX3DS_PT_export_transform(bpy.types.Panel):
         operator = sfile.active_operator
 
         layout.prop(operator, "scale_factor")
-        layout.prop(operator, "apply_unit")
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "apply_unit")
+        layrow.label(text="", icon='EMPTY_ARROWS' if operator.apply_unit else 'EMPTY_DATA')
         layout.prop(operator, "axis_forward")
         layout.prop(operator, "axis_up")
 
