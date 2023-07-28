@@ -1407,7 +1407,7 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
     scn = context.scene
 
     if UNITS:
-        unit_length = sce.unit_settings.length_unit
+        unit_length = scn.unit_settings.length_unit
         if unit_length == 'KILOMETERS':
             MEASURE = 1000.0
         elif unit_length == 'CENTIMETERS':
