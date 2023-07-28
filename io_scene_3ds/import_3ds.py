@@ -1054,7 +1054,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                     imported_objects.append(child)
                 else:
                     tracking = tracktype = None
-            if child is not None and tracktype != 'TARGET' and tracking != 'AMBIENT':
+            if tracktype != 'TARGET' and tracking != 'AMBIENT':
                 object_dict[object_id] = child
                 object_list.append(child)
                 object_parent.append(hierarchy)
@@ -1272,14 +1272,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextMeshMaterials, contextMesh_smooth, WORLD_MATRIX)
 
     # Assign parents to objects
-    while None in object_list:
-        object_list.remove(None)
-
     # check _if_ we need to assign first because doing so recalcs the depsgraph
     for ind, ob in enumerate(object_list):
         parent = object_parent[ind]
         if parent == ROOT_OBJECT:
-            ob.parent = None
+            if ob is not None:
+                ob.parent = None
         elif parent not in object_dict:
             try:
                 ob.parent = object_list[parent]
@@ -1289,7 +1287,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             try:
                 ob.parent = object_dict.get(parent)
             except:  # self to parent exception
-                ob.parent = None
+                object_list.remove(ob)
 
         #pivot_list[ind] += pivot_list[parent]  # Not sure this is correct, should parent space matrix be applied before combining?
 
@@ -1312,7 +1310,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
     # fix pivots
     for ind, ob in enumerate(object_list):
-        if ob.type == 'MESH':
+        if ob is None:  # remove None
+            object_list.pop(ind)
+        elif ob.type == 'MESH':
             pivot = pivot_list[ind]
             pivot_matrix = object_matrix.get(ob, mathutils.Matrix())  # unlikely to fail
             pivot_matrix = mathutils.Matrix.Translation(-1 * pivot)
