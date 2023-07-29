@@ -1557,7 +1557,7 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
         curtime = scene.frame_current
         kfdata = make_kfdata(revision, start, stop, curtime)
 
-    # Add AMBIENT and BACKGROUND color
+    # Add AMBIENT, BACKGROUND, BITMAP and LAYER_FOG
     if world is not None and 'WORLD' in object_filter:
         ambient_chunk = _3ds_chunk(AMBIENTLIGHT)
         ambient_light = _3ds_chunk(RGB)
