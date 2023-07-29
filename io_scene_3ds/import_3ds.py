@@ -704,9 +704,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             else:
                 contextWorld.use_nodes = True
                 read_chunk(file, temp_chunk)
-                if temp_chunk.ID == RGB:
+                if temp_chunk.ID == COLOR_F:
                     contextWorld.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
-                elif temp_chunk.ID == RGBF:
+                elif temp_chunk.ID == LIN_COLOR_F:
                     contextWorld.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
                 else: skip_to_end(file, temp_chunk)
                 new_chunk.bytes_read += temp_chunk.bytes_read
@@ -729,6 +729,37 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=image_search, check_existing=True)
                 links.new(bitmapnode.outputs['Color'], nodes['Background'].inputs[0])
                 new_chunk.bytes_read += read_str_len
+
+        # If fog chunk
+        elif CreateWorld and new_chunk.ID == LAYER_FOG:
+            if contextWorld is None:
+                path, filename = os.path.split(file.name)
+                realname, ext = os.path.splitext(filename)
+                contextWorld = bpy.data.worlds.new("LayerFog: " + realname)
+                context.scene.world = contextWorld
+            else:
+                contextWorld.use_nodes = True
+                links = contextWorld.node_tree.links
+                nodes = contextWorld.node_tree.nodes
+                context.view_layer.use_pass_mist = False
+                layerfog = nodes.new(type='ShaderNodeVolumeScatter')
+                layerfog.label = "Layer Fog"
+                layerfog.location = (300, 100)
+                links.new(layerfog.outputs['Volume'], nodes['World Output'].inputs['Volume'])
+                contextWorld.mist_settings.start = read_float(new_chunk)
+                contextWorld.mist_settings.depth = read_float(new_chunk)
+                layerfog.inputs[1].default_value = read_float(new_chunk)
+                layerfogflag = read_long(new_chunk)
+                read_chunk(file, temp_chunk)
+                if temp_chunk.ID == COLOR_F:
+                    layerfog.inputs[0].default_value[:3] = read_float_array(temp_chunk)
+                elif temp_chunk.ID == LIN_COLOR_F:
+                    layerfog.inputs[0].default_value[:3] = read_float_array(temp_chunk)
+                else:
+                    skip_to_end(file, temp_chunk)
+                new_chunk.bytes_read += temp_chunk.bytes_read
+        elif CreateWorld and new_chunk.ID == USE_LAYER_FOG:
+            context.view_layer.use_pass_mist = True
 
         # is it an object info chunk?
         elif new_chunk.ID == OBJECTINFO:
