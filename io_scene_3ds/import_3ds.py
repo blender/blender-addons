@@ -725,7 +725,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             bitmapnode = nodes.new(type='ShaderNodeTexEnvironment')
             bitmapnode.label = bitmap_name
             bitmapnode.location = (-300, 300)
-            bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=image_search, check_existing=True)
+            bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=use_image_search, check_existing=True)
             links.new(bitmapnode.outputs['Color'], nodes['Background'].inputs[0])
             new_chunk.bytes_read += read_str_len
 
