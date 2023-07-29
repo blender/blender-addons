@@ -1557,7 +1557,7 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
         curtime = scene.frame_current
         kfdata = make_kfdata(revision, start, stop, curtime)
 
-    # Add AMBIENT, BACKGROUND, BITMAP and LAYER_FOG
+    # Add AMBIENT, BACKGROUND and BITMAP
     if world is not None and 'WORLD' in object_filter:
         ambient_chunk = _3ds_chunk(AMBIENTLIGHT)
         ambient_light = _3ds_chunk(RGB)
@@ -1583,6 +1583,8 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
                 object_info.add_subchunk(background_image)
             object_info.add_subchunk(background_chunk)
             object_info.add_subchunk(background_flag)
+
+            # Add LAYER_FOG settings
             fogshader = next((lk.from_socket.node for lk in ntree if lk.from_socket.identifier and lk.to_socket.identifier == 'Volume'), False)
             if fogshader:
                 fogflag = 0
@@ -1593,10 +1595,10 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
                 fog_chunk = _3ds_chunk(LAYER_FOG)
                 fog_color_chunk = _3ds_chunk(RGB)
                 use_fog_flag = _3ds_chunk(USE_LAYER_FOG)
-                fog_color_chunk.add_variable("color", _3ds_float_color(fogshader.inputs[0].default_value[:3]))
+                fog_color_chunk.add_variable("color", _3ds_float_color(fogshader.inputs['Color'].default_value[:3]))
                 fog_chunk.add_variable("lowZ", _3ds_float(world.mist_settings.start))
                 fog_chunk.add_variable("highZ", _3ds_float(world.mist_settings.depth))
-                fog_chunk.add_variable("density", _3ds_float(fogshader.inputs[1].default_value))
+                fog_chunk.add_variable("density", _3ds_float(fogshader.inputs['Density'].default_value))
                 fog_chunk.add_variable("flags", _3ds_uint(fogflag))
                 fog_chunk.add_subchunk(fog_color_chunk)
                 object_info.add_subchunk(fog_chunk)
