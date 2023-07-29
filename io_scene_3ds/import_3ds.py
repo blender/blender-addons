@@ -701,15 +701,15 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 realname, ext = os.path.splitext(filename)
                 contextWorld = bpy.data.worlds.new("Background: " + realname)
                 context.scene.world = contextWorld
+            contextWorld.use_nodes = True
+            read_chunk(file, temp_chunk)
+            if temp_chunk.ID == COLOR_F:
+                contextWorld.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
+            elif temp_chunk.ID == LIN_COLOR_F:
+                contextWorld.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
             else:
-                contextWorld.use_nodes = True
-                read_chunk(file, temp_chunk)
-                if temp_chunk.ID == COLOR_F:
-                    contextWorld.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
-                elif temp_chunk.ID == LIN_COLOR_F:
-                    contextWorld.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
-                else: skip_to_end(file, temp_chunk)
-                new_chunk.bytes_read += temp_chunk.bytes_read
+                skip_to_end(file, temp_chunk)
+            new_chunk.bytes_read += temp_chunk.bytes_read
 
         # If bitmap chunk
         elif CreateWorld and new_chunk.ID == BITMAP:
@@ -719,45 +719,50 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 realname, ext = os.path.splitext(filename)
                 contextWorld = bpy.data.worlds.new("Bitmap: " + realname)
                 context.scene.world = contextWorld
-            else:
-                contextWorld.use_nodes = True
-                links = contextWorld.node_tree.links
-                nodes = contextWorld.node_tree.nodes
-                bitmapnode = nodes.new(type='ShaderNodeTexEnvironment')
-                bitmapnode.label = bitmap_name
-                bitmapnode.location = (-300, 300)
-                bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=image_search, check_existing=True)
-                links.new(bitmapnode.outputs['Color'], nodes['Background'].inputs[0])
-                new_chunk.bytes_read += read_str_len
+            contextWorld.use_nodes = True
+            links = contextWorld.node_tree.links
+            nodes = contextWorld.node_tree.nodes
+            bitmapnode = nodes.new(type='ShaderNodeTexEnvironment')
+            bitmapnode.label = bitmap_name
+            bitmapnode.location = (-300, 300)
+            bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=image_search, check_existing=True)
+            links.new(bitmapnode.outputs['Color'], nodes['Background'].inputs[0])
+            new_chunk.bytes_read += read_str_len
 
         # If fog chunk
         elif CreateWorld and new_chunk.ID == LAYER_FOG:
+            """Fog options flags are bit 20 (0x100000) for background fogging,
+               bit 0 (0x1) for bottom falloff, and bit 1 (0x2) for top falloff."""
             if contextWorld is None:
                 path, filename = os.path.split(file.name)
                 realname, ext = os.path.splitext(filename)
                 contextWorld = bpy.data.worlds.new("LayerFog: " + realname)
                 context.scene.world = contextWorld
+            contextWorld.use_nodes = True
+            links = contextWorld.node_tree.links
+            nodes = contextWorld.node_tree.nodes
+            layerfog = nodes.new(type='ShaderNodeVolumeScatter')
+            layerfog.label = "Layer Fog"
+            layerfog.location = (300, 100)
+            links.new(layerfog.outputs['Volume'], nodes['World Output'].inputs['Volume'])
+            context.view_layer.use_pass_mist = False
+            contextWorld.mist_settings.use_mist = True
+            contextWorld.mist_settings.start = read_float(new_chunk)
+            contextWorld.mist_settings.depth = read_float(new_chunk)
+            layerfog.inputs[1].default_value = read_float(new_chunk)
+            layerfog_flag = read_long(new_chunk)
+            if layerfog_flag & 0x1:
+                contextWorld.mist_settings.falloff = 'QUADRATIC'
+            if layerfog_flag & 0x2:
+                contextWorld.mist_settings.falloff = 'INVERSE_QUADRATIC'
+            read_chunk(file, temp_chunk)
+            if temp_chunk.ID == COLOR_F:
+                layerfog.inputs[0].default_value[:3] = read_float_array(temp_chunk)
+            elif temp_chunk.ID == LIN_COLOR_F:
+                layerfog.inputs[0].default_value[:3] = read_float_array(temp_chunk)
             else:
-                contextWorld.use_nodes = True
-                links = contextWorld.node_tree.links
-                nodes = contextWorld.node_tree.nodes
-                context.view_layer.use_pass_mist = False
-                layerfog = nodes.new(type='ShaderNodeVolumeScatter')
-                layerfog.label = "Layer Fog"
-                layerfog.location = (300, 100)
-                links.new(layerfog.outputs['Volume'], nodes['World Output'].inputs['Volume'])
-                contextWorld.mist_settings.start = read_float(new_chunk)
-                contextWorld.mist_settings.depth = read_float(new_chunk)
-                layerfog.inputs[1].default_value = read_float(new_chunk)
-                layerfogflag = read_long(new_chunk)
-                read_chunk(file, temp_chunk)
-                if temp_chunk.ID == COLOR_F:
-                    layerfog.inputs[0].default_value[:3] = read_float_array(temp_chunk)
-                elif temp_chunk.ID == LIN_COLOR_F:
-                    layerfog.inputs[0].default_value[:3] = read_float_array(temp_chunk)
-                else:
-                    skip_to_end(file, temp_chunk)
-                new_chunk.bytes_read += temp_chunk.bytes_read
+                skip_to_end(file, temp_chunk)
+            new_chunk.bytes_read += temp_chunk.bytes_read
         elif CreateWorld and new_chunk.ID == USE_LAYER_FOG:
             context.view_layer.use_pass_mist = True
 

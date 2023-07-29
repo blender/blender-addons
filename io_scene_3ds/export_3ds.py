@@ -1566,21 +1566,42 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
         object_info.add_subchunk(ambient_chunk)
         if world.use_nodes:
             ntree = world.node_tree.links
-            background_color = _3ds_chunk(RGB)
+            background_color_chunk = _3ds_chunk(RGB)
             background_chunk = _3ds_chunk(SOLIDBACKGND)
             background_flag = _3ds_chunk(USE_SOLIDBGND)
-            amcol, bgcol, bgtex, nworld = 'EMISSION', 'BACKGROUND', 'TEX_ENVIRONMENT', 'OUTPUT_WORLD'
-            bg_color = next((lk.from_node.inputs[0].default_value[:3] for lk in ntree if lk.to_node.type == bgcol), world.color)
-            bg_image = next((lk.from_node.image.name for lk in ntree if lk.from_node.type == bgtex and lk.to_node.type in {amcol, bgcol}), False)
-            background_color.add_variable("color", _3ds_float_color(bg_color))
-            background_chunk.add_subchunk(background_color)
-            object_info.add_subchunk(background_chunk)
+            bgshader = 'ADD_SHADER', 'MIX_SHADER', 'OUTPUT_WORLD'
+            bgtexture = 'TEX_IMAGE', 'TEX_ENVIRONMENT'
+            acol, bcol = 'EMISSION', 'BACKGROUND'
+            bg_color = next((lk.from_node.inputs[0].default_value[:3] for lk in ntree if lk.from_node.type == bcol and lk.to_node.type in bgshader), world.color)
+            bg_image = next((lk.from_node.image.name for lk in ntree if lk.from_node.type in bgtexture and lk.to_node.type in {acol, bcol}), False)
+            background_color_chunk.add_variable("color", _3ds_float_color(bg_color))
+            background_chunk.add_subchunk(background_color_chunk)
             if bg_image:
                 background_image = _3ds_chunk(BITMAP)
                 background_flag = _3ds_chunk(USE_BITMAP)
                 background_image.add_variable("image", _3ds_string(sane_name(bg_image)))
                 object_info.add_subchunk(background_image)
+            object_info.add_subchunk(background_chunk)
             object_info.add_subchunk(background_flag)
+            fogshader = next((lk.from_socket.node for lk in ntree if lk.from_socket.identifier and lk.to_socket.identifier == 'Volume'), False)
+            if fogshader:
+                fogflag = 0
+                if world.mist_settings.falloff == 'QUADRATIC':
+                    fogflag |= 0x1
+                if world.mist_settings.falloff == 'INVERSE_QUADRATIC':
+                    fogflag |= 0x2
+                fog_chunk = _3ds_chunk(LAYER_FOG)
+                fog_color_chunk = _3ds_chunk(RGB)
+                use_fog_flag = _3ds_chunk(USE_LAYER_FOG)
+                fog_color_chunk.add_variable("color", _3ds_float_color(fogshader.inputs[0].default_value[:3]))
+                fog_chunk.add_variable("lowZ", _3ds_float(world.mist_settings.start))
+                fog_chunk.add_variable("highZ", _3ds_float(world.mist_settings.depth))
+                fog_chunk.add_variable("density", _3ds_float(fogshader.inputs[1].default_value))
+                fog_chunk.add_variable("flags", _3ds_uint(fogflag))
+                fog_chunk.add_subchunk(fog_color_chunk)
+                object_info.add_subchunk(fog_chunk)
+                if layer.use_pass_mist:
+                    object_info.add_subchunk(use_fog_flag)
         if write_keyframe and world.animation_data:
             kfdata.add_subchunk(make_ambient_node(world))
 
