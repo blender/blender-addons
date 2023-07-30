@@ -1475,12 +1475,18 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
 
     if UNITS:
         unit_length = scn.unit_settings.length_unit
-        if unit_length == 'KILOMETERS':
+        if unit_length == 'MILES':
+            MEASURE = 1609.344
+        elif unit_length == 'KILOMETERS':
             MEASURE = 1000.0
+        elif unit_length == 'INCHES':
+            MEASURE = 0.3048
         elif unit_length == 'CENTIMETERS':
             MEASURE = 0.01
         elif unit_length == 'MILLIMETERS':
             MEASURE = 0.001
+        elif unit_length == 'THOU':
+            MEASURE = 0.0000254
         elif unit_length == 'MICROMETERS':
             MEASURE = 0.000001
 

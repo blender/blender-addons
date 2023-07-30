@@ -1541,12 +1541,18 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
     unit_measure = 1.0
     if use_scene_unit:
         unit_length = scene.unit_settings.length_unit
-        if unit_length == 'KILOMETERS':
+        if unit_length == 'MILES':
+            unit_measure = 0.000621371
+        elif unit_length == 'KILOMETERS':
             unit_measure = 0.001
+        elif unit_length == 'INCHES':
+            unit_measure = 39.37007874
         elif unit_length == 'CENTIMETERS':
             unit_measure = 100
         elif unit_length == 'MILLIMETERS':
             unit_measure = 1000
+        elif unit_length == 'THOU':
+            unit_measure = 39370.07874
         elif unit_length == 'MICROMETERS':
             unit_measure = 1000000
 
