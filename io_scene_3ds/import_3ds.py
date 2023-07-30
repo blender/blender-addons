@@ -754,8 +754,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextWorld.mist_settings.use_mist = True
             contextWorld.mist_settings.start = read_float(new_chunk)
             contextWorld.mist_settings.depth = read_float(new_chunk)
-            layerfog.inputs[1].default_value = read_float(new_chunk)
+            contextWorld.mist_settings.heigth = contextWorld.mist_settings.depth * 0.5
+            layerfog.inputs['Density'].default_value = read_float(new_chunk)
             layerfog_flag = read_long(new_chunk)
+            if layerfog_flag == 0:
+                contextWorld.mist_settings.falloff = 'LINEAR'
             if layerfog_flag & 0x1:
                 contextWorld.mist_settings.falloff = 'QUADRATIC'
             if layerfog_flag & 0x2:
