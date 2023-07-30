@@ -762,7 +762,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextWorld.mist_settings.use_mist = True
             contextWorld.mist_settings.start = read_float(new_chunk)
             contextWorld.mist_settings.depth = read_float(new_chunk)
-            contextWorld.mist_settings.heigth = contextWorld.mist_settings.depth * 0.5
+            contextWorld.mist_settings.height = contextWorld.mist_settings.depth * 0.5
             layerfog.inputs['Density'].default_value = read_float(new_chunk)
             layerfog_flag = read_long(new_chunk)
             if layerfog_flag == 0:
