@@ -670,7 +670,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     while (previous_chunk.bytes_read < previous_chunk.length):
         read_chunk(file, new_chunk)
 
-        # is it a Version chunk?
+        # Check the Version chunk
         if new_chunk.ID == VERSION:
             # read in the version of the file
             temp_data = file.read(SZ_U_INT)
@@ -679,6 +679,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             # this loader works with version 3 and below, but may not with 4 and above
             if version > 3:
                 print("\tNon-Fatal Error:  Version greater than 3, may not load correctly: ", version)
+
+        # The main object info chunk
+        elif new_chunk.ID == OBJECTINFO:
+            process_next_chunk(context, file, new_chunk, imported_objects, CONSTRAIN, FILTER,
+                               IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE, MEASURE, CURSOR)
+
+            # keep track of how much we read in the main chunk
+            new_chunk.bytes_read += temp_chunk.bytes_read
 
         # If cursor location
         elif CURSOR and new_chunk.ID == O_CONSTS:
@@ -774,15 +782,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif CreateWorld and new_chunk.ID == USE_LAYER_FOG:
             context.view_layer.use_pass_mist = True
 
-        # is it an object info chunk?
-        elif new_chunk.ID == OBJECTINFO:
-            process_next_chunk(context, file, new_chunk, imported_objects, CONSTRAIN, FILTER,
-                               IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE, MEASURE, CURSOR)
-
-            # keep track of how much we read in the main chunk
-            new_chunk.bytes_read += temp_chunk.bytes_read
-
-        # is it an object chunk?
+        # If object chunk - can be material and mesh, light and spot or camera
         elif new_chunk.ID == OBJECT:
             if CreateBlenderObject:
                 putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMesh_flag,
@@ -800,7 +800,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextObName, read_str_len = read_string(file)
             new_chunk.bytes_read += read_str_len
 
-        # is it a material chunk?
+        # If material chunk
         elif new_chunk.ID == MATERIAL:
             contextAlpha = True
             contextColor = mathutils.Color((0.8, 0.8, 0.8))
