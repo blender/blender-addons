@@ -36,6 +36,7 @@ SOLIDBACKGND = 0x1200  # The background color (RGB)
 USE_SOLIDBGND = 0x1201  # The background color flag
 VGRADIENT = 0x1300  # The background gradient colors
 USE_VGRADIENT = 0x1301  # The background gradient flag
+O_CONSTS = 0x1500  # The origin of the 3D cursor
 AMBIENTLIGHT = 0x2100  # The color of the ambient light
 LAYER_FOG = 0x2302  # The fog atmosphere settings
 USE_LAYER_FOG = 0x2303  # The fog atmosphere flag
@@ -1497,8 +1498,8 @@ def make_ambient_node(world):
 # EXPORT #
 ##########
 
-def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use_selection=False,
-         object_filter=None, use_hierarchy=False, write_keyframe=False, global_matrix=None):
+def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False, use_selection=False,
+         object_filter=None, use_hierarchy=False, use_keyframes=False, global_matrix=None, use_cursor=False):
     """Save the Blender scene to a 3ds file."""
 
     # Time the export
@@ -1511,7 +1512,7 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
     world = scene.world
 
     unit_measure = 1.0
-    if apply_unit:
+    if use_scene_unit:
         unit_length = scene.unit_settings.length_unit
         if unit_length == 'KILOMETERS':
             unit_measure = 0.001
@@ -1549,21 +1550,29 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
     mscale.add_variable("scale", _3ds_float(1.0))
     object_info.add_subchunk(mscale)
 
+    # Add 3D cursor location
+    if use_cursor:
+        cursor_chunk = _3ds_chunk(O_CONSTS)
+        cursor_chunk.add_variable("cursor", _3ds_point_3d(scene.cursor.location))
+        object_info.add_subchunk(cursor_chunk)
+
     # Init main keyframe data chunk
-    if write_keyframe:
+    if use_keyframes:
         revision = 0x0005
         stop = scene.frame_end
         start = scene.frame_start
         curtime = scene.frame_current
         kfdata = make_kfdata(revision, start, stop, curtime)
 
-    # Add AMBIENT, BACKGROUND and BITMAP
+    # Add AMBIENT color
     if world is not None and 'WORLD' in object_filter:
         ambient_chunk = _3ds_chunk(AMBIENTLIGHT)
         ambient_light = _3ds_chunk(RGB)
         ambient_light.add_variable("ambient", _3ds_float_color(world.color))
         ambient_chunk.add_subchunk(ambient_light)
         object_info.add_subchunk(ambient_chunk)
+
+        # Add BACKGROUND and BITMAP
         if world.use_nodes:
             ntree = world.node_tree.links
             background_color_chunk = _3ds_chunk(RGB)
@@ -1604,7 +1613,7 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
                 object_info.add_subchunk(fog_chunk)
                 if layer.use_pass_mist:
                     object_info.add_subchunk(use_fog_flag)
-        if write_keyframe and world.animation_data:
+        if use_keyframes and world.animation_data:
             kfdata.add_subchunk(make_ambient_node(world))
 
     # Make a list of all materials used in the selected meshes (use dictionary, each material is added once)
@@ -1746,13 +1755,13 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
             operator.report({'WARNING'}, "Object %r can't be written into a 3DS file")
 
         # Export object node
-        if write_keyframe:
+        if use_keyframes:
             kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
 
         i += i
 
     # Create chunks for all empties - only requires a object node
-    if write_keyframe:
+    if use_keyframes:
         for ob in empty_objects:
             kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
 
@@ -1816,7 +1825,7 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
         object_info.add_subchunk(object_chunk)
 
         # Export light and spotlight target node
-        if write_keyframe:
+        if use_keyframes:
             kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
             if ob.data.type == 'SPOT':
                 kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale, name_id))
@@ -1850,7 +1859,7 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
         object_info.add_subchunk(object_chunk)
 
         # Export camera and target node
-        if write_keyframe:
+        if use_keyframes:
             kfdata.add_subchunk(make_object_node(ob, translation, rotation, scale, name_id))
             kfdata.add_subchunk(make_target_node(ob, translation, rotation, scale, name_id))
 
@@ -1858,7 +1867,7 @@ def save(operator, context, filepath="", scale_factor=1.0, apply_unit=False, use
     primary.add_subchunk(object_info)
 
     # Add main keyframe data chunk to primary chunk
-    if write_keyframe:
+    if use_keyframes:
         primary.add_subchunk(kfdata)
 
     # The chunk hierarchy is completely built, now check the size

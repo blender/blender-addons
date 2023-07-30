@@ -55,7 +55,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         soft_min=0.0, soft_max=1000.0,
         default=10.0,
     )
-    convert_unit: BoolProperty(
+    use_scene_unit: BoolProperty(
         name="Scene Units",
         description="Converts to scene unit length settings",
         default=False,
@@ -72,7 +72,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
                ('MESH', "Mesh".rjust(11), "", 'MESH_DATA', 0x2),
                ('LIGHT', "Light".rjust(12), "", 'LIGHT_DATA', 0x4),
                ('CAMERA', "Camera".rjust(11), "", 'CAMERA_DATA', 0x8),
-               ('EMPTY', "Empty".rjust(11), "", 'EMPTY_DATA', 0x10),
+               ('EMPTY', "Empty".rjust(11), "", 'EMPTY_AXIS', 0x10),
                ),
         description="Object types to import",
         default={'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY'},
@@ -83,7 +83,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         "importing incorrectly",
         default=True,
     )
-    read_keyframe: BoolProperty(
+    use_keyframes: BoolProperty(
         name="Animation",
         description="Read the keyframe data",
         default=True,
@@ -91,6 +91,11 @@ class Import3DS(bpy.types.Operator, ImportHelper):
     use_world_matrix: BoolProperty(
         name="World Space",
         description="Transform to matrix world",
+        default=False,
+    )
+    use_cursor: BoolProperty(
+        name="Cursor Origin",
+        description="Read the 3D cursor location",
         default=False,
     )
 
@@ -139,8 +144,11 @@ class MAX3DS_PT_import_include(bpy.types.Panel):
         layrow.label(text="", icon='OUTLINER_OB_IMAGE' if operator.use_image_search else 'IMAGE_DATA')
         layout.column().prop(operator, "object_filter")
         layrow = layout.row(align=True)
-        layrow.prop(operator, "read_keyframe")
-        layrow.label(text="", icon='ANIM' if operator.read_keyframe else 'DECORATE_DRIVER')
+        layrow.prop(operator, "use_keyframes")
+        layrow.label(text="", icon='ANIM' if operator.use_keyframes else 'DECORATE_DRIVER')
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "use_cursor")
+        layrow.label(text="", icon='PIVOT_CURSOR' if operator.use_cursor else 'CURSOR')
 
 
 class MAX3DS_PT_import_transform(bpy.types.Panel):
@@ -166,8 +174,8 @@ class MAX3DS_PT_import_transform(bpy.types.Panel):
 
         layout.prop(operator, "constrain_size")
         layrow = layout.row(align=True)
-        layrow.prop(operator, "convert_unit")
-        layrow.label(text="", icon='EMPTY_ARROWS' if operator.convert_unit else 'EMPTY_DATA')
+        layrow.prop(operator, "use_scene_unit")
+        layrow.label(text="", icon='EMPTY_ARROWS' if operator.use_scene_unit else 'EMPTY_DATA')
         layrow = layout.row(align=True)
         layrow.prop(operator, "use_apply_transform")
         layrow.label(text="", icon='MESH_CUBE' if operator.use_apply_transform else 'MOD_SOLIDIFY')
@@ -198,7 +206,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         soft_min=0.0, soft_max=100000.0,
         default=1.0,
     )
-    apply_unit: BoolProperty(
+    use_scene_unit: BoolProperty(
         name="Scene Units",
         description="Take the scene unit length settings into account",
         default=False,
@@ -214,7 +222,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
                ('MESH', "Mesh".rjust(11), "", 'MESH_DATA', 0x2),
                ('LIGHT', "Light".rjust(12), "", 'LIGHT_DATA',0x4),
                ('CAMERA', "Camera".rjust(11), "", 'CAMERA_DATA',0x8),
-               ('EMPTY', "Empty".rjust(11), "", 'EMPTY_DATA',0x10),
+               ('EMPTY', "Empty".rjust(11), "", 'EMPTY_AXIS',0x10),
                ),
         description="Object types to export",
         default={'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY'},
@@ -224,9 +232,14 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         description="Export hierarchy chunks",
         default=False,
     )
-    write_keyframe: BoolProperty(
+    use_keyframes: BoolProperty(
         name="Animation",
         description="Write the keyframe data",
+        default=False,
+    )
+    use_cursor: BoolProperty(
+        name="Cursor Origin",
+        description="Save the 3D cursor location",
         default=False,
     )
 
@@ -278,9 +291,11 @@ class MAX3DS_PT_export_include(bpy.types.Panel):
         layrow.prop(operator, "use_hierarchy")
         layrow.label(text="", icon='OUTLINER' if operator.use_hierarchy else 'CON_CHILDOF')
         layrow = layout.row(align=True)
-        layrow.prop(operator, "write_keyframe")
-        layrow.label(text="", icon='ANIM' if operator.write_keyframe else 'DECORATE_DRIVER')
-        layout.use_property_split = True
+        layrow.prop(operator, "use_keyframes")
+        layrow.label(text="", icon='ANIM' if operator.use_keyframes else 'DECORATE_DRIVER')
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "use_cursor")
+        layrow.label(text="", icon='PIVOT_CURSOR' if operator.use_cursor else 'CURSOR')
 
 
 class MAX3DS_PT_export_transform(bpy.types.Panel):
@@ -306,8 +321,8 @@ class MAX3DS_PT_export_transform(bpy.types.Panel):
 
         layout.prop(operator, "scale_factor")
         layrow = layout.row(align=True)
-        layrow.prop(operator, "apply_unit")
-        layrow.label(text="", icon='EMPTY_ARROWS' if operator.apply_unit else 'EMPTY_DATA')
+        layrow.prop(operator, "use_scene_unit")
+        layrow.label(text="", icon='EMPTY_ARROWS' if operator.use_scene_unit else 'EMPTY_DATA')
         layout.prop(operator, "axis_forward")
         layout.prop(operator, "axis_up")
 

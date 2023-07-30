@@ -43,6 +43,7 @@ SOLIDBACKGND = 0x1200  # The background color (RGB)
 USE_SOLIDBGND = 0x1201  # The background color flag
 VGRADIENT = 0x1300  # The background gradient colors
 USE_VGRADIENT = 0x1301  # The background gradient flag
+O_CONSTS = 0x1500  # The origin of the 3D cursor
 AMBIENTLIGHT = 0x2100  # The color of the ambient light
 LAYER_FOG = 0x2302  # The fog atmosphere settings
 USE_LAYER_FOG = 0x2303  # The fog atmosphere flag
@@ -333,8 +334,8 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
 childs_list = []
 parent_list = []
 
-def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAIN,
-                       FILTER, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE, MEASURE):
+def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAIN, FILTER,
+                       IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE, MEASURE, CURSOR):
 
     contextObName = None
     contextWorld = None
@@ -679,6 +680,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             if version > 3:
                 print("\tNon-Fatal Error:  Version greater than 3, may not load correctly: ", version)
 
+        # If cursor location
+        elif CURSOR and new_chunk.ID == O_CONSTS:
+            context.scene.cursor.location = read_float_array(new_chunk)
+
         # If ambient light chunk
         elif CreateWorld and new_chunk.ID == AMBIENTLIGHT:
             path, filename = os.path.split(file.name)
@@ -768,8 +773,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         # is it an object info chunk?
         elif new_chunk.ID == OBJECTINFO:
-            process_next_chunk(context, file, new_chunk, imported_objects, CONSTRAIN,
-                               FILTER, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE, MEASURE)
+            process_next_chunk(context, file, new_chunk, imported_objects, CONSTRAIN, FILTER,
+                               IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE, MEASURE, CURSOR)
 
             # keep track of how much we read in the main chunk
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -1416,7 +1421,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 ##########
 
 def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, FILTER=None,
-             WORLD_MATRIX=False, KEYFRAME=True, APPLY_MATRIX=True, CONVERSE=None):
+             WORLD_MATRIX=False, KEYFRAME=True, APPLY_MATRIX=True, CONVERSE=None, CURSOR=False):
 
     print("importing 3DS: %r..." % (filepath), end="")
 
@@ -1458,8 +1463,8 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
             MEASURE = 0.000001
 
     imported_objects = []  # Fill this list with objects
-    process_next_chunk(context, file, current_chunk, imported_objects, CONSTRAIN,
-                       FILTER, IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE, MEASURE)
+    process_next_chunk(context, file, current_chunk, imported_objects, CONSTRAIN, FILTER,
+                       IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE, MEASURE, CURSOR)
 
     # fixme, make unglobal
     object_dictionary.clear()
@@ -1553,12 +1558,12 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
     file.close()
 
 
-def load(operator, context, filepath="", constrain_size=0.0, convert_unit=False,
+def load(operator, context, filepath="", constrain_size=0.0, use_scene_unit=False,
          use_image_search=True, object_filter=None, use_world_matrix=False,
-         read_keyframe=True, use_apply_transform=True, global_matrix=None,):
+         use_keyframes=True, use_apply_transform=True, global_matrix=None, use_cursor=False):
 
-    load_3ds(filepath, context, CONSTRAIN=constrain_size, UNITS=convert_unit,
+    load_3ds(filepath, context, CONSTRAIN=constrain_size, UNITS=use_scene_unit,
              IMAGE_SEARCH=use_image_search, FILTER=object_filter, WORLD_MATRIX=use_world_matrix,
-             KEYFRAME=read_keyframe, APPLY_MATRIX=use_apply_transform, CONVERSE=global_matrix,)
+             KEYFRAME=use_keyframes, APPLY_MATRIX=use_apply_transform, CONVERSE=global_matrix, CURSOR=use_cursor,)
 
     return {'FINISHED'}
