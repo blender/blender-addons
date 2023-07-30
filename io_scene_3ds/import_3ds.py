@@ -735,11 +735,17 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextWorld.use_nodes = True
             links = contextWorld.node_tree.links
             nodes = contextWorld.node_tree.nodes
+            bitmap_mix = nodes.new(type='ShaderNodeMixRGB')
             bitmapnode = nodes.new(type='ShaderNodeTexEnvironment')
+            bitmap_mix.label = "Solid Color"
             bitmapnode.label = bitmap_name
+            bitmap_mix.location = (-250, 300)
             bitmapnode.location = (-300, 300)
+            bitmap_mix.inputs[2].default_value = nodes['Background'].inputs[0].default_value
             bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
-            links.new(bitmapnode.outputs['Color'], nodes['Background'].inputs[0])
+            bitmap_mix.inputs[0].default_value = 0.0 if bitmapnode.image is not None else 1.0
+            links.new(bitmap_mix.outputs['Color'], nodes['Background'].inputs[0])
+            links.new(bitmapnode.outputs['Color'], bitmap_mix.inputs[1])
             new_chunk.bytes_read += read_str_len
 
         # If fog chunk

@@ -1578,11 +1578,12 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
             background_color_chunk = _3ds_chunk(RGB)
             background_chunk = _3ds_chunk(SOLIDBACKGND)
             background_flag = _3ds_chunk(USE_SOLIDBGND)
-            bgshader = 'ADD_SHADER', 'MIX_SHADER', 'OUTPUT_WORLD'
-            bgtexture = 'TEX_IMAGE', 'TEX_ENVIRONMENT'
-            acol, bcol = 'EMISSION', 'BACKGROUND'
-            bg_color = next((lk.from_node.inputs[0].default_value[:3] for lk in ntree if lk.from_node.type == bcol and lk.to_node.type in bgshader), world.color)
-            bg_image = next((lk.from_node.image.name for lk in ntree if lk.from_node.type in bgtexture and lk.to_node.type in {acol, bcol}), False)
+            bgtype = 'BACKGROUND'
+            bgshade = 'ADD_SHADER', 'MIX_SHADER', 'OUTPUT_WORLD'
+            bg_tex = 'TEX_IMAGE', 'TEX_ENVIRONMENT'
+            bg_color = next((lk.from_node.inputs[0].default_value[:3] for lk in ntree if lk.from_node.type == bgtype and lk.to_node.type in bgshade), world.color)
+            bg_mixer = next((lk.from_node.type for lk in ntree if  lk.from_node.type in {'MIX', 'MIX_RGB'} and lk.to_node.type == bgtype), bgtype)
+            bg_image = next((lk.from_node.image.name for lk in ntree if lk.from_node.type in bg_tex and lk.to_node.type == bg_mixer), False)
             background_color_chunk.add_variable("color", _3ds_float_color(bg_color))
             background_chunk.add_subchunk(background_color_chunk)
             if bg_image:
