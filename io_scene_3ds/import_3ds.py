@@ -709,19 +709,26 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         # If background chunk
         elif CreateWorld and new_chunk.ID == SOLIDBACKGND:
+            backgroundcolor = mathutils.Color((0.1, 0.1, 0.1))
             if contextWorld is None:
                 path, filename = os.path.split(file.name)
                 realname, ext = os.path.splitext(filename)
                 contextWorld = bpy.data.worlds.new("Background: " + realname)
                 context.scene.world = contextWorld
             contextWorld.use_nodes = True
+            worldnodes = contextWorld.node_tree.nodes
+            backgroundnode = worldnodes['Background']
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == COLOR_F:
-                contextWorld.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
+                backgroundcolor = read_float_array(temp_chunk)
             elif temp_chunk.ID == LIN_COLOR_F:
-                contextWorld.node_tree.nodes['Background'].inputs[0].default_value[:3] = read_float_array(temp_chunk)
+                backgroundcolor = read_float_array(temp_chunk)
             else:
                 skip_to_end(file, temp_chunk)
+            backgroundmix = next((wn for wn in worldnodes if wn.type in {'MIX', 'MIX_RGB'}), False)
+            backgroundnode.inputs[0].default_value[:3] = backgroundcolor
+            if backgroundmix:
+                backgroundmix.inputs[2].default_value[:3] = backgroundcolor
             new_chunk.bytes_read += temp_chunk.bytes_read
 
         # If bitmap chunk
@@ -738,9 +745,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             bitmap_mix = nodes.new(type='ShaderNodeMixRGB')
             bitmapnode = nodes.new(type='ShaderNodeTexEnvironment')
             bitmap_mix.label = "Solid Color"
-            bitmapnode.label = bitmap_name
-            bitmap_mix.location = (-250, 300)
-            bitmapnode.location = (-300, 300)
+            bitmapnode.label = "Bitmap: " + bitmap_name
+            bitmap_mix.location = (-250, 360)
+            bitmapnode.location = (-600, 300)
             bitmap_mix.inputs[2].default_value = nodes['Background'].inputs[0].default_value
             bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
             bitmap_mix.inputs[0].default_value = 0.0 if bitmapnode.image is not None else 1.0
@@ -1143,13 +1150,17 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                     worldout = nodes['World Output']
                     mixshade = nodes.new(type='ShaderNodeMixShader')
                     ambinode = nodes.new(type='ShaderNodeEmission')
+                    ambilite = nodes.new(type='ShaderNodeRGB')
+                    ambilite.label = "Ambient Color"
                     ambinode.inputs[0].default_value[:3] = child.color
                     ambinode.location = (10, 150)
                     worldout.location = (600, 200)
                     mixshade.location = (300, 300)
+                    ambilite.location = (-250, 150)
                     links.new(mixshade.outputs[0], worldout.inputs['Surface'])
                     links.new(nodes['Background'].outputs[0], mixshade.inputs[1])
                     links.new(ambinode.outputs[0], mixshade.inputs[2])
+                    links.new(ambilite.outputs[0], ambinode.inputs[0])
                     ambinode.label = object_name if object_name != '$AMBIENT$' else "Ambient"
                 elif CreateEmpty and tracking == 'OBJECT' and object_name == '$$$DUMMY':
                     child = bpy.data.objects.new(object_name, None)  # Create an empty object
@@ -1195,11 +1206,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             keyframe_data = {}
             default_data = child.color[:]
             child.color = read_track_data(new_chunk)[0]
-            ambinode.inputs[0].default_value[:3] = child.color
+            ambilite.color = child.color
+            ambinode.inputs[0].default_value[:3] = ambilite.color
             for keydata in keyframe_data.items():
-                child.color = keydata[1]
-                child.keyframe_insert(data_path="color", frame=keydata[0])
                 ambinode.inputs[0].default_value[:3] = keydata[1]
+                child.color = ambilite.outputs[0].default_value[:3] = keydata[1]
+                child.keyframe_insert(data_path="color", frame=keydata[0])
+                nodetree.keyframe_insert(data_path="nodes[\"RGB\"].outputs[0].default_value", frame=keydata[0])
                 nodetree.keyframe_insert(data_path="nodes[\"Emission\"].inputs[0].default_value", frame=keydata[0])
             contextTrack_flag = False
 

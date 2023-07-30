@@ -1455,7 +1455,34 @@ def make_ambient_node(world):
     amb_node_header_chunk.add_variable("parent", _3ds_ushort(ROOT_OBJECT))
     amb_node.add_subchunk(amb_node_header_chunk)
 
-    if world.animation_data.action:
+    if world.use_nodes and world.node_tree.animation_data.action:
+        action = world.node_tree.animation_data.action
+        ambinode = next((nd for nd in world.node_tree.nodes if nd.type in {'RGB', 'EMISSION'}), False)
+        if ambinode and action.fcurves:
+            fcurves = action.fcurves
+            fcurves.update()
+            kframes = [kf.co[0] for kf in [fc for fc in fcurves if fc is not None][0].keyframe_points]
+            ambipath = ('nodes[\"RGB\"].outputs[0].default_value' if ambinode.type == 'RGB' else
+                        'nodes[\"Emission\"].inputs[0].default_value')
+            nkeys = len(kframes)
+            if not 0 in kframes:
+                kframes.append(0)
+                nkeys = nkeys + 1
+            kframes = sorted(set(kframes))
+            track_chunk.add_variable("track_flags", _3ds_ushort(0x40))
+            track_chunk.add_variable("frame_start", _3ds_uint(int(action.frame_start)))
+            track_chunk.add_variable("frame_total", _3ds_uint(int(action.frame_end)))
+            track_chunk.add_variable("nkeys", _3ds_uint(nkeys))
+
+            for i, frame in enumerate(kframes):
+                ambient = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == ambipath]
+                if not ambient:
+                    ambient.append(world.color)
+                track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
+                track_chunk.add_variable("tcb_flags", _3ds_ushort())
+                track_chunk.add_variable("color", _3ds_float_color(ambient[:3]))
+
+    elif world.animation_data.action:
         action = world.animation_data.action
         if action.fcurves:
             fcurves = action.fcurves
