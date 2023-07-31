@@ -1206,8 +1206,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             keyframe_data = {}
             default_data = child.color[:]
             child.color = read_track_data(new_chunk)[0]
-            ambilite.color = child.color
-            ambinode.inputs[0].default_value[:3] = ambilite.color
+            ambinode.inputs[0].default_value[:3] = child.color
+            ambilite.outputs[0].default_value[:3] = child.color
             for keydata in keyframe_data.items():
                 ambinode.inputs[0].default_value[:3] = keydata[1]
                 child.color = ambilite.outputs[0].default_value[:3] = keydata[1]
