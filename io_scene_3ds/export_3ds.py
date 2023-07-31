@@ -1545,6 +1545,8 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
             unit_measure = 0.000621371
         elif unit_length == 'KILOMETERS':
             unit_measure = 0.001
+        elif unit_length == 'FEET':
+            unit_measure = 3.280839895
         elif unit_length == 'INCHES':
             unit_measure = 39.37007874
         elif unit_length == 'CENTIMETERS':

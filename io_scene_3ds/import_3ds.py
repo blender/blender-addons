@@ -1479,8 +1479,10 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
             MEASURE = 1609.344
         elif unit_length == 'KILOMETERS':
             MEASURE = 1000.0
-        elif unit_length == 'INCHES':
+        elif unit_length == 'FEET':
             MEASURE = 0.3048
+        elif unit_length == 'INCHES':
+            MEASURE = 0.0254
         elif unit_length == 'CENTIMETERS':
             MEASURE = 0.01
         elif unit_length == 'MILLIMETERS':
