@@ -572,6 +572,7 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
 
     def add_texslot(texslot):
         image = texslot.image
+        socket = None
 
         filename = bpy.path.basename(image.filepath)
         mat_sub_file = _3ds_chunk(MAT_MAP_FILE)
