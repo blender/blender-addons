@@ -1093,6 +1093,7 @@ def make_kfdata(revision, start=0, stop=100, curtime=0):
     kfdata.add_subchunk(kfcurtime)
     return kfdata
 
+
 def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
     """Make a chunk for track data. Depending on the ID, this will construct
     a position, rotation, scale, roll, color, fov, hotspot or falloff track."""
@@ -1457,11 +1458,15 @@ def make_ambient_node(world):
     amb_node.add_subchunk(amb_node_header_chunk)
 
     if world.use_nodes and world.node_tree.animation_data.action:
+        ambioutput = 'EMISSION' ,'MIX_SHADER', 'WORLD_OUTPUT'
         action = world.node_tree.animation_data.action
-        ambinode = next((nd for nd in world.node_tree.nodes if nd.type in {'RGB', 'EMISSION'}), False)
-        if ambinode and action.fcurves:
+        links = world.node_tree.links
+        ambilinks = [lk for lk in links if lk.from_node.type in {'EMISSION', 'RGB'} and lk.to_node.type in ambioutput]
+        if ambilinks and action.fcurves:
             fcurves = action.fcurves
             fcurves.update()
+            emission = next((lk.from_socket.node for lk in ambilinks if lk.to_node.type in ambioutput), False)
+            ambinode = next((lk.from_socket.node for lk in ambilinks if lk.to_node.type == 'EMISSION'), emission)
             kframes = [kf.co[0] for kf in [fc for fc in fcurves if fc is not None][0].keyframe_points]
             ambipath = ('nodes[\"RGB\"].outputs[0].default_value' if ambinode.type == 'RGB' else
                         'nodes[\"Emission\"].inputs[0].default_value')
@@ -1478,7 +1483,7 @@ def make_ambient_node(world):
             for i, frame in enumerate(kframes):
                 ambient = [fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == ambipath]
                 if not ambient:
-                    ambient.append(world.color)
+                    ambient = amb_color
                 track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                 track_chunk.add_variable("tcb_flags", _3ds_ushort())
                 track_chunk.add_variable("color", _3ds_float_color(ambient[:3]))
