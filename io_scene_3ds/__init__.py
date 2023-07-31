@@ -48,7 +48,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
     filter_glob: StringProperty(default="*.3ds", options={'HIDDEN'})
 
     constrain_size: FloatProperty(
-        name="Constrain",
+        name="Constrain Size",
         description="Scale the model by 10 until it reaches the "
         "size constraint (0 to disable)",
         min=0.0, max=1000.0,
