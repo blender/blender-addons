@@ -886,7 +886,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             else:
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
-        elif CreateWorld and new_chunk.ID == USE_LAYER_FOG:
+        elif CreateWorld and new_chunk.ID in {USE_FOG, USE_LAYER_FOG}:
             context.view_layer.use_pass_mist = True
 
         # If object chunk - can be material and mesh, light and spot or camera
