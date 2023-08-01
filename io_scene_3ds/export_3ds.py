@@ -38,8 +38,10 @@ VGRADIENT = 0x1300  # The background gradient colors
 USE_VGRADIENT = 0x1301  # The background gradient flag
 O_CONSTS = 0x1500  # The origin of the 3D cursor
 AMBIENTLIGHT = 0x2100  # The color of the ambient light
-LAYER_FOG = 0x2302  # The fog atmosphere settings
-USE_LAYER_FOG = 0x2303  # The fog atmosphere flag
+FOG = 0x2200  # The fog atmosphere settings
+USE_FOG = 0x2201  # The fog atmosphere flag
+LAYER_FOG = 0x2302  # The fog layer atmosphere settings
+USE_LAYER_FOG = 0x2303  # The fog layer atmosphere flag
 MATERIAL = 45055  # 0xAFFF // This stored the texture info
 OBJECT = 16384  # 0x4000 // This stores the faces, vertices, etc...
 
@@ -1468,7 +1470,7 @@ def make_ambient_node(world):
             emission = next((lk.from_socket.node for lk in ambilinks if lk.to_node.type in ambioutput), False)
             ambinode = next((lk.from_socket.node for lk in ambilinks if lk.to_node.type == 'EMISSION'), emission)
             kframes = [kf.co[0] for kf in [fc for fc in fcurves if fc is not None][0].keyframe_points]
-            ambipath = ('nodes[\"RGB\"].outputs[0].default_value' if ambinode.type == 'RGB' else
+            ambipath = ('nodes[\"RGB\"].outputs[0].default_value' if ambinode and ambinode.type == 'RGB' else
                         'nodes[\"Emission\"].inputs[0].default_value')
             nkeys = len(kframes)
             if not 0 in kframes:
@@ -1615,16 +1617,18 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
 
         # Add BACKGROUND and BITMAP
         if world.use_nodes:
+            bgtype = 'BACKGROUND'
             ntree = world.node_tree.links
             background_color_chunk = _3ds_chunk(RGB)
             background_chunk = _3ds_chunk(SOLIDBACKGND)
             background_flag = _3ds_chunk(USE_SOLIDBGND)
-            bgtype = 'BACKGROUND'
+            bgmixer = 'BACKGROUND', 'MIX', 'MIX_RGB'
             bgshade = 'ADD_SHADER', 'MIX_SHADER', 'OUTPUT_WORLD'
             bg_tex = 'TEX_IMAGE', 'TEX_ENVIRONMENT'
             bg_color = next((lk.from_node.inputs[0].default_value[:3] for lk in ntree if lk.from_node.type == bgtype and lk.to_node.type in bgshade), world.color)
-            bg_mixer = next((lk.from_node.type for lk in ntree if  lk.from_node.type in {'MIX', 'MIX_RGB'} and lk.to_node.type == bgtype), bgtype)
+            bg_mixer = next((lk.from_node.type for lk in ntree if  lk.from_node.type in bgmixer and lk.to_node.type == bgtype), bgtype)
             bg_image = next((lk.from_node.image.name for lk in ntree if lk.from_node.type in bg_tex and lk.to_node.type == bg_mixer), False)
+            gradient = next((lk.from_node.color_ramp.elements for lk in ntree if lk.from_node.type == 'VALTORGB' and lk.to_node.type in bgmixer), False)
             background_color_chunk.add_variable("color", _3ds_float_color(bg_color))
             background_chunk.add_subchunk(background_color_chunk)
             if bg_image:
@@ -1633,28 +1637,59 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
                 background_image.add_variable("image", _3ds_string(sane_name(bg_image)))
                 object_info.add_subchunk(background_image)
             object_info.add_subchunk(background_chunk)
+
+            # Add VGRADIENT chunk
+            if gradient and len(gradient) >= 3:
+                gradient_chunk = _3ds_chunk(VGRADIENT)
+                background_flag = _3ds_chunk(USE_VGRADIENT)
+                gradient_chunk.add_variable("midpoint", _3ds_float(gradient[1].position))
+                gradient_topcolor_chunk = _3ds_chunk(RGB)
+                gradient_topcolor_chunk.add_variable("color", _3ds_float_color(gradient[2].color[:3]))
+                gradient_chunk.add_subchunk(gradient_topcolor_chunk)
+                gradient_midcolor_chunk = _3ds_chunk(RGB)
+                gradient_midcolor_chunk.add_variable("color", _3ds_float_color(gradient[1].color[:3]))
+                gradient_chunk.add_subchunk(gradient_midcolor_chunk)
+                gradient_lowcolor_chunk = _3ds_chunk(RGB)
+                gradient_lowcolor_chunk.add_variable("color", _3ds_float_color(gradient[0].color[:3]))
+                gradient_chunk.add_subchunk(gradient_lowcolor_chunk)
+                object_info.add_subchunk(gradient_chunk)
             object_info.add_subchunk(background_flag)
 
-            # Add LAYER_FOG settings
-            fogshader = next((lk.from_socket.node for lk in ntree if lk.from_socket.identifier and lk.to_socket.identifier == 'Volume'), False)
-            if fogshader:
-                fogflag = 0
-                if world.mist_settings.falloff == 'QUADRATIC':
-                    fogflag |= 0x1
-                if world.mist_settings.falloff == 'INVERSE_QUADRATIC':
-                    fogflag |= 0x2
-                fog_chunk = _3ds_chunk(LAYER_FOG)
+            # Add FOG
+            fognode = next((lk.from_socket.node for lk in ntree if lk.from_socket.node.type == 'VOLUME_ABSORPTION' and lk.to_socket.node.type in bgshade), False)
+            if fognode:
+                fog_chunk = _3ds_chunk(FOG)
                 fog_color_chunk = _3ds_chunk(RGB)
-                use_fog_flag = _3ds_chunk(USE_LAYER_FOG)
-                fog_color_chunk.add_variable("color", _3ds_float_color(fogshader.inputs['Color'].default_value[:3]))
-                fog_chunk.add_variable("lowZ", _3ds_float(world.mist_settings.start))
-                fog_chunk.add_variable("highZ", _3ds_float(world.mist_settings.depth))
-                fog_chunk.add_variable("density", _3ds_float(fogshader.inputs['Density'].default_value))
-                fog_chunk.add_variable("flags", _3ds_uint(fogflag))
+                use_fog_flag = _3ds_chunk(USE_FOG)
+                fog_density = fognode.inputs['Density'].default_value * 100
+                fog_color_chunk.add_variable("color", _3ds_float_color(fognode.inputs[0].default_value[:3]))
+                fog_chunk.add_variable("nearplane", _3ds_float(world.mist_settings.start))
+                fog_chunk.add_variable("nearfog", _3ds_float(fog_density * 0.5))
+                fog_chunk.add_variable("farplane", _3ds_float(world.mist_settings.depth))
+                fog_chunk.add_variable("farfog", _3ds_float(fog_density + fog_density * 0.5))
                 fog_chunk.add_subchunk(fog_color_chunk)
                 object_info.add_subchunk(fog_chunk)
-                if layer.use_pass_mist:
-                    object_info.add_subchunk(use_fog_flag)
+
+            # Add LAYER FOG
+            foglayer = next((lk.from_socket.node for lk in ntree if lk.from_socket.node.type == 'VOLUME_SCATTER' and lk.to_socket.node.type in bgshade), False)
+            if foglayer:
+                layerfog_flag = 0
+                if world.mist_settings.falloff == 'QUADRATIC':
+                    layerfog_flag |= 0x1
+                if world.mist_settings.falloff == 'INVERSE_QUADRATIC':
+                    layerfog_flag |= 0x2
+                layerfog_chunk = _3ds_chunk(LAYER_FOG)
+                layerfog_color_chunk = _3ds_chunk(RGB)
+                use_fog_flag = _3ds_chunk(USE_LAYER_FOG)
+                layerfog_color_chunk.add_variable("color", _3ds_float_color(foglayer.inputs[0].default_value[:3]))
+                layerfog_chunk.add_variable("lowZ", _3ds_float(world.mist_settings.start))
+                layerfog_chunk.add_variable("highZ", _3ds_float(world.mist_settings.height))
+                layerfog_chunk.add_variable("density", _3ds_float(foglayer.inputs[1].default_value))
+                layerfog_chunk.add_variable("flags", _3ds_uint(layerfog_flag))
+                layerfog_chunk.add_subchunk(layerfog_color_chunk)
+                object_info.add_subchunk(layerfog_chunk)
+            if fognode or foglayer and layer.use_pass_mist:
+                object_info.add_subchunk(use_fog_flag)
         if use_keyframes and world.animation_data:
             kfdata.add_subchunk(make_ambient_node(world))
 

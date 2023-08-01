@@ -45,8 +45,11 @@ VGRADIENT = 0x1300  # The background gradient colors
 USE_VGRADIENT = 0x1301  # The background gradient flag
 O_CONSTS = 0x1500  # The origin of the 3D cursor
 AMBIENTLIGHT = 0x2100  # The color of the ambient light
-LAYER_FOG = 0x2302  # The fog atmosphere settings
-USE_LAYER_FOG = 0x2303  # The fog atmosphere flag
+FOG = 0x2200  # The fog atmosphere settings
+USE_FOG = 0x2201  # The fog atmosphere flag
+FOG_BGND = 0x2210  # The fog atmosphere background flag
+LAYER_FOG = 0x2302  # The fog layer atmosphere settings
+USE_LAYER_FOG = 0x2303  # The fog layer atmosphere flag
 MATERIAL = 0xAFFF  # This stored the texture info
 OBJECT = 0x4000  # This stores the faces, vertices, etc...
 
@@ -746,16 +749,95 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             bitmapnode = nodes.new(type='ShaderNodeTexEnvironment')
             bitmap_mix.label = "Solid Color"
             bitmapnode.label = "Bitmap: " + bitmap_name
-            bitmap_mix.location = (-250, 360)
-            bitmapnode.location = (-600, 300)
             bitmap_mix.inputs[2].default_value = nodes['Background'].inputs[0].default_value
             bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
-            bitmap_mix.inputs[0].default_value = 0.0 if bitmapnode.image is not None else 1.0
+            bitmap_mix.inputs[0].default_value = 0.5 if bitmapnode.image is not None else 1.0
+            bitmapnode.location = (-600, 360) if bitmapnode.image is not None else (-600, 300)
+            bitmap_mix.location = (-250, 300)
             links.new(bitmap_mix.outputs['Color'], nodes['Background'].inputs[0])
             links.new(bitmapnode.outputs['Color'], bitmap_mix.inputs[1])
             new_chunk.bytes_read += read_str_len
 
-        # If fog chunk
+        # If gradient chunk:
+        elif CreateWorld and new_chunk.ID == VGRADIENT:
+            if contextWorld is None:
+                path, filename = os.path.split(file.name)
+                realname, ext = os.path.splitext(filename)
+                contextWorld = bpy.data.worlds.new("Gradient: " + realname)
+                context.scene.world = contextWorld
+            contextWorld.use_nodes = True
+            links = contextWorld.node_tree.links
+            nodes = contextWorld.node_tree.nodes
+            gradientnode = nodes.new(type='ShaderNodeValToRGB')
+            gradientnode.location = (-600, 100)
+            gradientnode.label = "Gradient"
+            backgroundmix = next((wn for wn in worldnodes if wn.type in {'MIX', 'MIX_RGB'}), False)
+            if backgroundmix:
+                links.new(gradientnode.outputs['Color'], backgroundmix.inputs[2])
+            else:
+                links.new(gradientnode.outputs['Color'], nodes['Background'].inputs[0])
+            gradientnode.color_ramp.elements.new(read_float(new_chunk))
+            read_chunk(file, temp_chunk)
+            if temp_chunk.ID == COLOR_F:
+                gradientnode.color_ramp.elements[2].color[:3] = read_float_array(temp_chunk)
+            elif temp_chunk.ID == LIN_COLOR_F:
+                gradientnode.color_ramp.elements[2].color[:3] = read_float_array(temp_chunk)
+            else:
+                skip_to_end(file, temp_chunk)
+            new_chunk.bytes_read += temp_chunk.bytes_read
+            read_chunk(file, temp_chunk)
+            if temp_chunk.ID == COLOR_F:
+                gradientnode.color_ramp.elements[1].color[:3] = read_float_array(temp_chunk)
+            elif temp_chunk.ID == LIN_COLOR_F:
+                gradientnode.color_ramp.elements[1].color[:3] = read_float_array(temp_chunk)
+            else:
+                skip_to_end(file, temp_chunk)
+            new_chunk.bytes_read += temp_chunk.bytes_read
+            read_chunk(file, temp_chunk)
+            if temp_chunk.ID == COLOR_F:
+                gradientnode.color_ramp.elements[0].color[:3] = read_float_array(temp_chunk)
+            elif temp_chunk.ID == LIN_COLOR_F:
+                gradientnode.color_ramp.elements[0].color[:3] = read_float_array(temp_chunk)
+            else:
+                skip_to_end(file, temp_chunk)
+            new_chunk.bytes_read += temp_chunk.bytes_read
+
+        # If fog chunk:
+        elif CreateWorld and new_chunk.ID == FOG:
+            if contextWorld is None:
+                path, filename = os.path.split(file.name)
+                realname, ext = os.path.splitext(filename)
+                newWorld = bpy.data.worlds.new("LayerFog: " + realname)
+                context.scene.world = contextWorld
+            contextWorld.use_nodes = True
+            links = contextWorld.node_tree.links
+            nodes = contextWorld.node_tree.nodes
+            fognode = nodes.new(type='ShaderNodeVolumeAbsorption')
+            fognode.label = "Fog"
+            fognode.location = (300, 60)
+            volumemix = next((wn for wn in worldnodes if wn.label == 'Volume' and wn.type in {'ADD_SHADER', 'MIX_SHADER'}), False)
+            if volumemix:
+                links.new(fognode.outputs['Volume'], volumemix.inputs[1])
+            else:
+                links.new(fognode.outputs[0], nodes['World Output'].inputs[1])
+            contextWorld.mist_settings.use_mist = True
+            contextWorld.mist_settings.start = read_float(new_chunk)
+            nearfog = read_float(new_chunk) * 0.01
+            contextWorld.mist_settings.depth = read_float(new_chunk)
+            farfog = read_float(new_chunk) * 0.01
+            fognode.inputs[1].default_value = (nearfog + farfog) * 0.5
+            read_chunk(file, temp_chunk)
+            if temp_chunk.ID == COLOR_F:
+                fognode.inputs[0].default_value[:3] = read_float_array(temp_chunk)
+            elif temp_chunk.ID == LIN_COLOR_F:
+                fognode.inputs[0].default_value[:3] = read_float_array(temp_chunk)
+            else:
+                skip_to_end(file, temp_chunk)
+            new_chunk.bytes_read += temp_chunk.bytes_read
+        elif CreateWorld and new_chunk.ID == FOG_BGND:
+            pass
+
+        # If layer fog chunk:
         elif CreateWorld and new_chunk.ID == LAYER_FOG:
             """Fog options flags are bit 20 (0x100000) for background fogging,
                bit 0 (0x1) for bottom falloff, and bit 1 (0x2) for top falloff."""
@@ -767,16 +849,23 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextWorld.use_nodes = True
             links = contextWorld.node_tree.links
             nodes = contextWorld.node_tree.nodes
+            mxvolume = nodes.new(type='ShaderNodeMixShader')
             layerfog = nodes.new(type='ShaderNodeVolumeScatter')
             layerfog.label = "Layer Fog"
-            layerfog.location = (300, 100)
-            links.new(layerfog.outputs['Volume'], nodes['World Output'].inputs['Volume'])
+            mxvolume.label = "Volume"
+            layerfog.location = (10, -60)
+            mxvolume.location = (300, 50)
+            links.new(layerfog.outputs['Volume'], mxvolume.inputs[2])
+            links.new(mxvolume.outputs[0], nodes['World Output'].inputs[1])
+            fognode = next((wn for wn in worldnodes if wn.type == 'VOLUME_ABSORPTION'), False)
+            if fognode:
+                links.new(fognode.outputs['Volume'], mxvolume.inputs[1])
+                fognode.location = (10, 60)
             context.view_layer.use_pass_mist = False
             contextWorld.mist_settings.use_mist = True
             contextWorld.mist_settings.start = read_float(new_chunk)
-            contextWorld.mist_settings.depth = read_float(new_chunk)
-            contextWorld.mist_settings.height = contextWorld.mist_settings.depth * 0.5
-            layerfog.inputs['Density'].default_value = read_float(new_chunk)
+            contextWorld.mist_settings.height = read_float(new_chunk)
+            layerfog.inputs[1].default_value = read_float(new_chunk)
             layerfog_flag = read_long(new_chunk)
             if layerfog_flag == 0:
                 contextWorld.mist_settings.falloff = 'LINEAR'
@@ -1152,11 +1241,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                     ambinode = nodes.new(type='ShaderNodeEmission')
                     ambilite = nodes.new(type='ShaderNodeRGB')
                     ambilite.label = "Ambient Color"
+                    mixshade.label = "Surface"
                     ambinode.inputs[0].default_value[:3] = child.color
-                    ambinode.location = (10, 150)
-                    worldout.location = (600, 200)
-                    mixshade.location = (300, 300)
-                    ambilite.location = (-250, 150)
+                    ambinode.location = (10, 180)
+                    worldout.location = (600, 180)
+                    mixshade.location = (300, 280)
+                    ambilite.location = (-250, 100)
                     links.new(mixshade.outputs[0], worldout.inputs['Surface'])
                     links.new(nodes['Background'].outputs[0], mixshade.inputs[1])
                     links.new(ambinode.outputs[0], mixshade.inputs[2])
