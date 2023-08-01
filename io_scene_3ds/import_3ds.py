@@ -807,14 +807,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             if contextWorld is None:
                 path, filename = os.path.split(file.name)
                 realname, ext = os.path.splitext(filename)
-                newWorld = bpy.data.worlds.new("LayerFog: " + realname)
+                newWorld = bpy.data.worlds.new("Fog: " + realname)
                 context.scene.world = contextWorld
             contextWorld.use_nodes = True
             links = contextWorld.node_tree.links
             nodes = contextWorld.node_tree.nodes
             fognode = nodes.new(type='ShaderNodeVolumeAbsorption')
             fognode.label = "Fog"
-            fognode.location = (300, 60)
+            fognode.location = (10, 60)
             volumemix = next((wn for wn in worldnodes if wn.label == 'Volume' and wn.type in {'ADD_SHADER', 'MIX_SHADER'}), False)
             if volumemix:
                 links.new(fognode.outputs['Volume'], volumemix.inputs[1])
@@ -860,7 +860,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             fognode = next((wn for wn in worldnodes if wn.type == 'VOLUME_ABSORPTION'), False)
             if fognode:
                 links.new(fognode.outputs['Volume'], mxvolume.inputs[1])
-                fognode.location = (10, 60)
             context.view_layer.use_pass_mist = False
             contextWorld.mist_settings.use_mist = True
             contextWorld.mist_settings.start = read_float(new_chunk)
