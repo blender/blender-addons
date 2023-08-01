@@ -754,8 +754,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             bitmap_mix.inputs[0].default_value = 0.5 if bitmapnode.image is not None else 1.0
             bitmapnode.location = (-600, 360) if bitmapnode.image is not None else (-600, 300)
             bitmap_mix.location = (-250, 300)
+            gradientnode = next((wn for wn in nodes if wn.type == 'VALTORGB'), False)
             links.new(bitmap_mix.outputs['Color'], nodes['Background'].inputs[0])
             links.new(bitmapnode.outputs['Color'], bitmap_mix.inputs[1])
+            if gradientnode:
+                links.new(bitmapnode.outputs['Color'], gradientnode.inputs[0])
             new_chunk.bytes_read += read_str_len
 
         # If gradient chunk:
@@ -772,10 +775,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             gradientnode.location = (-600, 100)
             gradientnode.label = "Gradient"
             backgroundmix = next((wn for wn in worldnodes if wn.type in {'MIX', 'MIX_RGB'}), False)
+            bitmapnode = next((wn for wn in nodes if wn.type in {'TEX_IMAGE', 'TEX_ENVIRONMENT'}), False)
             if backgroundmix:
                 links.new(gradientnode.outputs['Color'], backgroundmix.inputs[2])
             else:
                 links.new(gradientnode.outputs['Color'], nodes['Background'].inputs[0])
+            if bitmapnode:
+                links.new(bitmapnode.outputs['Color'], gradientnode.inputs[0])
             gradientnode.color_ramp.elements.new(read_float(new_chunk))
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == COLOR_F:
