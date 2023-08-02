@@ -1636,7 +1636,6 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
             fac = 1.0
             ratio = (fac / aspect)
             align = fac - (ratio - aspect if ratio > fac else aspect - ratio)
-            shift = align + (align / 2.0)
             if aspect > 1.0:
                 ob.scale.x = fac + align
                 ob.scale.y = fac - align
