@@ -110,6 +110,9 @@ LIGHT_SPOT_SHADOWED = 0x4630  # Light spot shadow flag
 LIGHT_SPOT_LSHADOW = 0x4641  # Light spot shadow parameters
 LIGHT_SPOT_SEE_CONE = 0x4650  # Light spot show cone flag
 LIGHT_SPOT_RECTANGLE = 0x4651  # Light spot rectangle flag
+LIGHT_SPOT_OVERSHOOT = 0x4652  # Light spot overshoot flag
+LIGHT_SPOT_PROJECTOR = 0x4653  # Light spot projection bitmap
+LIGHT_SPOT_ASPECT = 0x4657  # Light spot aspect ratio
 
 # >------ sub defines of CAMERA
 OBJECT_CAM_RANGES = 0x4720  # The camera range values
@@ -1881,6 +1884,23 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
             if ob.data.use_square:
                 spot_square_chunk = _3ds_chunk(LIGHT_SPOT_RECTANGLE)
                 spotlight_chunk.add_subchunk(spot_square_chunk)
+            if ob.scale.x and ob.scale.y != 0.0:
+                spot_aspect_chunk = _3ds_chunk(LIGHT_SPOT_ASPECT)
+                spot_aspect_chunk.add_variable("aspect", _3ds_float(round((ob.scale.x / ob.scale.y),4)))
+                spotlight_chunk.add_subchunk(spot_aspect_chunk)
+            if ob.data.use_nodes:
+                links = ob.data.node_tree.links
+                bptype = 'EMISSION'
+                bpmix = 'MIX', 'MIX_RGB', 'EMISSION'
+                bptex = 'TEX_IMAGE', 'TEX_ENVIRONMENT'
+                bpout = 'ADD_SHADER', 'MIX_SHADER', 'OUTPUT_LIGHT'
+                bshade = next((lk.from_node.type for lk in links if lk.from_node.type == bptype and lk.to_node.type in bpout), None)
+                bpnode = next((lk.from_node.type for lk in links if lk.from_node.type in bpmix and lk.to_node.type == bshade), bshade)
+                bitmap = next((lk.from_node.image for lk in links if lk.from_node.type in bptex and lk.to_node.type == bpnode), False)
+                if bitmap and bitmap is not None:
+                    spot_projector_chunk = _3ds_chunk(LIGHT_SPOT_PROJECTOR)
+                    spot_projector_chunk.add_variable("image", _3ds_string(sane_name(bitmap.name)))
+                    spotlight_chunk.add_subchunk(spot_projector_chunk)
             obj_light_chunk.add_subchunk(spotlight_chunk)
 
         # Add light to object chunk

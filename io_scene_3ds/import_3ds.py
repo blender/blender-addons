@@ -1156,6 +1156,24 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextLamp.data.show_cone = True
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_RECTANGLE:  # Square flag
             contextLamp.data.use_square = True
+        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_ASPECT:  # Aspect
+            contextLamp.empty_display_size = read_float(new_chunk)
+        elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_PROJECTOR:  # Projection
+            contextLamp.data.use_nodes = True
+            nodes = contextLamp.data.node_tree.nodes
+            links = contextLamp.data.node_tree.links
+            gobo_name, read_str_len = read_string(file)
+            new_chunk.bytes_read += read_str_len
+            projection = nodes.new(type='ShaderNodeTexImage')
+            projection.label = gobo_name
+            projection.location = (-340, 360)
+            projection.image = load_image(gobo_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
+            emitnode = next((node for node in nodes if node.type == 'EMISSION'), False)
+            emission = emitnode if emitnode else nodes.new(type='ShaderNodeEmission')
+            emission.label = "Projector"
+            emission.location = (0, 300)
+            links.new(emission.outputs['Emission'], nodes['Light Output'].inputs[0])
+            links.new(projection.outputs['Color'], emission.inputs[0])
         elif CreateLightObject and new_chunk.ID == OBJECT_HIERARCHY:  # Hierarchy
             child_id = get_hierarchy(new_chunk)
         elif CreateLightObject and new_chunk.ID == OBJECT_PARENT:
@@ -1613,6 +1631,18 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
 
     # Select all new objects
     for ob in imported_objects:
+        if ob.type == 'LIGHT' and ob.data.type == 'SPOT':
+            aspect = ob.empty_display_size
+            fac = 1.0
+            ratio = (fac / aspect)
+            align = fac - (ratio - aspect if ratio > fac else aspect - ratio)
+            shift = align + (align / 2.0)
+            if aspect > 1.0:
+                ob.scale.x = fac + align
+                ob.scale.y = fac - align
+            elif aspect < 1.0:
+                ob.scale.x = fac - align
+                ob.scale.y = fac + align
         ob.select_set(True)
         if not APPLY_MATRIX:  # Reset transform
             bpy.ops.object.rotation_clear()
