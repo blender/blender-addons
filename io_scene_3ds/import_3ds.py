@@ -128,6 +128,7 @@ LIGHT_RAY_BIAS = 0x4658  # Light ray bias value
 LIGHT_INNER_RANGE = 0x4659  # The light inner range
 LIGHT_OUTER_RANGE = 0x465A  # The light outer range
 LIGHT_MULTIPLIER = 0x465B  # The light energy factor
+LIGHT_ATTENUATE = 0x4625  # Light attenuation flag
 LIGHT_AMBIENT_LIGHT = 0x4680  # Light ambient flag
 
 # >------ sub defines of CAMERA
@@ -1128,8 +1129,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextMatrix = None # Reset matrix
         elif CreateLightObject and new_chunk.ID == COLOR_F:  # Color
             contextLamp.data.color = read_float_array(new_chunk)
+        elif CreateLightObject and new_chunk.ID == LIGHT_OUTER_RANGE:  # Distance
+            contextLamp.data.cutoff_distance = read_float(new_chunk)
+        elif CreateLightObject and new_chunk.ID == LIGHT_INNER_RANGE:  # Radius
+            contextLamp.data.shadow_soft_size = read_float(new_chunk)
         elif CreateLightObject and new_chunk.ID == LIGHT_MULTIPLIER:  # Intensity
             contextLamp.data.energy = (read_float(new_chunk) * 1000)
+        elif CreateLightObject and new_chunk.ID == LIGHT_ATTENUATE:  # Attenuation
+            contextLamp.data.use_custom_distance = True
 
         # If spotlight chunk
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOTLIGHT:  # Spotlight

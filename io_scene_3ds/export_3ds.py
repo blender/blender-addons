@@ -104,6 +104,9 @@ OBJECT_PARENT = 0x4F10  # Parent id of the object
 
 # >------ Sub defines of LIGHT
 LIGHT_MULTIPLIER = 0x465B  # The light energy factor
+LIGHT_INNER_RANGE = 0x4659  # Light inner range value
+LIGHT_OUTER_RANGE = 0x465A  # Light outer range value
+LIGHT_ATTENUATE = 0x4625  # Light attenuation flag
 LIGHT_SPOTLIGHT = 0x4610  # The target of a spotlight
 LIGHT_SPOT_ROLL = 0x4656  # Light spot roll angle
 LIGHT_SPOT_SHADOWED = 0x4630  # Light spot shadow flag
@@ -1851,13 +1854,22 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
         obj_light_chunk = _3ds_chunk(OBJECT_LIGHT)
         color_float_chunk = _3ds_chunk(RGB)
         light_distance = translation[ob.name]
+        light_attenuate = _3ds_chunk(LIGHT_ATTENUATE)
+        light_inner_range = _3ds_chunk(LIGHT_INNER_RANGE)
+        light_outer_range = _3ds_chunk(LIGHT_OUTER_RANGE)
         light_energy_factor = _3ds_chunk(LIGHT_MULTIPLIER)
         object_chunk.add_variable("light", _3ds_string(sane_name(ob.name)))
         obj_light_chunk.add_variable("location", _3ds_point_3d(light_distance))
         color_float_chunk.add_variable("color", _3ds_float_color(ob.data.color))
+        light_outer_range.add_variable("distance", _3ds_float(ob.data.cutoff_distance))
+        light_inner_range.add_variable("radius", _3ds_float(ob.data.shadow_soft_size))
         light_energy_factor.add_variable("energy", _3ds_float(ob.data.energy * 0.001))
         obj_light_chunk.add_subchunk(color_float_chunk)
+        obj_light_chunk.add_subchunk(light_outer_range)
+        obj_light_chunk.add_subchunk(light_inner_range)
         obj_light_chunk.add_subchunk(light_energy_factor)
+        if ob.data.use_custom_distance:
+            obj_light_chunk.add_subchunk(light_attenuate)
 
         if ob.data.type == 'SPOT':
             cone_angle = math.degrees(ob.data.spot_size)
