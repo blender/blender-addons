@@ -1632,16 +1632,10 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
     # Select all new objects
     for ob in imported_objects:
         if ob.type == 'LIGHT' and ob.data.type == 'SPOT':
+            square = math.sqrt(pow(1.0,2) + pow(1.0,2))
             aspect = ob.empty_display_size
-            fac = 1.0
-            ratio = (fac / aspect)
-            align = fac - (ratio - aspect if ratio > fac else aspect - ratio)
-            if aspect > 1.0:
-                ob.scale.x = fac + align
-                ob.scale.y = fac - align
-            elif aspect < 1.0:
-                ob.scale.x = fac - align
-                ob.scale.y = fac + align
+            ob.scale.x = (aspect * square / (math.sqrt(pow(aspect,2) + 1.0)))
+            ob.scale.y = (square / (math.sqrt(pow(aspect,2) + 1.0)))
         ob.select_set(True)
         if not APPLY_MATRIX:  # Reset transform
             bpy.ops.object.rotation_clear()
