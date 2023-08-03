@@ -1137,14 +1137,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             contextLamp.data.use_shadow = False
             spot = mathutils.Vector(read_float_array(new_chunk))  # Spot location
             aim = calc_target(contextLamp.location, spot)  # Target
-            contextLamp.rotation_euler[0] = aim[0]
-            contextLamp.rotation_euler[2] = aim[1]
+            contextLamp.rotation_euler.x = aim[0]
+            contextLamp.rotation_euler.z = aim[1]
             hotspot = read_float(new_chunk)  # Hotspot
             beam_angle = read_float(new_chunk)  # Beam angle
             contextLamp.data.spot_size = math.radians(beam_angle)
             contextLamp.data.spot_blend = 1.0 - (hotspot / beam_angle)
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_ROLL:  # Roll
-            contextLamp.rotation_euler[1] = read_float(new_chunk)
+            contextLamp.rotation_euler.y = read_float(new_chunk)
         elif CreateLightObject and new_chunk.ID == LIGHT_SPOT_SHADOWED:  # Shadow flag
             contextLamp.data.use_shadow = True
         elif CreateLightObject and new_chunk.ID == LIGHT_LOCAL_SHADOW2:  # Shadow parameters
@@ -1195,9 +1195,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 contextCamera.location = read_float_array(new_chunk)  # Position
                 focus = mathutils.Vector(read_float_array(new_chunk))
                 direction = calc_target(contextCamera.location, focus)  # Target
-                contextCamera.rotation_euler[0] = direction[0]
-                contextCamera.rotation_euler[1] = read_float(new_chunk)  # Roll
-                contextCamera.rotation_euler[2] = direction[1]
+                contextCamera.rotation_euler.x = direction[0]
+                contextCamera.rotation_euler.y = read_float(new_chunk)  # Roll
+                contextCamera.rotation_euler.z = direction[1]
                 contextCamera.data.lens = read_float(new_chunk)  # Focal length
             contextMatrix = None  # Reset matrix
         elif CreateCameraObject and new_chunk.ID == OBJECT_HIERARCHY:  # Hierarchy
@@ -1371,8 +1371,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             location = child.location
             target = mathutils.Vector(read_track_data(new_chunk)[0])
             direction = calc_target(location, target)
-            child.rotation_euler[0] = direction[0]
-            child.rotation_euler[2] = direction[1]
+            child.rotation_euler.x = direction[0]
+            child.rotation_euler.z = direction[1]
             for keydata in keyframe_data.items():
                 track = trackposition.get(keydata[0], child.location)
                 locate = mathutils.Vector(track)
@@ -1404,8 +1404,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 child.lock_rotation[1] = True
             if tflags & 0x20:  # Flag 0x20 locks Z axis
                 child.lock_rotation[2] = True
-            if nkeys == 0:
-                keyframe_rotation[0] = child.rotation_axis_angle[:]
             for i in range(nkeys):
                 nframe = read_long(new_chunk)
                 nflags = read_short(new_chunk)
@@ -1452,10 +1450,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracktype == 'OBJECT':  # Roll angle
             keyframe_angle = {}
-            default_value = child.rotation_euler[1]
-            child.rotation_euler[1] = read_track_angle(new_chunk)[0]
+            default_value = child.rotation_euler.y
+            child.rotation_euler.y = read_track_angle(new_chunk)[0]
             for keydata in keyframe_angle.items():
-                child.rotation_euler[1] = keydata[1]
+                child.rotation_euler.y = keydata[1]
                 if hierarchy == ROOT_OBJECT:
                     child.rotation_euler.rotate(CONVERSE)
                 child.keyframe_insert(data_path="rotation_euler", index=1, frame=keydata[0])
