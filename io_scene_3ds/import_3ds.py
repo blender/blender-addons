@@ -1634,6 +1634,7 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
             aspect = ob.empty_display_size
             ob.scale.x = (aspect * square / (math.sqrt(pow(aspect,2) + 1.0)))
             ob.scale.y = (square / (math.sqrt(pow(aspect,2) + 1.0)))
+            ob.scale.z = 1.0
         ob.select_set(True)
         if not APPLY_MATRIX:  # Reset transform
             bpy.ops.object.rotation_clear()
@@ -1649,7 +1650,6 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
 
         grp = Blender.Group.New(name)
         grp.objects = imported_objects
-
         grp_ob = Object.New('Empty', name)
         grp_ob.enableDupGroup = True
         grp_ob.DupGroup = grp
