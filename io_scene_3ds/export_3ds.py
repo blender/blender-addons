@@ -1858,12 +1858,13 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
         light_inner_range = _3ds_chunk(LIGHT_INNER_RANGE)
         light_outer_range = _3ds_chunk(LIGHT_OUTER_RANGE)
         light_energy_factor = _3ds_chunk(LIGHT_MULTIPLIER)
+        light_ratio = ob.data.energy if ob.data.type == 'SUN' else ob.data.energy * 0.001
         object_chunk.add_variable("light", _3ds_string(sane_name(ob.name)))
         obj_light_chunk.add_variable("location", _3ds_point_3d(light_distance))
         color_float_chunk.add_variable("color", _3ds_float_color(ob.data.color))
         light_outer_range.add_variable("distance", _3ds_float(ob.data.cutoff_distance))
-        light_inner_range.add_variable("radius", _3ds_float(ob.data.shadow_soft_size))
-        light_energy_factor.add_variable("energy", _3ds_float(ob.data.energy * 0.001))
+        light_inner_range.add_variable("radius", _3ds_float(ob.data.shadow_soft_size * 100))
+        light_energy_factor.add_variable("energy", _3ds_float(light_ratio))
         obj_light_chunk.add_subchunk(color_float_chunk)
         obj_light_chunk.add_subchunk(light_outer_range)
         obj_light_chunk.add_subchunk(light_inner_range)
@@ -1943,6 +1944,7 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
     for ob in camera_objects:
         object_chunk = _3ds_chunk(OBJECT)
         camera_chunk = _3ds_chunk(OBJECT_CAMERA)
+        crange_chunk = _3ds_chunk(OBJECT_CAM_RANGES)
         camera_distance = translation[ob.name]
         camera_target = calc_target(camera_distance, rotation[ob.name].x, rotation[ob.name].z)
         object_chunk.add_variable("camera", _3ds_string(sane_name(ob.name)))
@@ -1950,6 +1952,9 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
         camera_chunk.add_variable("target", _3ds_point_3d(camera_target))
         camera_chunk.add_variable("roll", _3ds_float(round(rotation[ob.name].y, 6)))
         camera_chunk.add_variable("lens", _3ds_float(ob.data.lens))
+        crange_chunk.add_variable("clipstart", _3ds_float(ob.data.clip_start * 0.1))
+        crange_chunk.add_variable("clipend", _3ds_float(ob.data.clip_end * 0.1))
+        camera_chunk.add_subchunk(crange_chunk)
         object_chunk.add_subchunk(camera_chunk)
 
         # Add hierachy chunks with ID from object_id dictionary

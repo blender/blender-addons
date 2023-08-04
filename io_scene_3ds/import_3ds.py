@@ -890,24 +890,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif CreateWorld and new_chunk.ID in {USE_FOG, USE_LAYER_FOG}:
             context.view_layer.use_pass_mist = True
 
-        # If object chunk - can be material and mesh, light and spot or camera
-        elif new_chunk.ID == OBJECT:
-            if CreateBlenderObject:
-                putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMesh_flag,
-                               contextMeshMaterials, contextMesh_smooth, WORLD_MATRIX)
-
-                contextMesh_vertls = []
-                contextMesh_facels = []
-                contextMeshMaterials = []
-                contextMesh_flag = None
-                contextMesh_smooth = None
-                contextMeshUV = None
-                contextMatrix = None
-
-            CreateBlenderObject = True if CreateMesh else False
-            contextObName, read_str_len = read_string(file)
-            new_chunk.bytes_read += read_str_len
-
         # If material chunk
         elif new_chunk.ID == MATERIAL:
             contextAlpha = True
@@ -1058,6 +1040,25 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MAT_TEX2_MAP:
             read_texture(new_chunk, temp_chunk, "Tex", 'TEXTURE')
 
+        # If object chunk - can be mesh, light and spot or camera
+        elif new_chunk.ID == OBJECT:
+            if CreateBlenderObject:
+                putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMesh_flag,
+                               contextMeshMaterials, contextMesh_smooth, WORLD_MATRIX)
+
+                contextMesh_vertls = []
+                contextMesh_facels = []
+                contextMeshMaterials = []
+                contextMesh_flag = None
+                contextMesh_smooth = None
+                contextMeshUV = None
+                contextMatrix = None
+
+            CreateBlenderObject = True if CreateMesh else False
+            CreateLightObject = CreateCameraObject = False
+            contextObName, read_str_len = read_string(file)
+            new_chunk.bytes_read += read_str_len
+
         # If mesh chunk
         elif new_chunk.ID == OBJECT_MESH:
             pass
@@ -1132,7 +1133,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif CreateLightObject and new_chunk.ID == LIGHT_OUTER_RANGE:  # Distance
             contextLamp.data.cutoff_distance = read_float(new_chunk)
         elif CreateLightObject and new_chunk.ID == LIGHT_INNER_RANGE:  # Radius
-            contextLamp.data.shadow_soft_size = read_float(new_chunk)
+            contextLamp.data.shadow_soft_size = (read_float(new_chunk) * 0.01)
         elif CreateLightObject and new_chunk.ID == LIGHT_MULTIPLIER:  # Intensity
             contextLamp.data.energy = (read_float(new_chunk) * 1000)
         elif CreateLightObject and new_chunk.ID == LIGHT_ATTENUATE:  # Attenuation
@@ -1207,6 +1208,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 contextCamera.rotation_euler.z = direction[1]
                 contextCamera.data.lens = read_float(new_chunk)  # Focal length
             contextMatrix = None  # Reset matrix
+        elif CreateCameraObject and new_chunk.ID == OBJECT_CAM_RANGES:  # Range
+            camrange = read_float(new_chunk)
+            startrange = camrange if camrange >= 0.01 else 0.1
+            contextCamera.data.clip_start = startrange * CONSTRAIN
+            contextCamera.data.clip_end = read_float(new_chunk) * CONSTRAIN
         elif CreateCameraObject and new_chunk.ID == OBJECT_HIERARCHY:  # Hierarchy
             child_id = get_hierarchy(new_chunk)
         elif CreateCameraObject and new_chunk.ID == OBJECT_PARENT:
@@ -1560,8 +1566,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 # IMPORT #
 ##########
 
-def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, FILTER=None,
-             WORLD_MATRIX=False, KEYFRAME=True, APPLY_MATRIX=True, CONVERSE=None, CURSOR=False):
+def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True,
+             FILTER=None, WORLD_MATRIX=False, KEYFRAME=True, APPLY_MATRIX=True,
+             CONVERSE=None, CURSOR=False, PIVOT=False):
 
     print("importing 3DS: %r..." % (filepath), end="")
 
@@ -1643,9 +1650,13 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
             ob.scale.y = (square / (math.sqrt(pow(aspect,2) + 1.0)))
             ob.scale.z = 1.0
         ob.select_set(True)
-        if not APPLY_MATRIX:  # Reset transform
-            bpy.ops.object.rotation_clear()
-            bpy.ops.object.location_clear()
+        if ob.type == 'MESH':
+            if PIVOT:
+                bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
+            if not APPLY_MATRIX:  # Reset transform
+                bpy.ops.object.rotation_clear()
+                bpy.ops.object.location_clear()
+                bpy.ops.object.scale_clear()
 
     """
     if IMPORT_AS_INSTANCE:
@@ -1712,11 +1723,11 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True, 
 
 
 def load(operator, context, filepath="", constrain_size=0.0, use_scene_unit=False,
-         use_image_search=True, object_filter=None, use_world_matrix=False,
-         use_keyframes=True, use_apply_transform=True, global_matrix=None, use_cursor=False):
+         use_image_search=True, object_filter=None, use_world_matrix=False, use_keyframes=True,
+         use_apply_transform=True, global_matrix=None, use_cursor=False, use_center_pivot=False):
 
     load_3ds(filepath, context, CONSTRAIN=constrain_size, UNITS=use_scene_unit,
-             IMAGE_SEARCH=use_image_search, FILTER=object_filter, WORLD_MATRIX=use_world_matrix,
-             KEYFRAME=use_keyframes, APPLY_MATRIX=use_apply_transform, CONVERSE=global_matrix, CURSOR=use_cursor,)
+             IMAGE_SEARCH=use_image_search, FILTER=object_filter, WORLD_MATRIX=use_world_matrix, KEYFRAME=use_keyframes,
+             APPLY_MATRIX=use_apply_transform, CONVERSE=global_matrix, CURSOR=use_cursor, PIVOT=use_center_pivot,)
 
     return {'FINISHED'}
