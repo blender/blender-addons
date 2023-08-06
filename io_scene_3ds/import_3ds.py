@@ -862,6 +862,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             mxvolume.label = "Volume"
             layerfog.location = (10, -60)
             mxvolume.location = (300, 50)
+            nodes['World Output'].location = (600, 200)
             links.new(layerfog.outputs['Volume'], mxvolume.inputs[2])
             links.new(mxvolume.outputs[0], nodes['World Output'].inputs[1])
             fognode = next((wn for wn in worldnodes if wn.type == 'VOLUME_ABSORPTION'), False)
