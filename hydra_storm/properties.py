@@ -23,9 +23,14 @@ class Properties(bpy.types.PropertyGroup):
 
 
 class RenderProperties(bpy.types.PropertyGroup):
-    enable_tiny_prim_culling: bpy.props.BoolProperty(
+    max_lights: bpy.props.IntProperty(
+        name="Max Lights",
+        description="Limit maximum number of lights",
+        default=16, min=0, max=16,
+    )
+    use_tiny_prim_culling: bpy.props.BoolProperty(
         name="Tiny Prim Culling",
-        description="Enable Tiny Prim Culling",
+        description="Hide small geometry primitives to improve performance",
         default=False,
     )
     volume_raymarching_step_size: bpy.props.FloatProperty(
@@ -42,11 +47,6 @@ class RenderProperties(bpy.types.PropertyGroup):
         name="Max Texture Memory Per Field",
         description="Maximum memory for a volume field texture in Mb (unless overridden by field prim)",
         default=128.0,
-    )
-    max_lights: bpy.props.IntProperty(
-        name="Max Lights",
-        description="Limit maximum number of lights",
-        default=16, min=0, max=16,
     )
 
 

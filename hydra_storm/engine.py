@@ -19,11 +19,11 @@ class StormHydraRenderEngine(bpy.types.HydraRenderEngine):
         settings = bpy.context.scene.hydra_storm.viewport if engine_type == 'VIEWPORT' else \
             bpy.context.scene.hydra_storm.final
         result = {
-            'enableTinyPrimCulling': settings.enable_tiny_prim_culling,
+            'enableTinyPrimCulling': settings.use_tiny_prim_culling,
+            'maxLights': settings.max_lights,
             'volumeRaymarchingStepSize': settings.volume_raymarching_step_size,
             'volumeRaymarchingStepSizeLighting': settings.volume_raymarching_step_size_lighting,
             'volumeMaxTextureMemoryPerField': settings.volume_max_texture_memory_per_field,
-            'maxLights': settings.max_lights,
         }
 
         if engine_type != 'VIEWPORT':

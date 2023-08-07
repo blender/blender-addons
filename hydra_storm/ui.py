@@ -20,50 +20,18 @@ class Panel(bpy.types.Panel):
 
 
 #
-# Final render settings
+# Quality render settings
 #
-class STORM_HYDRA_RENDER_PT_final(Panel):
-    """Final render delegate and settings"""
-    bl_idname = 'STORM_HYDRA_RENDER_PT_final'
-    bl_label = "Final Render Settings"
+class STORM_HYDRA_RENDER_PT_quality(Panel):
+    bl_label = "Quality"
 
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        settings = context.scene.hydra_storm.final
-        layout.prop(settings, 'enable_tiny_prim_culling')
-        layout.prop(settings, 'max_lights')
+    def draw(self, layout):
+        pass
 
 
-class STORM_HYDRA_RENDER_PT_volume_final(bpy.types.Panel):
-    bl_parent_id = STORM_HYDRA_RENDER_PT_final.bl_idname
-    bl_label = "Volume Raymarching"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        settings = context.scene.hydra_storm.final
-
-        col = layout.column(align=True)
-        col.prop(settings, "volume_raymarching_step_size", text="Step Size")
-        col.prop(settings, "volume_raymarching_step_size_lighting", text="Step Size Lightning")
-        col.prop(settings, "volume_max_texture_memory_per_field")
-
-
-#
-# Viewport render settings
-#
-class STORM_HYDRA_RENDER_PT_viewport(Panel):
-    """Viewport render delegate and settings"""
-    bl_idname = 'STORM_HYDRA_RENDER_PT_viewport'
-    bl_label = "Viewport Render Settings"
+class STORM_HYDRA_RENDER_PT_quality_viewport(Panel):
+    bl_label = "Viewport"
+    bl_parent_id = "STORM_HYDRA_RENDER_PT_quality"
 
     def draw(self, context):
         layout = self.layout
@@ -71,16 +39,38 @@ class STORM_HYDRA_RENDER_PT_viewport(Panel):
         layout.use_property_decorate = False
 
         settings = context.scene.hydra_storm.viewport
-        layout.prop(settings, 'enable_tiny_prim_culling')
         layout.prop(settings, 'max_lights')
+        layout.prop(settings, 'use_tiny_prim_culling')
 
 
-class STORM_HYDRA_RENDER_PT_volume_viewport(bpy.types.Panel):
-    bl_parent_id = STORM_HYDRA_RENDER_PT_viewport.bl_idname
-    bl_label = "Volume Raymarching"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+class STORM_HYDRA_RENDER_PT_quality_render(Panel):
+    bl_label = "Render"
+    bl_parent_id = "STORM_HYDRA_RENDER_PT_quality"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        settings = context.scene.hydra_storm.final
+        layout.prop(settings, 'max_lights')
+        layout.prop(settings, 'use_tiny_prim_culling')
+
+
+#
+# Volume render settings
+#
+class STORM_HYDRA_RENDER_PT_volumes(Panel):
+    bl_label = "Volumes"
     bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, layout):
+        pass
+
+
+class STORM_HYDRA_RENDER_PT_volumes_viewport(Panel):
+    bl_label = "Viewport"
+    bl_parent_id = "STORM_HYDRA_RENDER_PT_volumes"
 
     def draw(self, context):
         layout = self.layout
@@ -95,6 +85,69 @@ class STORM_HYDRA_RENDER_PT_volume_viewport(bpy.types.Panel):
         col.prop(settings, "volume_max_texture_memory_per_field")
 
 
+class STORM_HYDRA_RENDER_PT_volumes_render(Panel):
+    bl_label = "Render"
+    bl_parent_id = "STORM_HYDRA_RENDER_PT_volumes"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        settings = context.scene.hydra_storm.final
+
+        col = layout.column(align=True)
+        col.prop(settings, "volume_raymarching_step_size", text="Step Size")
+        col.prop(settings, "volume_raymarching_step_size_lighting", text="Step Size Lightning")
+        col.prop(settings, "volume_max_texture_memory_per_field")
+
+
+
+#
+# Film settings
+#
+class STORM_HYDRA_RENDER_PT_film(Panel):
+    bl_label = "Film"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        layout.prop(context.scene.render, "film_transparent", text="Transparent Background")
+
+
+#
+# View layer settings
+#
+class STORM_HYDRA_RENDER_PT_passes(Panel):
+    bl_label = "Passes"
+    bl_context = "view_layer"
+
+    def draw(self, context):
+        pass
+
+class STORM_HYDRA_RENDER_PT_passes_data(Panel):
+    bl_label = "Data"
+    bl_context = "view_layer"
+    bl_parent_id = "STORM_HYDRA_RENDER_PT_passes"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        view_layer = context.view_layer
+
+        col = layout.column(heading="Include", align=True)
+        col.prop(view_layer, "use_pass_combined")
+        col.prop(view_layer, "use_pass_z")
+
+
+#
+# Light settings
+#
 class STORM_HYDRA_LIGHT_PT_light(Panel):
     """Physical light sources"""
     bl_label = "Light"
@@ -148,49 +201,13 @@ class STORM_HYDRA_LIGHT_PT_light(Panel):
                 main_col.prop(light, 'size')
 
 
-class STORM_HYDRA_RENDER_PT_film(Panel):
-    bl_label = "Film"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        layout.prop(context.scene.render, "film_transparent", text="Transparent Background")
-
-
-class STORM_HYDRA_RENDER_PT_passes(Panel):
-    bl_label = "Passes"
-    bl_context = "view_layer"
-
-    def draw(self, context):
-        pass
-
-
-class STORM_HYDRA_RENDER_PT_passes_data(Panel):
-    bl_label = "Data"
-    bl_context = "view_layer"
-    bl_parent_id = "STORM_HYDRA_RENDER_PT_passes"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        view_layer = context.view_layer
-
-        col = layout.column(heading="Include", align=True)
-        col.prop(view_layer, "use_pass_z")
-
-
 register_classes, unregister_classes = bpy.utils.register_classes_factory((
-    STORM_HYDRA_RENDER_PT_final,
-    STORM_HYDRA_RENDER_PT_volume_final,
-    STORM_HYDRA_RENDER_PT_viewport,
-    STORM_HYDRA_RENDER_PT_volume_viewport,
+    STORM_HYDRA_RENDER_PT_quality,
+    STORM_HYDRA_RENDER_PT_quality_viewport,
+    STORM_HYDRA_RENDER_PT_quality_render,
+    STORM_HYDRA_RENDER_PT_volumes,
+    STORM_HYDRA_RENDER_PT_volumes_viewport,
+    STORM_HYDRA_RENDER_PT_volumes_render,
     STORM_HYDRA_RENDER_PT_film,
     STORM_HYDRA_LIGHT_PT_light,
     STORM_HYDRA_RENDER_PT_passes,
