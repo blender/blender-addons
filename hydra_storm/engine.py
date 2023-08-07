@@ -35,6 +35,8 @@ class StormHydraRenderEngine(bpy.types.HydraRenderEngine):
         return result
 
     def update_render_passes(self, scene, render_layer):
+        if render_layer.use_pass_combined:
+            self.register_pass(scene, render_layer, 'Combined', 4, 'RGBA', 'COLOR')
         if render_layer.use_pass_z:
             self.register_pass(scene, render_layer, 'Depth', 1, 'Z', 'VALUE')
 
