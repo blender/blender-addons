@@ -479,7 +479,7 @@ def bvh_node_dict2armature(
             bvh_node.temp.parent = bvh_node.parent.temp
 
             # Set the connection state
-            if(
+            if (
                     (not bvh_node.has_loc) and
                     (bvh_node.parent.temp.name not in ZERO_AREA_BONES) and
                     (bvh_node.parent.rest_tail_local == bvh_node.rest_head_local)
