@@ -137,6 +137,14 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
             # Make sure the names are unique - Object names will match joint names exactly and both will be unique.
             name = file_lines[lineIdx][1]
 
+            # While unlikely, there exists a user report of duplicate joint names, see: #109399.
+            if name in bvh_nodes:
+                name_orig = name
+                name_index = 1
+                while (name := "%s.%03d" % (name_orig, name_index)) in bvh_nodes:
+                    name_index += 1
+                del name_orig, name_index
+
             # print '%snode: %s, parent: %s' % (len(bvh_nodes_serial) * '  ', name,  bvh_nodes_serial[-1])
 
             lineIdx += 2  # Increment to the next line (Offset)
