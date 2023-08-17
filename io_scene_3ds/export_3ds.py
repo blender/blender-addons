@@ -551,10 +551,10 @@ def make_percent_subchunk(chunk_id, percent):
     return pct_sub
 
 
-def make_texture_chunk(chunk_id, images):
+def make_texture_chunk(chunk_id, images, pct):
     """Make Material Map texture chunk."""
     # Add texture percentage value (100 = 1.0)
-    mat_sub = make_percent_subchunk(chunk_id, 1)
+    mat_sub = make_percent_subchunk(chunk_id, pct)
     has_entry = False
 
     def add_image(img):
@@ -748,19 +748,18 @@ def make_material_chunk(material, image):
 
         # Make sure no textures are lost. Everything that doesn't fit
         # into a channel is exported as secondary texture
-        diffuse = []
-
-        for link in wrap.material.node_tree.links:
-            if link.from_node.type == 'TEX_IMAGE' and link.to_node.type in {'MIX', 'MIX_RGB'}:
-                diffuse = [link.from_node.image]
-
-        if diffuse:
-            if not primary_tex:
-                matmap = make_texture_chunk(MAT_DIFFUSEMAP, diffuse)
-            else:
-                matmap = make_texture_chunk(MAT_TEX2MAP, diffuse)
-            if matmap:
-                material_chunk.add_subchunk(matmap)
+        matmap = False
+        lks = material.node_tree.links
+        pct = next((lk.from_node.inputs[0].default_value for lk in lks if lk.from_node.type in {'MIX', 'MIX_RGB'} and lk.to_node.type == 'BSDF_PRINCIPLED'), 0.5)
+        for link in mtlks:
+            mix_primary = link.from_node.image if link.from_node.type == 'TEX_IMAGE' and link.to_socket.identifier in {'Color2', 'B_Color'} else False
+            mix_secondary = link.from_node.image if link.from_node.type == 'TEX_IMAGE' and link.to_socket.identifier in {'Color1', 'A_Color'} else False
+            if mix_secondary:
+                matmap = make_uv_texture_chunk(MAT_TEXMAP, [mix_secondary], pct)
+            elif not primary_tex and mix_primary:
+                material_chunk.add_subchunk(make_uv_texture_chunk(MAT_DIFFUSEMAP, [mix_primary], pct))
+        if matmap:
+            material_chunk.add_subchunk(matmap)
 
     else:
         shading.add_variable("shading", _3ds_ushort(2))  # Gouraud shading
