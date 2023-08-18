@@ -551,20 +551,33 @@ def make_percent_subchunk(chunk_id, percent):
     return pct_sub
 
 
-def make_texture_chunk(chunk_id, images, pct):
+def make_texture_chunk(chunk_id, teximages, pct):
     """Make Material Map texture chunk."""
     # Add texture percentage value (100 = 1.0)
     mat_sub = make_percent_subchunk(chunk_id, pct)
     has_entry = False
 
-    def add_image(img):
+    def add_image(img, extension):
         filename = bpy.path.basename(image.filepath)
         mat_sub_file = _3ds_chunk(MAT_MAP_FILE)
+        mat_sub_tiling = _3ds_chunk(MAP_TILING)
         mat_sub_file.add_variable("image", _3ds_string(sane_name(filename)))
         mat_sub.add_subchunk(mat_sub_file)
 
-    for image in images:
-        add_image(image)
+        tiling = 0
+        if extension == 'EXTEND':  # decal flag
+            tiling |= 0x1
+        if extension == 'MIRROR':  # mirror flag
+            tiling |= 0x2
+        if extension == 'CLIP':  # no wrap
+            tiling |= 0x10
+
+        mat_sub_tiling.add_variable("tiling", _3ds_ushort(tiling))
+        mat_sub.add_subchunk(mat_sub_tiling)
+
+    for tex in teximages:
+        extend = tex.extension
+        add_image(tex.image, extend)
         has_entry = True
 
     return mat_sub if has_entry else None
@@ -748,17 +761,22 @@ def make_material_chunk(material, image):
 
         # Make sure no textures are lost. Everything that doesn't fit
         # into a channel is exported as secondary texture
+        diffuse = []
         matmap = False
+        mtype = 'MIX', 'MIX_RGB'
         lks = material.node_tree.links
-        pct = next((lk.from_node.inputs[0].default_value for lk in lks if lk.from_node.type in {'MIX', 'MIX_RGB'} and lk.to_node.type == 'BSDF_PRINCIPLED'), 0.5)
+        pct = next((lk.from_node.inputs[0].default_value for lk in lks if lk.from_node.type in mtype and lk.to_node.type == 'BSDF_PRINCIPLED'), 0.5)
         for link in mtlks:
-            mix_primary = link.from_node.image if link.from_node.type == 'TEX_IMAGE' and link.to_socket.identifier in {'Color2', 'B_Color'} else False
-            mix_secondary = link.from_node.image if link.from_node.type == 'TEX_IMAGE' and link.to_socket.identifier in {'Color1', 'A_Color'} else False
+            mix_primary = link.from_node if link.from_node.type == 'TEX_IMAGE' and link.to_node.type in mtype else False
+            mix_secondary = link.from_node if link.from_node.type == 'TEX_IMAGE' and link.to_socket.identifier in {'Color1', 'A_Color'} else False
             if mix_secondary:
                 matmap = make_uv_texture_chunk(MAT_TEXMAP, [mix_secondary], pct)
-            elif not primary_tex and mix_primary:
-                material_chunk.add_subchunk(make_uv_texture_chunk(MAT_DIFFUSEMAP, [mix_primary], pct))
-        if matmap:
+            elif mix_primary:
+                diffuse.append(mix_primary) 
+        if diffuse:
+            material_chunk.add_subchunk(make_uv_texture_chunk(MAT_DIFFUSEMAP, diffuse, pct))
+            primary_tex = True
+        if primary_tex and matmap:
             material_chunk.add_subchunk(matmap)
 
     else:
