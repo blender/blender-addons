@@ -770,7 +770,7 @@ def make_material_chunk(material, image):
             mix_primary = link.from_node if link.from_node.type == 'TEX_IMAGE' and link.to_node.type in mtype else False
             mix_secondary = link.from_node if link.from_node.type == 'TEX_IMAGE' and link.to_socket.identifier in {'Color1', 'A_Color'} else False
             if mix_secondary:
-                matmap = make_texture_chunk(MAT_TEXMAP, [mix_secondary], pct)
+                matmap = make_texture_chunk(MAT_TEX2MAP, [mix_secondary], pct)
             elif mix_primary:
                 diffuse.append(mix_primary) 
         if diffuse:
