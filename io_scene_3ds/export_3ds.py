@@ -558,7 +558,7 @@ def make_texture_chunk(chunk_id, teximages, pct):
     has_entry = False
 
     def add_image(img, extension):
-        filename = bpy.path.basename(image.filepath)
+        filename = bpy.path.basename(img.filepath)
         mat_sub_file = _3ds_chunk(MAT_MAP_FILE)
         mat_sub_tiling = _3ds_chunk(MAP_TILING)
         mat_sub_file.add_variable("image", _3ds_string(sane_name(filename)))
