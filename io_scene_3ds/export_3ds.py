@@ -766,7 +766,7 @@ def make_material_chunk(material, image):
         mtype = 'MIX', 'MIX_RGB'
         lks = material.node_tree.links
         pct = next((lk.from_node.inputs[0].default_value for lk in lks if lk.from_node.type in mtype and lk.to_node.type == 'BSDF_PRINCIPLED'), 0.5)
-        for link in mtlks:
+        for link in lks:
             mix_primary = link.from_node if link.from_node.type == 'TEX_IMAGE' and link.to_node.type in mtype else False
             mix_secondary = link.from_node if link.from_node.type == 'TEX_IMAGE' and link.to_socket.identifier in {'Color1', 'A_Color'} else False
             if mix_secondary:
