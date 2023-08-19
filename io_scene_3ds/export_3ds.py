@@ -707,6 +707,10 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(shading)
 
         primary_tex = False
+        mtype = 'MIX', 'MIX_RGB'
+        mtlks = material.node_tree.links
+        mxtex = [lk.from_node for lk in mtlks if lk.from_node.type == 'TEX_IMAGE' and lk.to_node.type in mtype]
+        mxpct = next((lk.from_node.inputs[0].default_value for lk in mtlks if lk.from_node.type in mtype and lk.to_node.type == 'BSDF_PRINCIPLED'), 0.5)
 
         if wrap.base_color_texture:
             color = [wrap.base_color_texture]
@@ -715,6 +719,10 @@ def make_material_chunk(material, image):
             if matmap:
                 material_chunk.add_subchunk(matmap)
                 primary_tex = True
+
+        if mxtex and not primary_tex:
+            material_chunk.add_subchunk(make_texture_chunk(MAT_DIFFUSEMAP, mxtex, mxpct))
+            primary_tex = True
 
         if wrap.specular_texture:
             spec = [wrap.specular_texture]
@@ -761,21 +769,10 @@ def make_material_chunk(material, image):
 
         # Make sure no textures are lost. Everything that doesn't fit
         # into a channel is exported as secondary texture
-        diffuse = []
-        matmap = False
-        mtype = 'MIX', 'MIX_RGB'
-        lks = material.node_tree.links
-        pct = next((lk.from_node.inputs[0].default_value for lk in lks if lk.from_node.type in mtype and lk.to_node.type == 'BSDF_PRINCIPLED'), 0.5)
-        for link in lks:
-            mix_primary = link.from_node if link.from_node.type == 'TEX_IMAGE' and link.to_node.type in mtype else False
-            mix_secondary = link.from_node if link.from_node.type == 'TEX_IMAGE' and link.to_socket.identifier in {'Color1', 'A_Color'} else False
-            if mix_secondary:
-                matmap = make_texture_chunk(MAT_TEX2MAP, [mix_secondary], pct)
-            elif mix_primary:
-                diffuse.append(mix_primary) 
-        if diffuse:
-            material_chunk.add_subchunk(make_texture_chunk(MAT_DIFFUSEMAP, diffuse, pct))
-            primary_tex = True
+        for link in mtlks:
+            mxsecondary = link.from_node if link.from_node.type == 'TEX_IMAGE' and link.to_socket.identifier in {'Color1', 'A_Color'} else False
+            if mxsecondary:
+                matmap = make_texture_chunk(MAT_TEX2MAP, [mxsecondary], 1 - mxpct)
         if primary_tex and matmap:
             material_chunk.add_subchunk(matmap)
 
