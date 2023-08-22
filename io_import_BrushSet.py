@@ -2,24 +2,15 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-#---------------------------------------------#
-# todo
-#---------------------------------------------#
-'''
-- add file selection for single and multiple files
-- option to enable/disable fake users
-'''
-
-#---------------------------------------------#
 import bpy
 import os
-from bpy.props import *
+from bpy.props import StringProperty
 
 # addon description
 bl_info = {
     "name": "Import BrushSet",
     "author": "Daniel Grauer (kromar), CansecoGPC",
-    "version": (1, 2, 2),
+    "version": (1, 3, 0),
     "blender": (2, 80, 0),
     "location": "File > Import > BrushSet",
     "description": "Imports all image files from a folder.",
@@ -29,54 +20,25 @@ bl_info = {
     "category": "Import-Export",
 }
 
-#---------------------------------------------#
-
-# extension filter (alternative use mimetypes)
-# TODO: rewrite so it tries to load image and if it fails we know its not a format blender can load
-ext_list = ['.bmp',
-            '.png',
-            '.jpg',
-            '.jp2',
-            '.rgb',
-            '.dds',
-            '.hdr',
-            '.exr',
-            '.dpx',
-            '.cin',
-            '.tga',
-            '.tif'];
-
-#---------------------------------------------#
-
 fakeUser = False
 
 def LoadBrushSet(filepath, filename):
     for file in os.listdir(filepath):
         path = (filepath + file)
 
-        # get folder name
-        (f1, f2) = os.path.split(filepath)
-        (f3, foldername) = os.path.split(f1)
-
-        # filter files by extensions (filter images)
-        if any(file.lower().endswith(ext) for ext in ext_list):
-            print("file: ", file)
+        if any(file.lower().endswith(ext) for ext in bpy.path.extensions_image):
             # create new texture
             texture = bpy.data.textures.new(file, 'IMAGE')
             texture.use_fake_user = fakeUser
-            print("texture: ", texture)
 
-            # now we need to load the image into data
+            # load the image into data
             image = bpy.data.images.load(path)
             image.use_fake_user = fakeUser
-            # image.source = 'FILE' #default is FILE so can remove this
-            # image.filepath = path
-            print("image: ", image, " ", path)
-            print("texturename: ", texture.name)
 
-            # and assign the image to the texture
+            # assign the image to the texture
             bpy.data.textures[texture.name].image = image
-
+            
+            print("imported: ", file)
 
     print("Brush Set imported!")
 
