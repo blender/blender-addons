@@ -30,19 +30,26 @@ def load_brush_set(dirpath):
         if not file.lower().endswith(extensions):
             continue
 
+        # Load the image into data.
         path = os.path.join(dirpath, file)
-        # create new texture
-        texture = bpy.data.textures.new(file, 'IMAGE')
-        texture.use_fake_user = fakeUser
+        try:
+            image = bpy.data.images.load(path)
+        except BaseException as ex:
+            print("Failed to load %r, error: %r" % (file, ex))
+            continue
 
-        # load the image into data
-        image = bpy.data.images.load(path)
         image.use_fake_user = fakeUser
 
-        # assign the image to the texture
-        bpy.data.textures[texture.name].image = image
+        # Create new texture.
+        # NOTE: use the image name instead of `file` in case
+        # it's encoding isn't `utf-8` compatible.
+        texture = bpy.data.textures.new(image.name, 'IMAGE')
+        texture.use_fake_user = fakeUser
 
-        print("imported:", file)
+        # Assign the image to the texture.
+        texture.image = image
+
+        print("imported:", repr(file))
 
     print("Brush Set imported!")
 
