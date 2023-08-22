@@ -4,9 +4,10 @@
 
 import bpy
 import os
-from bpy.props import StringProperty
+from bpy.props import (
+    StringProperty,
+)
 
-# addon description
 bl_info = {
     "name": "Import BrushSet",
     "author": "Daniel Grauer (kromar), CansecoGPC",
@@ -22,7 +23,8 @@ bl_info = {
 
 fakeUser = False
 
-def LoadBrushSet(filepath, filename):
+
+def load_brush_set(filepath, filename):
     for file in os.listdir(filepath):
         path = (filepath + file)
 
@@ -37,34 +39,39 @@ def LoadBrushSet(filepath, filename):
 
             # assign the image to the texture
             bpy.data.textures[texture.name].image = image
-            
+
             print("imported: ", file)
 
     print("Brush Set imported!")
 
-#---------------------------------------------#
+# -----------------------------------------------------------------------------
+
 
 class BrushSetImporter(bpy.types.Operator):
     '''Load Brush Set'''
     bl_idname = "import_image.brushset"
     bl_label = "Import BrushSet"
 
-    filename: StringProperty(name = "File Name",
-                              description = "filepath",
-                              default = "",
-                              maxlen = 1024,
-                              options = {'ANIMATABLE'},
-                              subtype = 'NONE')
+    filename: StringProperty(
+        name="File Name",
+        description="filepath",
+        default="",
+        maxlen=1024,
+        options={'ANIMATABLE'},
+        subtype='NONE',
+    )
 
-    filepath: StringProperty(name = "File Name",
-                              description = "filepath",
-                              default = "",
-                              maxlen = 1024,
-                              options = {'ANIMATABLE'},
-                              subtype = 'NONE')
+    filepath: StringProperty(
+        name="File Name",
+        description="filepath",
+        default="",
+        maxlen=1024,
+        options={'ANIMATABLE'},
+        subtype='NONE',
+    )
 
     def execute(self, context):
-        LoadBrushSet(self.properties.filepath, self.properties.filename)
+        load_brush_set(self.properties.filepath, self.properties.filename)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -72,18 +79,18 @@ class BrushSetImporter(bpy.types.Operator):
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-#---------------------------------------------#
+# -----------------------------------------------------------------------------
+
 
 def menu_func(self, context):
     # clear the default name for import
     import_name = ""
 
-    self.layout.operator(BrushSetImporter.bl_idname, text = "Brush Set").filename = import_name
+    self.layout.operator(BrushSetImporter.bl_idname, text="Brush Set").filename = import_name
 
 
-#---------------------------------------------#
+# -----------------------------------------------------------------------------
 # GUI
-#---------------------------------------------#
 
 '''
 class Brush_set_UI(bpy.types.Panel):
@@ -102,7 +109,7 @@ class Brush_set_UI(bpy.types.Panel):
         column.prop(scn,'filepath')
 '''
 
-#---------------------------------------------#
+# -----------------------------------------------------------------------------
 
 classes = (
     BrushSetImporter,
