@@ -72,7 +72,7 @@ class VIEW3D_PT_pose_library_legacy(PoseLibraryPanel, Panel):
     def draw(self, _context: Context) -> None:
         layout = self.layout
         layout.label(text="The pose library moved.", icon='INFO')
-        sub = layout.column(align=False)
+        sub = layout.column(align=True)
         sub.label(text="Pose assets are now available")
         sub.label(text="in the asset shelf.")
         layout.operator("screen.region_toggle", text="Toggle Asset Shelf").region_type = 'ASSET_SHELF'
