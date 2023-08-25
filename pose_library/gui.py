@@ -23,7 +23,7 @@ from bl_ui_utils.layout import operator_context
 class PoseLibraryPanel:
     @classmethod
     def pose_library_panel_poll(cls, context: Context) -> bool:
-        return bool(context.object and context.object.mode == 'POSE')
+        return context.mode == 'POSE'
 
     @classmethod
     def poll(cls, context: Context) -> bool:
