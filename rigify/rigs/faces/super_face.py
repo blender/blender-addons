@@ -54,16 +54,6 @@ class Rig:
         self.face_length = obj.data.bones[self.org_bones[0]].length
         self.params = params
 
-        if params.primary_layers_extra:
-            self.primary_layers = list(params.primary_layers)
-        else:
-            self.primary_layers = None
-
-        if params.secondary_layers_extra:
-            self.secondary_layers = list(params.secondary_layers)
-        else:
-            self.secondary_layers = None
-
     def orient_org_bones(self):
 
         bpy.ops.object.mode_set(mode='EDIT')
@@ -316,12 +306,10 @@ class Rig:
 
         for bone in tweaks:
             if bone in primary_tweaks:
-                if self.primary_layers:
-                    pb[bone].bone.layers = self.primary_layers
+                ControlLayersOption.FACE_PRIMARY.assign(self.params, pb, [bone])
                 create_face_widget(self.obj, bone, size=1.5)
             else:
-                if self.secondary_layers:
-                    pb[bone].bone.layers = self.secondary_layers
+                ControlLayersOption.FACE_SECONDARY.assign(self.params, pb, [bone])
                 create_face_widget(self.obj, bone)
 
         return {'all': tweaks}
