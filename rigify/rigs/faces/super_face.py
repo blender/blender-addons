@@ -2352,6 +2352,8 @@ def create_sample(obj):
         bone.select_head = True
         bone.select_tail = True
         arm.edit_bones.active = bone
+        if bcoll := arm.collections.active:
+            bcoll.assign(bone)
 
 
 def create_square_widget(rig, bone_name, size=1.0, bone_transform_name=None):
