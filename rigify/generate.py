@@ -53,6 +53,7 @@ class Generator(base_generate.BaseGenerator):
         super().__init__(context, metarig)
 
         self.id_store = context.window_manager
+        self.saved_visible_layers = {}
 
     def find_rig_class(self, rig_type):
         rig_module = rig_lists.rigs[rig_type]["module"]
@@ -69,7 +70,7 @@ class Generator(base_generate.BaseGenerator):
 
         self.collection = self.layer_collection.collection
 
-    def ensure_rig_object(self) -> ArmatureObject:
+    def ensure_rig_object(self) -> tuple[bool, ArmatureObject]:
         """Check if the generated rig already exists, so we can
         regenerate in the same object. If not, create a new
         object to generate the rig in.
@@ -78,8 +79,9 @@ class Generator(base_generate.BaseGenerator):
         meta_data = self.metarig.data
 
         target_rig = get_rigify_target_rig(meta_data)
+        found = bool(target_rig)
 
-        if not target_rig:
+        if not found:
             rig_basename = get_rigify_rig_basename(meta_data)
 
             if rig_basename:
@@ -110,7 +112,7 @@ class Generator(base_generate.BaseGenerator):
         meta_data.rigify_target_rig = target_rig
         target_rig.data.pose_position = 'POSE'
 
-        return target_rig
+        return found, target_rig
 
     def __unhide_rig_object(self, obj: bpy.types.Object):
         # Ensure the object is visible and selectable
@@ -127,6 +129,10 @@ class Generator(base_generate.BaseGenerator):
 
         if self.layer_collection not in self.usable_collections:
             raise Exception('Could not generate: Could not find a usable collection.')
+
+    def __save_rig_data(self, obj: ArmatureObject, obj_found: bool):
+        if obj_found:
+            self.saved_visible_layers = {coll.name: coll.is_visible for coll in obj.data.collections}
 
     def __find_legacy_collection(self) -> bpy.types.Collection:
         """For backwards comp, matching by name to find a legacy collection.
@@ -421,8 +427,8 @@ class Generator(base_generate.BaseGenerator):
     def __compute_visible_layers(self):
         # Hide all layers without UI buttons
         for coll in self.obj.data.collections:
-            if not coll.rigify_ui_row:
-                coll.is_visible = False
+            user_visible = self.saved_visible_layers.get(coll.name, coll.is_visible)
+            coll.is_visible = user_visible and coll.rigify_ui_row > 0
 
     def generate(self):
         context = self.context
@@ -437,9 +443,13 @@ class Generator(base_generate.BaseGenerator):
 
         ###########################################
         # Create/find the rig object and set it up
-        self.obj = obj = self.ensure_rig_object()
+        obj_found, obj = self.ensure_rig_object()
 
+        self.obj = obj
         self.__unhide_rig_object(obj)
+
+        # Collect data from the existing rig
+        self.__save_rig_data(obj, obj_found)
 
         # Select the chosen working collection in case it changed
         self.view_layer.active_layer_collection = self.layer_collection
