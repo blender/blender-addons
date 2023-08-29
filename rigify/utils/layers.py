@@ -4,11 +4,13 @@
 
 import bpy
 
-from typing import TYPE_CHECKING, Sequence, Optional, Mapping, Iterable
+from typing import TYPE_CHECKING, Sequence, Optional, Mapping, Iterable, Any
 
+from bpy.types import bpy_prop_collection  # noqa
 from bpy.types import Bone, UILayout, Object, PoseBone, Armature, BoneCollection, EditBone
 
 from .misc import ArmatureObject
+from .naming import mirror_name_fuzzy
 
 if TYPE_CHECKING:
     from ..base_rig import BaseRig
@@ -50,6 +52,22 @@ def find_used_collections(obj: ArmatureObject) -> dict[str, BoneCollection]:
         bcoll_map.update({coll.name: coll for coll in bone.collections})
 
     return bcoll_map
+
+
+def is_collection_ref_list_prop(param: Any) -> bool:
+    from .. import RigifyBoneCollectionReference
+
+    return (isinstance(param, bpy_prop_collection) and
+            all(isinstance(item, RigifyBoneCollectionReference) for item in param))
+
+
+def mirror_ref_list(to_ref_list, from_ref_list):
+    to_ref_list.clear()
+    for ref in from_ref_list:
+        to_ref = to_ref_list.add()
+        to_ref['uid'] = ref['uid']
+        to_ref['name'] = ref['name']
+        to_ref.name = mirror_name_fuzzy(ref.name)
 
 
 ##############################################
@@ -158,6 +176,11 @@ class ControlLayersOption:
         row.prop(params, self.toggle_option)
 
         active = getattr(params, self.toggle_option)
+
+        from ..operators.copy_mirror_parameters import make_copy_parameter_button
+        from ..base_rig import BaseRig
+
+        make_copy_parameter_button(row, self.refs_option, base_class=BaseRig, mirror_bone=True)
 
         if not active:
             return
