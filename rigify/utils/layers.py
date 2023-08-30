@@ -3,6 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
+import random
+import re
+import zlib
 
 from typing import TYPE_CHECKING, Sequence, Optional, Mapping, Iterable, Any
 
@@ -68,6 +71,31 @@ def mirror_ref_list(to_ref_list, from_ref_list):
         to_ref['uid'] = ref['uid']
         to_ref['name'] = ref['name']
         to_ref.name = mirror_name_fuzzy(ref.name)
+
+
+def ensure_collection_uid(bcoll: BoneCollection):
+    uid = bcoll.rigify_uid
+    if uid >= 0:
+        return uid
+
+    # Choose the initial uid value
+    max_uid = 0x7fffffff
+
+    if re.fullmatch(r"Bones(\.\d+)?", bcoll.name):
+        # Use random numbers for collections with the default name
+        uid = random.randint(0, max_uid)
+    else:
+        uid = zlib.adler32(bcoll.name.encode("utf-8")) & max_uid
+
+    # Ensure the uid is unique within the armature
+    used_ids = set(coll.rigify_uid for coll in bcoll.id_data.collections)
+
+    while uid in used_ids:
+        uid = random.randint(0, max_uid)
+
+    assert uid >= 0
+    bcoll.rigify_uid = uid
+    return uid
 
 
 ##############################################

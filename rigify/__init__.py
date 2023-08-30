@@ -392,17 +392,25 @@ class RigifyBoneCollectionReference(bpy.types.PropertyGroup):
 
         arm = self.id_data.data
 
-        if name := self.get("name", ""):
-            name_coll = arm.collections.get(name)
+        name = self.get("name", "")
+        name_coll = arm.collections.get(name) if name else None
 
-            if name_coll and name_coll.rigify_uid == uid:
-                return name_coll
+        # First try an exact match of both name and uid
+        if name_coll and name_coll.rigify_uid == uid:
+            return name_coll
 
+        # Then try searching by the uid
         for coll in arm.collections:
             if coll.rigify_uid == uid:
                 if update:
                     self["name"] = coll.name
                 return coll
+
+        # Fallback to lookup by name only if possible
+        if name_coll:
+            if update:
+                self.uid = utils.layers.ensure_collection_uid(name_coll)
+            return name_coll
 
         if raise_error:
             raise utils.errors.MetarigError(f"Broken bone collection reference: {name} #{uid}")
@@ -410,24 +418,19 @@ class RigifyBoneCollectionReference(bpy.types.PropertyGroup):
         return None
 
     def set_collection(self, coll: bpy.types.BoneCollection | None):
-        if not coll:
+        if coll is None:
             self.uid = -1
             self["name"] = ""
-            return
-
-        if coll.rigify_uid < 0:
-            coll.rigify_uid = utils.misc.choose_next_uid(coll.id_data.collections, "rigify_uid")
-
-        self.uid = coll.rigify_uid
-        self["name"] = coll.name
+        else:
+            self.uid = utils.layers.ensure_collection_uid(coll)
+            self["name"] = coll.name
 
     def _name_get(self):
         if coll := self.find_collection(update=False):
             return coll.name
 
         if self.uid >= 0:
-            if name := self.get("name", ""):
-                return f"? {name} #{self.uid}"
+            return f"? {self.get('name') or '???'}"
 
         return ""
 

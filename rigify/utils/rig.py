@@ -184,7 +184,7 @@ def resolve_layer_names(layers):
 
 
 def upgrade_metarig_layers(metarig: ArmatureObject):
-    from .layers import DEF_COLLECTION, MCH_COLLECTION, ORG_COLLECTION, ROOT_COLLECTION
+    from .layers import DEF_COLLECTION, MCH_COLLECTION, ORG_COLLECTION, ROOT_COLLECTION, ensure_collection_uid
 
     arm = metarig.data
 
@@ -194,10 +194,6 @@ def upgrade_metarig_layers(metarig: ArmatureObject):
     for coll in arm.collections:
         if m := re.match(r'^Layer (\d+)', coll.name):
             coll_table[int(m[1]) - 1] = coll
-
-    # Assign UIDs from layer index
-    for idx, coll in coll_table.items():
-        coll.rigify_uid = idx
 
     # Assign names to special layers if they exist
     special_layers = {28: ROOT_COLLECTION, 29: DEF_COLLECTION, 30: MCH_COLLECTION, 31: ORG_COLLECTION}
@@ -226,7 +222,6 @@ def upgrade_metarig_layers(metarig: ArmatureObject):
             if new_name:
                 if not coll:
                     coll = arm.collections.new(new_name)
-                    coll.rigify_uid = i
                     coll_table[i] = coll
                 else:
                     coll.name = new_name
@@ -292,7 +287,9 @@ def upgrade_metarig_layers(metarig: ArmatureObject):
                 for i, show in enumerate(prop_value.to_list()):
                     if show:
                         coll = coll_table.get(i)
-                        entries.append({"uid": i, "name": coll.name if coll else "<?>"})
+                        uid = ensure_collection_uid(coll) if coll else i
+                        name = coll.name if coll else f"Layer {i+1}"
+                        entries.append({"uid": uid, "name": name})
 
                 params[prop_name[:-7] + "_coll_refs"] = entries
 
@@ -535,9 +532,7 @@ def write_metarig(obj: ArmatureObject, layers=False, func_name="create",
         args = ', '.join(f'{k}={repr(v)}' for k, v in collection_attrs.items())
 
         code.append(f"    def add_bone_collection(name, *, {args}):")
-        code.append(f"        uid = len(arm.collections)")
         code.append(f"        new_bcoll = arm.collections.new(name)")
-        code.append(f"        new_bcoll.rigify_uid = uid")
         for k, _v in collection_attrs.items():
             code.append(f"        new_bcoll.rigify_{k} = {k}")
         code.append("        bone_collections[name] = new_bcoll")
