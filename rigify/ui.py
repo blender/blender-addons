@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Callable, Any
 from mathutils import Color
 
 from .utils.errors import MetarigError
-from .utils.layers import ROOT_COLLECTION
+from .utils.layers import ROOT_COLLECTION, validate_collection_references
 from .utils.rig import write_metarig, get_rigify_type, get_rigify_target_rig, \
     get_rigify_colors, get_rigify_params
 from .utils.widgets import write_widget
@@ -305,6 +305,8 @@ class DATA_PT_rigify_collection_list(bpy.types.Panel):
             col.separator()
             col.operator("armature.collection_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("armature.collection_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+        layout.operator(operator='armature.rigify_validate_layers')
 
         if active_coll:
             col = layout.column()
@@ -1062,6 +1064,29 @@ class UpgradeMetarigLayers(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class ValidateMetarigLayers(bpy.types.Operator):
+    """Validates references from rig component settings to bone collections"""
+
+    bl_idname = "armature.rigify_validate_layers"
+    bl_label = "Validate Collection References"
+    bl_description = 'Validate references from rig component settings to bone collections. Always run this both '\
+                     'before and after joining two metarig armature objects into one to avoid glitches'
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return is_valid_metarig(context) and context.object.mode != 'EDIT'
+
+    def execute(self, context):
+        obj = verify_armature_obj(context.object)
+        messages = validate_collection_references(obj)
+        for msg in messages:
+            self.report({'WARNING'}, msg)
+        if not messages:
+            self.report({'INFO'}, "No issues detected.")
+        return {'FINISHED'}
+
+
 class Sample(bpy.types.Operator):
     """Create a sample metarig to be modified before generating the final rig"""
 
@@ -1695,6 +1720,7 @@ classes = (
     Generate,
     UpgradeMetarigTypes,
     UpgradeMetarigLayers,
+    ValidateMetarigLayers,
     Sample,
     VIEW3D_MT_rigify,
     EncodeMetarig,

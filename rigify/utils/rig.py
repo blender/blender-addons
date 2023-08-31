@@ -184,7 +184,8 @@ def resolve_layer_names(layers):
 
 
 def upgrade_metarig_layers(metarig: ArmatureObject):
-    from .layers import DEF_COLLECTION, MCH_COLLECTION, ORG_COLLECTION, ROOT_COLLECTION, ensure_collection_uid
+    from .layers import (REFS_LIST_SUFFIX, DEF_COLLECTION, MCH_COLLECTION, ORG_COLLECTION, ROOT_COLLECTION,
+                         ensure_collection_uid)
 
     arm = metarig.data
 
@@ -277,7 +278,7 @@ def upgrade_metarig_layers(metarig: ArmatureObject):
         # Work around the stupid legacy default where one layer is implicitly selected
         for name_stem in default_map.get(get_rigify_type(pose_bone), []):
             prop_name = name_stem + "_layers"
-            if prop_name not in params and name_stem + "_coll_refs" not in params:
+            if prop_name not in params and name_stem + REFS_LIST_SUFFIX not in params:
                 params[prop_name] = default_layers
 
         for prop_name, prop_value in list(params.items()):
@@ -291,7 +292,7 @@ def upgrade_metarig_layers(metarig: ArmatureObject):
                         name = coll.name if coll else f"Layer {i+1}"
                         entries.append({"uid": uid, "name": name})
 
-                params[prop_name[:-7] + "_coll_refs"] = entries
+                params[prop_name[:-7] + REFS_LIST_SUFFIX] = entries
 
                 del params[prop_name]
 
@@ -469,7 +470,7 @@ def write_metarig(obj: ArmatureObject, layers=False, func_name="create",
     Write a metarig as a python script, this rig is to have all info needed for
     generating the real rig with rigify.
     """
-    from .. import RigifyBoneCollectionReference
+    from .layers import REFS_LIST_SUFFIX, is_collection_ref_list_prop
 
     code = [
         "import bpy\n",
@@ -608,8 +609,7 @@ def write_metarig(obj: ArmatureObject, layers=False, func_name="create",
             param = _get_property_value(rigify_parameters, param_name)
 
             if isinstance(param, bpy_prop_collection):
-                if (layers and param_name.endswith("_coll_refs") and
-                        all(isinstance(item, RigifyBoneCollectionReference) for item in param)):
+                if layers and param_name.endswith(REFS_LIST_SUFFIX) and is_collection_ref_list_prop(param):
                     bcoll_set = [item.find_collection() for item in param]
                     bcoll_set = [bcoll for bcoll in bcoll_set if bcoll is not None]
                     if len(bcoll_set) > 0:

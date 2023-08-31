@@ -10,7 +10,8 @@ from typing import Optional, TYPE_CHECKING
 
 from .utils.errors import MetarigError
 from .utils.bones import new_bone
-from .utils.layers import ORG_COLLECTION, MCH_COLLECTION, DEF_COLLECTION, ROOT_COLLECTION, set_bone_layers
+from .utils.layers import (ORG_COLLECTION, MCH_COLLECTION, DEF_COLLECTION, ROOT_COLLECTION, set_bone_layers,
+                           validate_collection_references)
 from .utils.naming import (ORG_PREFIX, MCH_PREFIX, DEF_PREFIX, ROOT_NAME, make_original_name,
                            change_name_side, get_name_side, Side)
 from .utils.widgets import WGT_PREFIX, WGT_GROUP_PREFIX
@@ -214,9 +215,11 @@ class Generator(base_generate.BaseGenerator):
     def ensure_root_bone_collection(self):
         collections = self.metarig.data.collections
 
+        validate_collection_references(self.metarig)
+
         if ROOT_COLLECTION not in collections:
             coll = collections.new(ROOT_COLLECTION)
-            coll.rigify_ui_row = choose_next_uid(collections, 'rigify_ui_row', min_value=1)
+            coll.rigify_ui_row = 2 + choose_next_uid(collections, 'rigify_ui_row', min_value=1)
 
     def __duplicate_rig(self):
         obj = self.obj
