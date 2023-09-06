@@ -668,7 +668,8 @@ def _combine_curve_keyframe_times(times_and_values_tuples, initial_values):
     interpolating the keyframe values is a TODO."""
     if len(times_and_values_tuples) == 1:
         # Nothing to do when there is only a single curve.
-        return times_and_values_tuples[0]
+        times, values = times_and_values_tuples[0]
+        return times, [values]
 
     all_times = [t[0] for t in times_and_values_tuples]
 
