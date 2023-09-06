@@ -40,6 +40,7 @@ def export_original_specular(blender_material, export_settings):
             original_specular_texture, original_specular_use_active_uvmap, _ = gather_texture_info(
                 original_specular_socket,
                 (original_specular_socket,),
+                (),
                 export_settings,
             )
             specular_extension['specularTexture'] = original_specular_texture
@@ -62,6 +63,7 @@ def export_original_specular(blender_material, export_settings):
             original_specularcolor_texture, original_specularcolor_use_active_uvmap, _ = gather_texture_info(
                 original_specularcolor_socket,
                 (original_specularcolor_socket,),
+                (),
                 export_settings,
             )
             specular_extension['specularColorTexture'] = original_specularcolor_texture
@@ -152,6 +154,7 @@ def export_specular(blender_material, export_settings):
         specularColorTexture, use_active_uvmap, specularColorFactor = gather_texture_info(
             primary_socket,
             sockets,
+            (),
             export_settings,
             filter_type='ANY')
         if specularColorTexture is None:
