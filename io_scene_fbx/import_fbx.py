@@ -626,39 +626,6 @@ def _transformation_curves_gen(item, values_arrays, channel_keys):
         yield from sca
 
 
-def blen_read_animation_channel_curves(curves):
-    """Read one or (very rarely) more animation curves, that affect a single channel of a single property, from FBX
-    data.
-
-    When there are multiple curves, they will be combined into a single sorted animation curve with later curves taking
-    precedence when the curves contain duplicate times.
-
-    It is expected that there will almost never be more than a single curve to read because FBX's default animation
-    system only uses the first curve assigned to a channel.
-
-    Returns an array of sorted, unique FBX keyframe times and an array of values for each of those keyframe times."""
-    if len(curves) > 1:
-        times_and_values_tuples = list(map(blen_read_single_animation_curve, curves))
-        # The FBX animation system's default implementation only uses the first curve assigned to a channel.
-        # Additional curves per channel are allowed by the FBX specification, but the handling of these curves is
-        # considered the responsibility of the application that created them. Note that each curve node is expected to
-        # have a unique set of channels, so these additional curves with the same channel would have to belong to
-        # separate curve nodes. See the FBX SDK documentation for FbxAnimCurveNode.
-
-        # Combine the curves together to produce a single array of sorted keyframe times and a single array of values.
-        # The arrays are concatenated in reverse so that if there are duplicate times in the read curves, then only the
-        # value of the last occurrence is kept.
-        all_times = np.concatenate([t[0] for t in reversed(times_and_values_tuples)])
-        all_values = np.concatenate([t[1] for t in reversed(times_and_values_tuples)])
-        # Get the unique, sorted times and the index in all_times of the first occurrence of each unique value.
-        sorted_unique_times, unique_indices_in_all_times = np.unique(all_times, return_index=True)
-
-        values_of_sorted_unique_times = all_values[unique_indices_in_all_times]
-        return sorted_unique_times, values_of_sorted_unique_times
-    else:
-        return blen_read_single_animation_curve(curves[0])
-
-
 def _combine_curve_keyframe_times(times_and_values_tuples, initial_values):
     """Combine multiple parsed animation curves, that affect different channels, such that every animation curve
     contains the keyframes from every other curve, interpolating the values for the newly inserted keyframes in each
@@ -779,8 +746,8 @@ def _convert_fbx_time_to_blender_time(key_times, blen_start_offset, fbx_start_of
     return key_times
 
 
-def blen_read_single_animation_curve(fbx_curve):
-    """Read a single animation curve from FBX data.
+def blen_read_animation_curve(fbx_curve):
+    """Read an animation curve from FBX data.
 
     The parsed keyframe times are guaranteed to be strictly increasing."""
     key_times = parray_as_ndarray(elem_prop_first(elem_find_first(fbx_curve, b'KeyTime')))
@@ -851,11 +818,19 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset, glo
     """
     from bpy.types import Object, PoseBone, ShapeKey, Material, Camera
 
-    fbx_curves: dict[bytes, dict[int, list[FBXElem]]] = {}
+    fbx_curves: dict[bytes, dict[int, FBXElem]] = {}
     for curves, fbxprop in cnodes.values():
         channels_dict = fbx_curves.setdefault(fbxprop, {})
         for (fbx_acdata, _blen_data), channel in curves.values():
-            channels_dict.setdefault(channel, []).append(fbx_acdata)
+            if channel in channels_dict:
+                # Ignore extra curves when one has already been found for this channel because FBX's default animation
+                # system implementation only uses the first curve assigned to a channel.
+                # Additional curves per channel are allowed by the FBX specification, but the handling of these curves
+                # is considered the responsibility of the application that created them. Note that each curve node is
+                # expected to have a unique set of channels, so these additional curves with the same channel would have
+                # to belong to separate curve nodes. See the FBX SDK documentation for FbxAnimCurveNode.
+                continue
+            channels_dict[channel] = fbx_acdata
 
     # Leave if no curves are attached (if a blender curve is attached to scale but without keys it defaults to 0).
     if len(fbx_curves) == 0:
@@ -894,23 +869,23 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset, glo
                    for prop, nbr_channels, grpname in props for channel in range(nbr_channels)]
 
     if isinstance(item, Material):
-        for fbxprop, channel_to_curves in fbx_curves.items():
+        for fbxprop, channel_to_curve in fbx_curves.items():
             assert(fbxprop == b'DiffuseColor')
-            for channel, curves in channel_to_curves.items():
+            for channel, curve in channel_to_curve.items():
                 assert(channel in {0, 1, 2})
                 blen_curve = blen_curves[channel]
-                fbx_key_times, values = blen_read_animation_channel_curves(curves)
+                fbx_key_times, values = blen_read_animation_curve(curve)
                 blen_store_keyframes(fbx_key_times, blen_curve, values, anim_offset, fps)
 
     elif isinstance(item, ShapeKey):
         deform_values = shape_key_deforms.setdefault(item, [])
-        for fbxprop, channel_to_curves in fbx_curves.items():
+        for fbxprop, channel_to_curve in fbx_curves.items():
             assert(fbxprop == b'DeformPercent')
-            for channel, curves in channel_to_curves.items():
+            for channel, curve in channel_to_curve.items():
                 assert(channel == 0)
                 blen_curve = blen_curves[channel]
 
-                fbx_key_times, values = blen_read_animation_channel_curves(curves)
+                fbx_key_times, values = blen_read_animation_curve(curve)
                 # A fully activated shape key in FBX DeformPercent is 100.0 whereas it is 1.0 in Blender.
                 values = values / 100.0
                 blen_store_keyframes(fbx_key_times, blen_curve, values, anim_offset, fps)
@@ -921,15 +896,15 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset, glo
                 deform_values.append(values.max())
 
     elif isinstance(item, Camera):
-        for fbxprop, channel_to_curves in fbx_curves.items():
+        for fbxprop, channel_to_curve in fbx_curves.items():
             is_focus_distance = fbxprop == b'FocusDistance'
             assert(fbxprop == b'FocalLength' or is_focus_distance)
-            for channel, curves in channel_to_curves.items():
+            for channel, curve in channel_to_curve.items():
                 assert(channel == 0)
                 # The indices are determined by the creation of the `props` list above.
                 blen_curve = blen_curves[1 if is_focus_distance else 0]
 
-                fbx_key_times, values = blen_read_animation_channel_curves(curves)
+                fbx_key_times, values = blen_read_animation_curve(curve)
                 if is_focus_distance:
                     # Remap the imported values from FBX to Blender.
                     values = values / 1000.0
@@ -950,13 +925,13 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset, glo
         times_and_values_tuples = []
         initial_values = []
         channel_keys = []
-        for fbxprop, channel_to_curves in fbx_curves.items():
+        for fbxprop, channel_to_curve in fbx_curves.items():
             if fbxprop not in transform_prop_to_attr:
                 # Currently, we only care about transformation curves.
                 continue
-            for channel, curves in channel_to_curves.items():
+            for channel, curve in channel_to_curve.items():
                 assert(channel in {0, 1, 2})
-                fbx_key_times, values = blen_read_animation_channel_curves(curves)
+                fbx_key_times, values = blen_read_animation_curve(curve)
 
                 channel_keys.append((fbxprop, channel))
 
