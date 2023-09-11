@@ -229,8 +229,7 @@ def upgrade_metarig_layers(metarig: ArmatureObject):
 
             if coll:
                 coll_idx = find_index(arm.collections, coll)
-                if hasattr(arm.collections, 'move'):
-                    arm.collections.move(coll_idx, cur_idx)
+                arm.collections.move(coll_idx, cur_idx)
                 cur_idx += 1
 
                 coll.rigify_ui_row = layer.get("row", 1)
