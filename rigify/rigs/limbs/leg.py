@@ -405,10 +405,6 @@ def create_sample(obj):
     bpy.ops.object.mode_set(mode='EDIT')
     arm = obj.data
 
-    def assign_bone_collections(pose_bone):
-        if active := arm.collections.active:
-            active.assign(pose_bone)
-
     bones = {}
 
     bone = arm.edit_bones.new('thigh.L')

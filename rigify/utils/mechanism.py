@@ -257,7 +257,7 @@ def make_driver(owner: bpy_struct, prop: str, *, index=-1, type='SUM',
 
     Specification format:
         If the variables argument is a dictionary, keys specify variable names.
-        Otherwise, names are set to var, var1, var2, ... etc:
+        Otherwise, names are set to var, var1, var2, ... etc.:
 
           variables = [ ..., ..., ... ]
           variables = { 'var': ..., 'var1': ..., 'var2': ... }

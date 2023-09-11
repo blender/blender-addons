@@ -92,7 +92,7 @@ def make_metarig_add_execute(module):
 
 
 def make_metarig_menu_func(bl_idname: str, text: str):
-    """ For some reason lambda's don't work for adding multiple menu
+    """ For some reason lambdas don't work for adding multiple menu
         items, so we use this instead to generate the functions.
     """
     def metarig_menu(self, _context):
