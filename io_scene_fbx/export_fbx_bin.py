@@ -2249,13 +2249,24 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
                                                           force_sek, (cam.dof.focus_distance,))
         animdata_cameras[cam_key] = (acnode_lens, acnode_focus_distance, cam)
 
+    # Get all parent bdata of animated dupli instances, so that we can quickly identify which instances in
+    # `depsgraph.object_instances` are animated and need their ObjectWrappers' matrices updated each frame.
+    dupli_parent_bdata = {dup.get_parent().bdata for dup in animdata_ob if dup.is_dupli}
+    has_animated_duplis = bool(dupli_parent_bdata)
+
     currframe = f_start
     while currframe <= f_end:
         real_currframe = currframe - f_start if start_zero else currframe
         scene.frame_set(int(currframe), subframe=currframe - int(currframe))
 
-        for dp_obj in ob_obj.dupli_list_gen(depsgraph):
-            pass  # Merely updating dupli matrix of ObjectWrapper...
+        if has_animated_duplis:
+            # Changing the scene's frame invalidates existing dupli instances. To get the updated matrices of duplis for
+            # this frame, we must get the duplis from the depsgraph again.
+            for dup in depsgraph.object_instances:
+                if (parent := dup.parent) and parent.original in dupli_parent_bdata:
+                    # ObjectWrapper caches its instances. Attempting to create a new instance updates the existing
+                    # ObjectWrapper instance with the current frame's matrix and then returns the existing instance.
+                    ObjectWrapper(dup)
         for ob_obj, (anim_loc, anim_rot, anim_scale) in animdata_ob.items():
             # We compute baked loc/rot/scale for all objects (rot being euler-compat with previous value!).
             p_rot = p_rots.get(ob_obj, None)
