@@ -24,7 +24,7 @@ from itertools import chain
 
 from .interface import NWConnectionListInputs, NWConnectionListOutputs
 
-from .utils.constants import blend_types, geo_combine_operations, operations, navs, get_nodes_from_category, rl_outputs
+from .utils.constants import blend_types, geo_combine_operations, operations, navs, get_texture_node_types, rl_outputs
 from .utils.draw import draw_callback_nodeoutline
 from .utils.paths import match_files_to_socket_names, split_into_components
 from .utils.nodes import (node_mid_pt, autolink, node_at_pos, get_active_tree, get_nodes_links, is_viewer_socket,
@@ -733,15 +733,12 @@ class NWPreviewNode(Operator, NWBase):
                 return {'FINISHED'}
 
             # What follows is code for the shader editor
-            output_types = [x.nodetype for x in
-                            get_nodes_from_category('Output', context)]
             valid = False
             if active:
-                if active.rna_type.identifier not in output_types:
-                    for out in active.outputs:
-                        if is_visible_socket(out):
-                            valid = True
-                            break
+                for out in active.outputs:
+                    if is_visible_socket(out):
+                        valid = True
+                        break
             if valid:
                 # get material_output node
                 materialout = None  # placeholder node
@@ -1820,8 +1817,7 @@ class NWAddTextureSetup(Operator, NWBase):
     def execute(self, context):
         nodes, links = get_nodes_links(context)
 
-        texture_types = [x.nodetype for x in
-                         get_nodes_from_category('Texture', context)]
+        texture_types = get_texture_node_types()
         selected_nodes = [n for n in nodes if n.select]
 
         for node in selected_nodes:
