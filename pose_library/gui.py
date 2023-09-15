@@ -9,6 +9,7 @@ Pose Library - GUI definition.
 import bpy
 from bpy.types import (
     AssetHandle,
+    AssetRepresentation,
     Context,
     Menu,
     Panel,
@@ -41,11 +42,11 @@ class VIEW3D_AST_pose_library(bpy.types.AssetShelf):
         return PoseLibraryPanel.poll(context)
 
     @classmethod
-    def asset_poll(cls, asset: AssetHandle) -> bool:
-        return asset.file_data.id_type == 'ACTION'
+    def asset_poll(cls, asset: AssetRepresentation) -> bool:
+        return asset.id_type == 'ACTION'
 
     @classmethod
-    def draw_context_menu(cls, _context: Context, _asset: AssetHandle, layout: UILayout):
+    def draw_context_menu(cls, _context: Context, _asset: AssetRepresentation, layout: UILayout):
         # Make sure these operator properties match those used in `VIEW3D_PT_pose_library_legacy`.
         layout.operator("poselib.apply_pose_asset", text="Apply Pose").flipped = False
         layout.operator("poselib.apply_pose_asset", text="Apply Pose Flipped").flipped = True
