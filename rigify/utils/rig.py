@@ -267,8 +267,15 @@ def upgrade_metarig_layers(metarig: ArmatureObject):
     default_layers = [i == 1 for i in range(32)]
     default_map = {
         'faces.super_face': ['primary', 'secondary'],
+        'limbs.arm': ['fk', 'tweak'],
+        'limbs.front_paw': ['fk', 'tweak'],
+        'limbs.leg': ['fk', 'tweak'],
+        'limbs.paw': ['fk', 'tweak'],
+        'limbs.rear_paw': ['fk', 'tweak'],
         'limbs.simple_tentacle': ['tweak'],
         'limbs.super_finger': ['tweak'],
+        'limbs.super_limb': ['fk', 'tweak'],
+        'spines.basic_spine': ['fk', 'tweak'],
     }
 
     for pose_bone in metarig.pose.bones:
