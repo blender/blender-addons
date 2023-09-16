@@ -40,6 +40,7 @@ initial_load_order = [
     'utils.mechanism',
     'utils.animation',
     'utils.metaclass',
+    'utils.objects',
     'feature_sets',
     'rigs',
     'rigs.utils',
@@ -708,6 +709,14 @@ def register():
         get=color_set_get, set=color_set_set, search=color_set_search
     )
 
+    # Object properties
+    obj_store = bpy.types.Object
+
+    obj_store.rigify_owner_rig = PointerProperty(
+        type=bpy.types.Object,
+        name="Rigify Owner Rig",
+        description="Rig that owns this object and may delete or overwrite it upon re-generation")
+
     prefs = RigifyPreferences.get_instance()
     prefs.register_feature_sets(True)
     prefs.update_external_rigs()
@@ -771,6 +780,10 @@ def unregister():
     del coll_store.rigify_sel_set
     del coll_store.rigify_color_set_id
     del coll_store.rigify_color_set_name
+
+    obj_store: typing.Any = bpy.types.Object
+
+    del obj_store.rigify_owner_rig
 
     # Classes.
     for cls in classes:
