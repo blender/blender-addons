@@ -622,7 +622,8 @@ class BaseLimbRig(BaseRig):
         self.make_property(self.prop_bone, 'IK_Stretch', default=1.0, description='IK Stretch')
         panel.custom_prop(self.prop_bone, 'IK_Stretch', text='IK Stretch', slider=True)
 
-        self.make_property(self.prop_bone, 'pole_vector', default=False, description='Use a pole target control')
+        self.make_property(self.prop_bone, 'pole_vector', default=0, min=0, max=1,
+                           description='Use a pole target control')
 
         self.add_ik_only_buttons(panel, rig_name)
 
