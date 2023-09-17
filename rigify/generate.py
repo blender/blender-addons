@@ -220,8 +220,12 @@ class Generator(base_generate.BaseGenerator):
 
         validate_collection_references(self.metarig)
 
-        if ROOT_COLLECTION not in collections:
+        coll = collections.get(ROOT_COLLECTION)
+
+        if not coll:
             coll = collections.new(ROOT_COLLECTION)
+
+        if coll.rigify_ui_row <= 0:
             coll.rigify_ui_row = 2 + choose_next_uid(collections, 'rigify_ui_row', min_value=1)
 
     def __duplicate_rig(self):

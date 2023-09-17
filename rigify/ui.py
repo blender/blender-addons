@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Callable, Any
 from mathutils import Color
 
 from .utils.errors import MetarigError
-from .utils.layers import ROOT_COLLECTION, validate_collection_references
+from .utils.layers import ROOT_COLLECTION, SPECIAL_COLLECTIONS, validate_collection_references
 from .utils.rig import write_metarig, get_rigify_type, get_rigify_target_rig, \
     get_rigify_colors, get_rigify_params
 from .utils.widgets import write_widget
@@ -1017,6 +1017,14 @@ class Generate(bpy.types.Operator):
 
     def execute(self, context):
         metarig = verify_armature_obj(context.object)
+
+        for bcoll in metarig.data.collections:
+            if bcoll.rigify_ui_row > 0 and bcoll.name not in SPECIAL_COLLECTIONS:
+                break
+        else:
+            self.report({'ERROR'}, 'No bone collections have UI buttons assigned - all bones would be invisible.')
+            return {'CANCELLED'}
+
         try:
             generate.generate_rig(context, metarig)
         except MetarigError as rig_exception:
