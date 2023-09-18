@@ -509,7 +509,7 @@ class NWPreviewNode(Operator, NWBase):
 
     @classmethod
     def get_output_sockets(cls, node_tree):
-        return [item for item in node_tree.interface.ui_items if item.item_type == 'SOCKET' and item.in_out in {'OUTPUT', 'BOTH'}]
+        return [item for item in node_tree.interface.items_tree if item.item_type == 'SOCKET' and item.in_out in {'OUTPUT', 'BOTH'}]
 
     def ensure_viewer_socket(self, node, socket_type, connect_socket=None):
         # check if a viewer output already exists in a node group otherwise create
@@ -586,7 +586,7 @@ class NWPreviewNode(Operator, NWBase):
                 next_node = link.from_node
                 external_socket = link.from_socket
                 if hasattr(next_node, "node_tree"):
-                    for socket_index, socket in enumerate(next_node.node_tree.interface.ui_items):
+                    for socket_index, socket in enumerate(next_node.node_tree.interface.items_tree):
                         if socket.identifier == external_socket.identifier:
                             break
                     if is_viewer_socket(socket) and socket not in sockets:
@@ -611,7 +611,7 @@ class NWPreviewNode(Operator, NWBase):
     def remove_socket(cls, tree, socket):
         interface = tree.interface
         interface.remove(socket)
-        interface.active_index = min(interface.active_index, len(interface.ui_items) - 1)
+        interface.active_index = min(interface.active_index, len(interface.items_tree) - 1)
 
     def link_leads_to_used_socket(self, link):
         # return True if link leads to a socket that is already used in this material

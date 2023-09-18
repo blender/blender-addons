@@ -170,11 +170,11 @@ def get_internal_socket(socket):
     # get the internal socket from a socket inside or outside the group
     node = socket.node
     if node.type == 'GROUP_OUTPUT':
-        iterator = node.id_data.interface.ui_items
+        iterator = node.id_data.interface.items_tree
     elif node.type == 'GROUP_INPUT':
-        iterator = node.id_data.interface.ui_items
+        iterator = node.id_data.interface.items_tree
     elif hasattr(node, "node_tree"):
-        iterator = node.node_tree.interface.ui_items
+        iterator = node.node_tree.interface.items_tree
     else:
         return None
 
