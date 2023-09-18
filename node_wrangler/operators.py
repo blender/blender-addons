@@ -509,7 +509,7 @@ class NWPreviewNode(Operator, NWBase):
 
     @classmethod
     def get_output_sockets(cls, node_tree):
-        return [socket for socket in node_tree.interface.ui_items if socket.in_out in {'OUTPUT', 'BOTH'}]
+        return [item for item in node_tree.interface.ui_items if item.item_type == 'SOCKET' and item.in_out in {'OUTPUT', 'BOTH'}]
 
     def ensure_viewer_socket(self, node, socket_type, connect_socket=None):
         # check if a viewer output already exists in a node group otherwise create
