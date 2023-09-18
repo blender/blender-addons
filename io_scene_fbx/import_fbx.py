@@ -2826,7 +2826,12 @@ class FbxImportHelperNode:
                              elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
 
                 if settings.use_custom_props:
+                    # Read Armature Object custom props from the Node
                     blen_read_custom_properties(self.fbx_elem, arm, settings)
+
+                    if self.fbx_data_elem:
+                        # Read Armature Data custom props from the NodeAttribute
+                        blen_read_custom_properties(self.fbx_data_elem, arm_data, settings)
 
             # instance in scene
             view_layer.active_layer_collection.collection.objects.link(arm)

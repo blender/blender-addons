@@ -573,7 +573,10 @@ def fbx_data_empty_elements(root, empty, scene_data):
     props = elem_properties(null)
     elem_props_template_finalize(tmpl, props)
 
-    # No custom properties, already saved with object (Model).
+    # Empty/Armature Object custom properties have already been saved with the Model.
+    # Only Armature data custom properties need to be saved here with the NodeAttribute.
+    if bdata.type == 'ARMATURE':
+        fbx_data_element_custom_properties(props, bdata.data)
 
 
 def fbx_data_light_elements(root, lamp, scene_data):
