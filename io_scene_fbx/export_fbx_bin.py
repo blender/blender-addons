@@ -552,14 +552,20 @@ def fbx_data_element_custom_properties(props, bid):
 
 def fbx_data_empty_elements(root, empty, scene_data):
     """
-    Write the Empty data block (you can control its FBX datatype with the 'fbx_type' string custom property).
+    Write the Empty data block (you can control its FBX datatype with the 'fbx_type' string custom property) or Armature
+    NodeAttribute.
     """
     empty_key = scene_data.data_empties[empty]
 
     null = elem_data_single_int64(root, b"NodeAttribute", get_fbx_uuid_from_key(empty_key))
     null.add_string(fbx_name_class(empty.name.encode(), b"NodeAttribute"))
-    val = empty.bdata.get('fbx_type', None)
-    null.add_string(val.encode() if val and isinstance(val, str) else b"Null")
+    bdata = empty.bdata
+    if bdata.type == 'EMPTY':
+        val = bdata.get('fbx_type', None)
+        fbx_type = val.encode() if val and isinstance(val, str) else b"Null"
+    else:
+        fbx_type = b"Null"
+    null.add_string(fbx_type)
 
     elem_data_single_string(null, b"TypeFlags", b"Null")
 
