@@ -93,7 +93,7 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
         asset_library_ref = getattr(context, "asset_library_ref", None)
         if not asset_library_ref:
             return False
-        asset = getattr(context, "asset_file_handle", None)
+        asset = getattr(context, "asset", None)
         if not asset:
             return False
         return bool(asset.id_type == 'ACTION')

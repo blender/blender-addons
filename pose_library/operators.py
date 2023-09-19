@@ -25,9 +25,9 @@ import bpy
 from bpy.props import BoolProperty, StringProperty
 from bpy.types import (
     Action,
+    AssetRepresentation,
     Context,
     Event,
-    FileSelectEntry,
     Object,
     Operator,
 )
@@ -313,13 +313,13 @@ class PoseAssetUser:
         if not (
             context.object
             and context.object.mode == "POSE"  # This condition may not be desired.
-            and context.asset_file_handle
+            and context.asset
         ):
             return False
-        return context.asset_file_handle.id_type == 'ACTION'
+        return context.asset.id_type == 'ACTION'
 
     def execute(self, context: Context) -> Set[str]:
-        asset: FileSelectEntry = context.asset_file_handle
+        asset: AssetRepresentation = context.asset
         if asset.local_id:
             return self.use_pose(context, asset.local_id)
         return self._load_and_use_pose(context)
@@ -329,8 +329,8 @@ class PoseAssetUser:
         pass
 
     def _load_and_use_pose(self, context: Context) -> Set[str]:
-        asset = context.asset_file_handle
-        asset_lib_path = bpy.types.AssetHandle.get_full_library_path(asset)
+        asset = context.asset
+        asset_lib_path = asset.full_library_path
 
         if not asset_lib_path:
             self.report(  # type: ignore
