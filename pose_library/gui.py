@@ -90,7 +90,7 @@ def pose_library_list_item_context_menu(self: UIList, context: Context) -> None:
         return True
 
     def is_pose_library_asset_browser() -> bool:
-        asset_library_ref = getattr(context, "asset_library_ref", None)
+        asset_library_ref = getattr(context, "asset_library_reference", None)
         if not asset_library_ref:
             return False
         asset = getattr(context, "asset", None)
@@ -186,7 +186,7 @@ def _on_asset_library_changed() -> None:
 
 def register_message_bus() -> None:
     bpy.msgbus.subscribe_rna(
-        key=(bpy.types.FileAssetSelectParams, "asset_library_ref"),
+        key=(bpy.types.FileAssetSelectParams, "asset_library_reference"),
         owner=_msgbus_owner,
         args=(),
         notify=_on_asset_library_changed,

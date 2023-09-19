@@ -75,7 +75,7 @@ class POSELIB_OT_create_pose_asset(PoseAssetCreator, Operator):
             return True
 
         asset_space_params = asset_browser.params(asset_browse_area)
-        if asset_space_params.asset_library_ref != 'LOCAL':
+        if asset_space_params.asset_library_reference != 'LOCAL':
             cls.poll_message_set("Asset Browser must be set to the Current File library")
             return False
 
@@ -262,7 +262,7 @@ class POSELIB_OT_paste_asset(Operator):
             cls.poll_message_set("Current editor is not an asset browser")
             return False
 
-        asset_lib_ref = context.space_data.params.asset_library_ref
+        asset_lib_ref = context.space_data.params.asset_library_reference
         if asset_lib_ref != 'LOCAL':
             cls.poll_message_set("Asset Browser must be set to the Current File library")
             return False
@@ -335,7 +335,8 @@ class PoseAssetUser:
         if not asset_lib_path:
             self.report(  # type: ignore
                 {"ERROR"},
-                # TODO: Add some way to get the library name from the library reference (just asset_library_ref.name?).
+                # TODO: Add some way to get the library name from the library reference
+                # (just asset_library_reference.name?).
                 tip_("Selected asset %s could not be located inside the asset library") % asset.name,
             )
             return {"CANCELLED"}
