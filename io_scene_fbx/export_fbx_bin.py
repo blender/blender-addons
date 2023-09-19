@@ -2592,7 +2592,6 @@ def fbx_data_from_scene(scene, depsgraph, settings):
         if ob_obj.type not in BLENDER_OBJECT_TYPES_MESHLIKE:
             continue
         ob = ob_obj.bdata
-        use_org_data = True
         org_ob_obj = None
 
         # Do not want to systematically recreate a new mesh for dupliobject instances, kind of break purpose of those.
@@ -2602,90 +2601,114 @@ def fbx_data_from_scene(scene, depsgraph, settings):
                 data_meshes[ob_obj] = data_meshes[org_ob_obj]
                 continue
 
-        is_ob_material = any(ms.link == 'OBJECT' for ms in ob.material_slots)
+        # There are 4 different cases for what we need to do with the original data of each Object:
+        # 1) The original data can be used without changes.
+        # 2) A copy of the original data needs to be made.
+        #  - If an export option modifies the data, e.g. Triangulate Faces is enabled.
+        #  - If the Object has Object-linked materials. This is because our current mapping of materials to FBX requires
+        #    that multiple Objects sharing a single mesh must have the same materials.
+        # 3) The Object needs to be converted to a mesh.
+        #  - All mesh-like Objects that are not meshes need to be converted to a mesh in order to be exported.
+        # 4) The Object needs to be evaluated and then converted to a mesh.
+        #  - Whenever use_mesh_modifiers is enabled and either there are modifiers to apply or the Object needs to be
+        #    converted to a mesh.
+        # If multiple cases apply to an Object, then only the last applicable case is relevant.
+        do_copy = any(ms.link == 'OBJECT' for ms in ob.material_slots) or settings.use_triangles
+        do_convert = ob.type in BLENDER_OTHER_OBJECT_TYPES
+        do_evaluate = do_convert and settings.use_mesh_modifiers
 
-        if settings.use_mesh_modifiers or settings.use_triangles or ob.type in BLENDER_OTHER_OBJECT_TYPES or is_ob_material:
-            # We cannot use default mesh in that case, or material would not be the right ones...
-            use_org_data = not (is_ob_material or ob.type in BLENDER_OTHER_OBJECT_TYPES)
-            backup_pose_positions = []
-            tmp_mods = []
-            if use_org_data and ob.type == 'MESH':
-                if settings.use_triangles:
-                    use_org_data = False
-                # No need to create a new mesh in this case, if no modifier is active!
-                last_subsurf = None
-                for mod in ob.modifiers:
-                    # For meshes, when armature export is enabled, disable Armature modifiers here!
-                    # XXX Temp hacks here since currently we only have access to a viewport depsgraph...
-                    #
-                    # NOTE: We put armature to the rest pose instead of disabling it so we still
-                    # have vertex groups in the evaluated mesh.
-                    if mod.type == 'ARMATURE' and 'ARMATURE' in settings.object_types:
-                        object = mod.object
-                        if object and object.type == 'ARMATURE':
-                            armature = object.data
-                            # If armature is already in REST position, there's nothing to back-up
-                            # This cuts down on export time dramatically, if all armatures are already in REST position
-                            # by not triggering dependency graph update
-                            if armature.pose_position != 'REST':
-                                backup_pose_positions.append((armature, armature.pose_position))
-                                armature.pose_position = 'REST'
-                    elif mod.show_render or mod.show_viewport:
-                        # If exporting with subsurf collect the last Catmull-Clark subsurf modifier
-                        # and disable it. We can use the original data as long as this is the first
-                        # found applicable subsurf modifier.
-                        if settings.use_subsurf and mod.type == 'SUBSURF' and mod.subdivision_type == 'CATMULL_CLARK':
-                            if last_subsurf:
-                                use_org_data = False
-                            last_subsurf = mod
-                        else:
-                            use_org_data = False
-                if settings.use_subsurf and last_subsurf:
-                    # XXX: When exporting with subsurf information temporarily disable
-                    # the last subsurf modifier.
-                    tmp_mods.append((last_subsurf, last_subsurf.show_render, last_subsurf.show_viewport))
-                    last_subsurf.show_render = False
-                    last_subsurf.show_viewport = False
-            if not use_org_data:
-                # If modifiers has been altered need to update dependency graph.
-                if backup_pose_positions or tmp_mods:
-                    depsgraph.update()
-                ob_to_convert = ob.evaluated_get(depsgraph) if settings.use_mesh_modifiers else ob
-                # NOTE: The dependency graph might be re-evaluating multiple times, which could
-                # potentially free the mesh created early on. So we put those meshes to bmain and
-                # free them afterwards. Not ideal but ensures correct ownerwhip.
-                tmp_me = bpy.data.meshes.new_from_object(
-                            ob_to_convert, preserve_all_data_layers=True, depsgraph=depsgraph)
-                # Triangulate the mesh if requested
-                if settings.use_triangles:
-                    import bmesh
-                    bm = bmesh.new()
-                    bm.from_mesh(tmp_me)
-                    bmesh.ops.triangulate(bm, faces=bm.faces)
-                    bm.to_mesh(tmp_me)
-                    bm.free()
-                # Usually the materials of the evaluated object will be the same, but modifiers, such as Geometry Nodes,
-                # can change the materials.
-                orig_mats = tuple(slot.material for slot in ob.material_slots)
-                eval_mats = tuple(slot.material.original if slot.material else None
-                                  for slot in ob_to_convert.material_slots)
-                if orig_mats != eval_mats:
-                    # Override the default behaviour of getting materials from ob_obj.bdata.material_slots.
-                    ob_obj.override_materials = eval_mats
-                data_meshes[ob_obj] = (get_blenderID_key(tmp_me), tmp_me, True)
-            # Change armatures back.
-            for armature, pose_position in backup_pose_positions:
-                print((armature, pose_position))
-                armature.pose_position = pose_position
-                # Update now, so we don't leave modified state after last object was exported.
-            # Re-enable temporary disabled modifiers.
-            for mod, show_render, show_viewport in tmp_mods:
-                mod.show_render = show_render
-                mod.show_viewport = show_viewport
+        # If the Object is a mesh, and we're applying modifiers, check if there are actually any modifiers to apply.
+        # If there are then the mesh will need to be evaluated, and we may need to make some temporary changes to the
+        # modifiers or scene before the mesh is evaluated.
+        backup_pose_positions = []
+        tmp_mods = []
+        if ob.type == 'MESH' and settings.use_mesh_modifiers:
+            # No need to create a new mesh in this case, if no modifier is active!
+            last_subsurf = None
+            for mod in ob.modifiers:
+                # For meshes, when armature export is enabled, disable Armature modifiers here!
+                # XXX Temp hacks here since currently we only have access to a viewport depsgraph...
+                #
+                # NOTE: We put armature to the rest pose instead of disabling it so we still
+                # have vertex groups in the evaluated mesh.
+                if mod.type == 'ARMATURE' and 'ARMATURE' in settings.object_types:
+                    object = mod.object
+                    if object and object.type == 'ARMATURE':
+                        armature = object.data
+                        # If armature is already in REST position, there's nothing to back-up
+                        # This cuts down on export time dramatically, if all armatures are already in REST position
+                        # by not triggering dependency graph update
+                        if armature.pose_position != 'REST':
+                            backup_pose_positions.append((armature, armature.pose_position))
+                            armature.pose_position = 'REST'
+                elif mod.show_render or mod.show_viewport:
+                    # If exporting with subsurf collect the last Catmull-Clark subsurf modifier
+                    # and disable it. We can use the original data as long as this is the first
+                    # found applicable subsurf modifier.
+                    if settings.use_subsurf and mod.type == 'SUBSURF' and mod.subdivision_type == 'CATMULL_CLARK':
+                        if last_subsurf:
+                            do_evaluate = True
+                        last_subsurf = mod
+                    else:
+                        do_evaluate = True
+            if settings.use_subsurf and last_subsurf:
+                # XXX: When exporting with subsurf information temporarily disable
+                # the last subsurf modifier.
+                tmp_mods.append((last_subsurf, last_subsurf.show_render, last_subsurf.show_viewport))
+
+        if do_evaluate:
+            # If modifiers has been altered need to update dependency graph.
             if backup_pose_positions or tmp_mods:
                 depsgraph.update()
-        if use_org_data:
+            ob_to_convert = ob.evaluated_get(depsgraph)
+            # NOTE: The dependency graph might be re-evaluating multiple times, which could
+            # potentially free the mesh created early on. So we put those meshes to bmain and
+            # free them afterwards. Not ideal but ensures correct ownership.
+            tmp_me = bpy.data.meshes.new_from_object(
+                ob_to_convert, preserve_all_data_layers=True, depsgraph=depsgraph)
+
+            # Usually the materials of the evaluated object will be the same, but modifiers, such as Geometry Nodes,
+            # can change the materials.
+            orig_mats = tuple(slot.material for slot in ob.material_slots)
+            eval_mats = tuple(slot.material.original if slot.material else None
+                              for slot in ob_to_convert.material_slots)
+            if orig_mats != eval_mats:
+                # Override the default behaviour of getting materials from ob_obj.bdata.material_slots.
+                ob_obj.override_materials = eval_mats
+        elif do_convert:
+            tmp_me = bpy.data.meshes.new_from_object(ob, preserve_all_data_layers=True, depsgraph=depsgraph)
+        elif do_copy:
+            # bpy.data.meshes.new_from_object removes shape keys (see #104714), so create a copy of the mesh instead.
+            tmp_me = ob.data.copy()
+        else:
+            tmp_me = None
+
+        if tmp_me is None:
+            # Use the original data of this Object.
             data_meshes[ob_obj] = (get_blenderID_key(ob.data), ob.data, False)
+        else:
+            # Triangulate the mesh if requested
+            if settings.use_triangles:
+                import bmesh
+                bm = bmesh.new()
+                bm.from_mesh(tmp_me)
+                bmesh.ops.triangulate(bm, faces=bm.faces)
+                bm.to_mesh(tmp_me)
+                bm.free()
+            # A temporary mesh was created for this Object, which should be deleted once the export is complete.
+            data_meshes[ob_obj] = (get_blenderID_key(tmp_me), tmp_me, True)
+
+        # Change armatures back.
+        for armature, pose_position in backup_pose_positions:
+            print((armature, pose_position))
+            armature.pose_position = pose_position
+            # Update now, so we don't leave modified state after last object was exported.
+        # Re-enable temporary disabled modifiers.
+        for mod, show_render, show_viewport in tmp_mods:
+            mod.show_render = show_render
+            mod.show_viewport = show_viewport
+        if backup_pose_positions or tmp_mods:
+            depsgraph.update()
 
         # In case "real" source object of that dupli did not yet still existed in data_meshes, create it now!
         if org_ob_obj is not None:
