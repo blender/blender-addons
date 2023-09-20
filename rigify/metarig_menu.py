@@ -241,6 +241,7 @@ def get_external_metarigs(feature_module_names: list[str]):
                   f"exception occurred.\n")
             traceback.print_exc()
             print("")
+            feature_set_list.mark_feature_set_exception(module_name)
             continue
 
     metarig_ops.clear()
