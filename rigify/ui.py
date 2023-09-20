@@ -323,7 +323,7 @@ class DATA_PT_rigify_collection_list(bpy.types.Panel):
             row.prop(active_coll, "rigify_ui_title")
 
         if ROOT_COLLECTION not in arm.collections:
-            layout.label(text=f"The '{ROOT_COLLECTION}' collection will be added upon generation", icon='ERROR')
+            layout.label(text=f"The '{ROOT_COLLECTION}' collection will be added upon generation", icon='INFO')
 
 
 # noinspection PyPep8Naming
@@ -337,7 +337,7 @@ class DATA_PT_rigify_collection_ui(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return is_valid_metarig(context)
+        return is_valid_metarig(context) and len(verify_armature_obj(context.object).data.collections)
 
     @staticmethod
     def draw_btn_block(arm: Armature, parent: UILayout, bcoll_id: int, loose=False):
@@ -362,9 +362,13 @@ class DATA_PT_rigify_collection_ui(bpy.types.Panel):
 
         # Sort into button rows
         row_table = defaultdict(list)
+        has_buttons = False
 
         for i, bcoll in enumerate(arm.collections):
             row_table[bcoll.rigify_ui_row].append(i)
+
+            if bcoll.rigify_ui_row > 0:
+                has_buttons = True
 
         active_bcoll_idx = arm.collections.active_index
 
@@ -377,6 +381,9 @@ class DATA_PT_rigify_collection_ui(bpy.types.Panel):
         for row_id in range(1, last_row + 2):
             row = box.row()
             row_items = row_table[row_id]
+
+            if row_id == 1 and not has_buttons:
+                row.label(text="Click to assign the button here:", icon="INFO")
 
             grid = row.grid_flow(row_major=True, columns=len(row_items), even_columns=True)
             for bcoll_id in row_items:
@@ -405,7 +412,7 @@ class DATA_PT_rigify_collection_ui(bpy.types.Panel):
 
         if 0 in row_table:
             box = layout.box()
-            box.label(text="No button:")
+            box.label(text="Permanently hidden collections:")
 
             grid = box.grid_flow(row_major=True, columns=2, even_columns=True)
 
@@ -1022,7 +1029,10 @@ class Generate(bpy.types.Operator):
             if bcoll.rigify_ui_row > 0 and bcoll.name not in SPECIAL_COLLECTIONS:
                 break
         else:
-            self.report({'ERROR'}, 'No bone collections have UI buttons assigned - all bones would be invisible.')
+            self.report(
+                {'ERROR'},
+                'No bone collections have UI buttons assigned - please check the Bone Collections UI sub-panel.'
+            )
             return {'CANCELLED'}
 
         try:
