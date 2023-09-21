@@ -1014,12 +1014,6 @@ class PanelExpression(object):
     def __invert__(self):
         return PanelExpression(f"~{self._rigify_expr}")
 
-    def __int__(self):
-        return PanelExpression(f"int({self._rigify_expr})")
-
-    def __float__(self):
-        return PanelExpression(f"float({self._rigify_expr})")
-
     def __round__(self, digits=None):
         return PanelExpression(f"round({self._rigify_expr}, {digits})")
 
@@ -1061,10 +1055,10 @@ class PanelReferenceExpression(PanelExpression):
     """
 
     def __getitem__(self, item):
-        return PanelReferenceExpression(self._rigify_expr + quote_property(item))
+        return PanelReferenceExpression(f"{self._rigify_expr}[{repr(item)}]")
 
     def __getattr__(self, item):
-        return PanelReferenceExpression(self._rigify_expr + '.' + quote_property(item))
+        return PanelReferenceExpression(f"{self._rigify_expr}.{item}")
 
     def get(self, item, default=None):
         return PanelReferenceExpression(f"{self._rigify_expr}.get({repr(item)}, {repr(default)})")
@@ -1189,7 +1183,7 @@ class PanelLayout(object):
         return self.add_nested_layout('split', params)
 
     @staticmethod
-    def expr_bone(bone_name: str):
+    def expr_bone(bone_name):
         """Returns an expression referencing the specified pose bone."""
         return PanelReferenceExpression(f"pose_bones[%r]" % bone_name)
 
