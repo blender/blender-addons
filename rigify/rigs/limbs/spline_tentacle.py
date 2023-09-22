@@ -274,11 +274,10 @@ class Rig(SimpleChainRig):
 
             self.make_property(
                 master, 'end_twist', 0.0, min=-max_val, max=max_val,
-                subtype='ANGLE',  # precision=0, step=1000.0,
+                subtype='ANGLE', precision=0, step=1000.0,
                 description="Rough end twist estimate. The rig auto-corrects it to the actual tip orientation "
                             "within 180 degrees of the specified value"
             )
-            self.get_bone(master).id_properties_ui("end_twist").update(precision=0, step=1000.0)
 
             self.add_direct_tip_buttons(panel, master, rig_name)
 
