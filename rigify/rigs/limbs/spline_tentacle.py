@@ -363,7 +363,7 @@ class Rig(SimpleChainRig):
     @stage.parent_bones
     def parent_twist_control_bones(self):
         if not self.use_tip:
-            self.set_bone_parent(self.bones.ctrl.end_twist, self.bones.ctrl.master)
+            self.set_bone_parent(self.bones.ctrl.end_twist, self.bones.ctrl.master, inherit_scale='ALIGNED')
 
     @stage.configure_bones
     def configure_twist_control_bones(self):
@@ -409,7 +409,7 @@ class Rig(SimpleChainRig):
     @stage.parent_bones
     def parent_mch_twist_control_bones(self):
         if self.use_stretch:
-            self.set_bone_parent(self.bones.mch.end_stretch, self.bones.ctrl.master)
+            self.set_bone_parent(self.bones.mch.end_stretch, self.bones.ctrl.master, inherit_scale='AVERAGE')
 
     @stage.rig_bones
     def rig_mch_twist_control_bones(self):
@@ -489,7 +489,7 @@ class Rig(SimpleChainRig):
 
     @stage.parent_bones
     def parent_main_control_chain(self):
-        self.set_bone_parent(self.bones.ctrl.main[0], self.bones.ctrl.master)
+        self.set_bone_parent(self.bones.ctrl.main[0], self.bones.ctrl.master, inherit_scale='ALIGNED')
 
     @stage.configure_bones
     def configure_main_control_chain(self):
@@ -556,9 +556,8 @@ class Rig(SimpleChainRig):
     @stage.parent_bones
     def parent_control_chain(self):
         if self.use_fk:
-            super().parent_control_chain()
-
-            self.set_bone_parent(self.bones.ctrl.fk[0], self.bones.ctrl.master)
+            self.parent_bone_chain(self.bones.ctrl.fk, use_connect=True, inherit_scale='ALIGNED')
+            self.set_bone_parent(self.bones.ctrl.fk[0], self.bones.ctrl.master, inherit_scale='ALIGNED')
 
     @stage.configure_bones
     def configure_control_chain(self):
@@ -566,18 +565,6 @@ class Rig(SimpleChainRig):
             super().configure_control_chain()
 
             ControlLayersOption.FK.assign(self.params, self.obj, self.bones.ctrl.fk)
-
-    @stage.rig_bones
-    def rig_control_chain(self):
-        if self.use_fk:
-            for args in zip(self.bones.ctrl.fk, [None, *self.bones.ctrl.fk]):
-                self.rig_control_bone(*args)
-
-    def rig_control_bone(self, fk, fk_prev):
-        if fk_prev:
-            self.get_bone(fk).bone.use_inherit_scale = False
-            self.make_constraint(
-                fk, 'COPY_SCALE', fk_prev, use_offset=True, space='POSE', name='Parent Scale')
 
     @stage.generate_widgets
     def make_control_widgets(self):
@@ -603,8 +590,8 @@ class Rig(SimpleChainRig):
 
     @stage.parent_bones
     def parent_mch_extra_parent_bones(self):
-        self.set_bone_parent(self.bones.mch.start_parent, self.bones.ctrl.master)
-        self.set_bone_parent(self.bones.mch.end_parent, self.bones.ctrl.master)
+        self.set_bone_parent(self.bones.mch.start_parent, self.bones.ctrl.master, inherit_scale='AVERAGE')
+        self.set_bone_parent(self.bones.mch.end_parent, self.bones.ctrl.master, inherit_scale='AVERAGE')
 
     @stage.rig_bones
     def rig_mch_extra_parent_bones(self):
@@ -741,14 +728,12 @@ class Rig(SimpleChainRig):
         self.bones.mch.ik = map_list(self.make_mch_ik_bone, orgs)
 
     def make_mch_ik_bone(self, org):
-        name = self.copy_bone(org, make_derived_name(org, 'mch', '.ik'))
-        self.get_bone(name).use_inherit_scale = False
-        return name
+        return self.copy_bone(org, make_derived_name(org, 'mch', '.ik'))
 
     @stage.parent_bones
     def parent_mch_ik_chain(self):
-        self.parent_bone_chain(self.bones.mch.ik, use_connect=True)
-        self.set_bone_parent(self.bones.mch.ik[0], self.bones.ctrl.main[0])
+        self.parent_bone_chain(self.bones.mch.ik, use_connect=True, inherit_scale='NONE')
+        self.set_bone_parent(self.bones.mch.ik[0], self.bones.ctrl.main[0], inherit_scale='NONE')
 
     @stage.rig_bones
     def rig_mch_ik_chain(self):
@@ -801,16 +786,15 @@ class Rig(SimpleChainRig):
     def make_mch_tip_fix(self):
         if self.use_tip:
             org = self.bones.org[-1]
-            parent = self.copy_bone(org, make_derived_name(org, 'mch', '.fix.parent'), scale=0.8)
-            self.get_bone(parent).use_inherit_scale = False
-            self.bones.mch.tip_fix_parent = parent
+            self.bones.mch.tip_fix_parent = self.copy_bone(
+                org, make_derived_name(org, 'mch', '.fix.parent'), scale=0.8)
             self.bones.mch.tip_fix = self.copy_bone(
                 org, make_derived_name(org, 'mch', '.fix'), scale=0.7)
 
     @stage.parent_bones
     def parent_mch_tip_fix(self):
         if self.use_tip:
-            self.set_bone_parent(self.bones.mch.tip_fix_parent, self.bones.mch.ik[-1])
+            self.set_bone_parent(self.bones.mch.tip_fix_parent, self.bones.mch.ik[-1], inherit_scale='NONE')
             self.set_bone_parent(self.bones.mch.tip_fix, self.bones.mch.tip_fix_parent, inherit_scale='ALIGNED')
 
     @stage.rig_bones
@@ -877,7 +861,7 @@ class Rig(SimpleChainRig):
 
     @stage.parent_bones
     def parent_org_chain(self):
-        self.set_bone_parent(self.bones.org[0], self.bones.ctrl.master)
+        self.set_bone_parent(self.bones.org[0], self.bones.ctrl.master, inherit_scale='ALIGNED')
 
     @stage.rig_bones
     def rig_org_chain(self):
@@ -1402,6 +1386,7 @@ def create_sample(obj):
     bone.tail[:] = 0.0000, 0.0000, 0.4000
     bone.roll = 0.0000
     bone.use_connect = True
+    bone.inherit_scale = 'ALIGNED'
     bone.parent = arm.edit_bones[bones['tentacle01']]
     bones['tentacle02'] = bone.name
     bone = arm.edit_bones.new('tentacle03')
@@ -1409,6 +1394,7 @@ def create_sample(obj):
     bone.tail[:] = 0.0000, 0.0000, 0.6000
     bone.roll = 0.0000
     bone.use_connect = True
+    bone.inherit_scale = 'ALIGNED'
     bone.parent = arm.edit_bones[bones['tentacle02']]
     bones['tentacle03'] = bone.name
     bone = arm.edit_bones.new('tentacle04')
@@ -1416,6 +1402,7 @@ def create_sample(obj):
     bone.tail[:] = 0.0000, 0.0000, 0.8000
     bone.roll = 0.0000
     bone.use_connect = True
+    bone.inherit_scale = 'ALIGNED'
     bone.parent = arm.edit_bones[bones['tentacle03']]
     bones['tentacle04'] = bone.name
     bone = arm.edit_bones.new('tentacle05')
@@ -1423,6 +1410,7 @@ def create_sample(obj):
     bone.tail[:] = 0.0000, 0.0000, 1.0000
     bone.roll = 0.0000
     bone.use_connect = True
+    bone.inherit_scale = 'ALIGNED'
     bone.parent = arm.edit_bones[bones['tentacle04']]
     bones['tentacle05'] = bone.name
 
