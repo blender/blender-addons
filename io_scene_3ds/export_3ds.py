@@ -620,7 +620,7 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
 
         if socket == 'Alpha':
             mapflags |= 0x40
-            if texslot.socket_dst.identifier in {'Base Color', 'Specular'}:
+            if texslot.socket_dst.identifier in {'Base Color', 'Specular IOR Level'}:
                 mapflags |= 0x80 if image.colorspace_settings.name == 'Non-Color' else 0x200
 
         mat_sub_mapflags.add_variable("mapflags", _3ds_ushort(mapflags))
@@ -650,11 +650,11 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
         mat_sub_angle.add_variable("mapangle", _3ds_float(round(texslot.rotation[2], 6)))
         mat_sub.add_subchunk(mat_sub_angle)
 
-        if texslot.socket_dst.identifier in {'Base Color', 'Specular'}:
+        if texslot.socket_dst.identifier in {'Base Color', 'Specular IOR Level'}:
             rgb = _3ds_chunk(MAP_COL1)  # Add tint color
             base = texslot.owner_shader.material.diffuse_color[:3]
             spec = texslot.owner_shader.material.specular_color[:]
-            rgb.add_variable("mapcolor", _3ds_rgb_color(spec if texslot.socket_dst.identifier == 'Specular' else base))
+            rgb.add_variable("mapcolor", _3ds_rgb_color(spec if texslot.socket_dst.identifier == 'Specular IOR Level' else base))
             mat_sub.add_subchunk(rgb)
 
     # Store all textures for this mapto in order. This at least is what the

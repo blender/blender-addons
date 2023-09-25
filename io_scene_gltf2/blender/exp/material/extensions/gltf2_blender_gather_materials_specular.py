@@ -76,10 +76,10 @@ def export_specular(blender_material, export_settings):
     specular_extension = {}
     specular_ext_enabled = False
 
-    specular_socket = gltf2_blender_get.get_socket(blender_material, 'Specular')
+    specular_socket = gltf2_blender_get.get_socket(blender_material, 'Specular IOR Level')
     specular_tint_socket = gltf2_blender_get.get_socket(blender_material, 'Specular Tint')
     base_color_socket = gltf2_blender_get.get_socket(blender_material, 'Base Color')
-    transmission_socket = gltf2_blender_get.get_socket(blender_material, 'Transmission')
+    transmission_socket = gltf2_blender_get.get_socket(blender_material, 'Transmission Weight')
     ior_socket = gltf2_blender_get.get_socket(blender_material, 'IOR')
 
     if base_color_socket is None:
