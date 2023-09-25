@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 0, 26),
+    "version": (4, 0, 27),
     'blender': (4, 0, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1600,8 +1600,9 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
     bone_heuristic: EnumProperty(
         name="Bone Dir",
         items=(
-            ("BLENDER", "Blender (best for re-importing)",
-                "Good for re-importing glTFs exported from Blender. "
+            ("BLENDER", "Blender (best for import/export round trip)",
+                "Good for re-importing glTFs exported from Blender, "
+                "and re-exporting glTFs to glTFs after Blender editing"
                 "Bone tips are placed on their local +Y axis (in glTF space)"),
             ("TEMPERANCE", "Temperance (average)",
                 "Decent all-around strategy. "
@@ -1613,7 +1614,7 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
                 "Non-uniform scalings may get messed up though, so beware"),
         ),
         description="Heuristic for placing bones. Tries to make bones pretty",
-        default="TEMPERANCE",
+        default="BLENDER",
     )
 
     guess_original_bind_pose: BoolProperty(
