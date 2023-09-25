@@ -46,6 +46,7 @@ class glTFImporter():
             'KHR_texture_transform',
             'KHR_materials_clearcoat',
             'KHR_mesh_quantization',
+            'EXT_mesh_gpu_instancing',
             'KHR_draco_mesh_compression',
             'KHR_materials_variants',
             'KHR_materials_emissive_strength',
