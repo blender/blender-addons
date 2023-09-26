@@ -14,6 +14,7 @@ from bpy.types import bpy_struct, Constraint, Object, PoseBone, Bone, Armature
 
 from bpy.types import bpy_prop_array, bpy_prop_collection  # noqa
 from idprop.types import IDPropertyArray
+from mathutils import Vector
 
 from .misc import ArmatureObject, wrap_list_to_lines, IdPropSequence, find_index
 
@@ -573,6 +574,18 @@ def write_metarig(obj: ArmatureObject, layers=False, func_name="create",
 
     code.append("\n    bones = {}\n")
 
+    # noinspection SpellCheckingInspection
+    extra_props = {
+        'bbone_segments': 1,
+        'bbone_mapping_mode': 'STRAIGHT',
+        'bbone_easein': 1, 'bbone_easeout': 1,
+        'bbone_rollin': 0, 'bbone_rollout': 0,
+        'bbone_curveinx': 0, 'bbone_curveinz': 0,
+        'bbone_curveoutx': 0, 'bbone_curveoutz': 0,
+        'bbone_scalein': Vector((1, 1, 1)),
+        'bbone_scaleout': Vector((1, 1, 1)),
+    }
+
     for bone_name in bones:
         bone = arm.edit_bones[bone_name]
         code.append("    bone = arm.edit_bones.new(%r)" % bone.name)
@@ -584,6 +597,10 @@ def write_metarig(obj: ArmatureObject, layers=False, func_name="create",
             code.append("    bone.inherit_scale = %r" % str(bone.inherit_scale))
         if bone.parent:
             code.append("    bone.parent = arm.edit_bones[bones[%r]]" % bone.parent.name)
+        for prop, default in extra_props.items():
+            value = getattr(bone, prop)
+            if value != default:
+                code.append(f"    bone.{prop} = {value!r}")
         code.append("    bones[%r] = bone.name" % bone.name)
 
     bpy.ops.object.mode_set(mode='OBJECT')
