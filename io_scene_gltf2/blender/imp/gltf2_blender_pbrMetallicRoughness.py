@@ -96,7 +96,7 @@ def pbr_metallic_roughness(mh: MaterialHelper):
     emission(
         mh,
         location=locs['emission'],
-        color_socket=pbr_node.inputs['Emission'],
+        color_socket=pbr_node.inputs['Emission Color'],
         strength_socket=pbr_node.inputs['Emission Strength'],
     )
 
