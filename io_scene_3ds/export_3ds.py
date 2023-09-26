@@ -698,7 +698,7 @@ def make_material_chunk(material, image):
         shading.add_variable("shading", _3ds_ushort(3))  # Phong shading
         material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, wrap.emission_color[:3]))
         material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, wrap.base_color[:3]))
-        material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specular_color[:]))
+        material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, wrap.specular_tint[:3]))
         material_chunk.add_subchunk(make_percent_subchunk(MATSHINESS, 1 - wrap.roughness))
         material_chunk.add_subchunk(make_percent_subchunk(MATSHIN2, wrap.specular))
         material_chunk.add_subchunk(make_percent_subchunk(MATSHIN3, wrap.metallic))
@@ -1211,10 +1211,10 @@ def make_track_chunk(ID, ob, ob_pos, ob_rot, ob_size):
                     track_chunk.add_variable("fov", _3ds_float(round(math.degrees(fov), 4)))
 
             elif ID == HOTSPOT_TRACK_TAG:  # Hotspot
-                beam_angle = math.degrees(ob.data.spot_size)
                 for i, frame in enumerate(kframes):
+                    beamsize = next((fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'spot_size'), ob.data.spot_size)
                     blend = next((fc.evaluate(frame) for fc in fcurves if fc is not None and fc.data_path == 'spot_blend'), ob.data.spot_blend)
-                    hot_spot = beam_angle - (blend * math.floor(beam_angle))
+                    hot_spot = math.degrees(beamsize) - (blend * math.floor(math.degrees(beamsize)))
                     track_chunk.add_variable("tcb_frame", _3ds_uint(int(frame)))
                     track_chunk.add_variable("tcb_flags", _3ds_ushort())
                     track_chunk.add_variable("hotspot", _3ds_float(round(hot_spot, 4)))
@@ -1647,14 +1647,14 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
             bg_tex = 'TEX_IMAGE', 'TEX_ENVIRONMENT'
             bg_color = next((lk.from_node.inputs[0].default_value[:3] for lk in ntree if lk.from_node.type == bgtype and lk.to_node.type in bgshade), world.color)
             bg_mixer = next((lk.from_node.type for lk in ntree if  lk.from_node.type in bgmixer and lk.to_node.type == bgtype), bgtype)
-            bg_image = next((lk.from_node.image.name for lk in ntree if lk.from_node.type in bg_tex and lk.to_node.type == bg_mixer), False)
+            bg_image = next((lk.from_node.image for lk in ntree if lk.from_node.type in bg_tex and lk.to_node.type == bg_mixer), False)
             gradient = next((lk.from_node.color_ramp.elements for lk in ntree if lk.from_node.type == 'VALTORGB' and lk.to_node.type in bgmixer), False)
             background_color_chunk.add_variable("color", _3ds_float_color(bg_color))
             background_chunk.add_subchunk(background_color_chunk)
             if bg_image:
                 background_image = _3ds_chunk(BITMAP)
                 background_flag = _3ds_chunk(USE_BITMAP)
-                background_image.add_variable("image", _3ds_string(sane_name(bg_image)))
+                background_image.add_variable("image", _3ds_string(sane_name(bg_image.name)))
                 object_info.add_subchunk(background_image)
             object_info.add_subchunk(background_chunk)
 
@@ -1710,7 +1710,7 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
                 object_info.add_subchunk(layerfog_chunk)
             if fognode or foglayer and layer.use_pass_mist:
                 object_info.add_subchunk(use_fog_flag)
-        if use_keyframes and world.animation_data:
+        if use_keyframes and world.animation_data or world.node_tree.animation_data:
             kfdata.add_subchunk(make_ambient_node(world))
 
     # Make a list of all materials used in the selected meshes (use dictionary, each material is added once)

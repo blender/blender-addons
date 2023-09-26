@@ -527,6 +527,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         contextWrapper.metallic = contextMaterial.metallic
         contextWrapper.roughness = contextMaterial.roughness
         contextWrapper.specular = contextMaterial.specular_intensity
+        contextWrapper.specular_tint = contextMaterial.specular_color[:]
         contextWrapper.emission_color = contextMaterial.line_color[:3]
         contextWrapper.emission_strength = contextMaterial.line_priority / 100
         contextWrapper.alpha = contextMaterial.diffuse_color[3] = contextAlpha
@@ -1000,6 +1001,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 contextWrapper.metallic = contextMaterial.metallic
                 contextWrapper.roughness = contextMaterial.roughness
                 contextWrapper.specular = contextMaterial.specular_intensity
+                contextWrapper.specular_tint = contextMaterial.specular_color[:]
                 contextWrapper.emission_color = contextMaterial.line_color[:3]
                 contextWrapper.emission_strength = contextMaterial.line_priority / 100
                 contextWrapper.alpha = contextMaterial.diffuse_color[3] = contextAlpha
