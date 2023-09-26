@@ -56,6 +56,14 @@ class FBXElem:
         self.props_type.append(data_types.BOOL)
         self.props.append(data)
 
+    def add_char(self, data):
+        assert(isinstance(data, bytes))
+        assert(len(data) == 1)
+        data = pack('<c', data)
+
+        self.props_type.append(data_types.CHAR)
+        self.props.append(data)
+
     def add_int8(self, data):
         assert(isinstance(data, int))
         data = pack('<b', data)
