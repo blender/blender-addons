@@ -12,8 +12,10 @@ import array
 import numpy as np
 import zlib
 
-_BLOCK_SENTINEL_LENGTH = 13
-_BLOCK_SENTINEL_DATA = (b'\0' * _BLOCK_SENTINEL_LENGTH)
+_BLOCK_SENTINEL_LENGTH = ...
+_BLOCK_SENTINEL_DATA = ...
+_ELEM_META_FORMAT = ...
+_ELEM_META_SIZE = ...
 _IS_BIG_ENDIAN = (__import__("sys").byteorder != 'little')
 _HEAD_MAGIC = b'Kaydara FBX Binary\x20\x20\x00\x1a\x00'
 
@@ -227,7 +229,7 @@ class FBXElem:
         assert(self._end_offset == -1)
         assert(self._props_length == -1)
 
-        offset += 12  # 3 uints
+        offset += _ELEM_META_SIZE  # 3 uints (or 3 ulonglongs for FBX 7500 and later)
         offset += 1 + len(self.id)  # len + idname
 
         props_length = 0
@@ -258,7 +260,7 @@ class FBXElem:
         assert(self._end_offset != -1)
         assert(self._props_length != -1)
 
-        write(pack('<3I', self._end_offset, len(self.props), self._props_length))
+        write(pack(_ELEM_META_FORMAT, self._end_offset, len(self.props), self._props_length))
 
         write(bytes((len(self.id),)))
         write(self.id)
@@ -271,7 +273,7 @@ class FBXElem:
 
         if tell() != self._end_offset:
             raise IOError("scope length not reached, "
-                          "something is wrong (%d)" % (end_offset - tell()))
+                          "something is wrong (%d)" % (self._end_offset - tell()))
 
     def _write_children(self, write, tell, is_last):
         if self.elems:
@@ -316,12 +318,35 @@ def _write_timedate_hack(elem_root):
         print("Missing fields!")
 
 
+# FBX 7500 (aka FBX2016) introduces incompatible changes at binary level:
+#   * The NULL block marking end of nested stuff switches from 13 bytes long to 25 bytes long.
+#   * The FBX element metadata (end_offset, prop_count and prop_length) switch from uint32 to uint64.
+def init_version(fbx_version):
+    global _BLOCK_SENTINEL_LENGTH, _BLOCK_SENTINEL_DATA, _ELEM_META_FORMAT, _ELEM_META_SIZE
+
+    _BLOCK_SENTINEL_LENGTH = ...
+    _BLOCK_SENTINEL_DATA = ...
+    _ELEM_META_FORMAT = ...
+    _ELEM_META_SIZE = ...
+
+    if fbx_version < 7500:
+        _ELEM_META_FORMAT = '<3I'
+        _ELEM_META_SIZE = 12
+    else:
+        _ELEM_META_FORMAT = '<3Q'
+        _ELEM_META_SIZE = 24
+    _BLOCK_SENTINEL_LENGTH = _ELEM_META_SIZE + 1
+    _BLOCK_SENTINEL_DATA = (b'\0' * _BLOCK_SENTINEL_LENGTH)
+
+
 def write(fn, elem_root, version):
     assert(elem_root.id == b'')
 
     with open(fn, 'wb') as f:
         write = f.write
         tell = f.tell
+
+        init_version(version)
 
         write(_HEAD_MAGIC)
         write(pack('<I', version))
