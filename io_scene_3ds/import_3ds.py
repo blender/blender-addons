@@ -264,7 +264,7 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
         links.new(img_wrap.node_image.outputs['Color'], mixer.inputs[2])
         links.new(mixer.outputs['Color'], shader.inputs['Base Color'])
     elif mapto == 'SPECULARITY':
-        img_wrap = contextWrapper.specular_texture
+        img_wrap = contextWrapper.specular_tint_texture
     elif mapto == 'ALPHA':
         shader.location = (0, -300)
         img_wrap = contextWrapper.alpha_texture
