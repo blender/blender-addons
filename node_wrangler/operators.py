@@ -539,7 +539,7 @@ class NWPreviewNode(Operator, NWBase):
 
             if not viewer_socket:
                 # create viewer socket
-                viewer_socket = node.node_tree.interface.new_socket(viewer_socket_name, in_out={'OUTPUT'}, socket_type=socket_type)
+                viewer_socket = node.node_tree.interface.new_socket(viewer_socket_name, in_out='OUTPUT', socket_type=socket_type)
                 viewer_socket.NWViewerSocket = True
             return viewer_socket
 
