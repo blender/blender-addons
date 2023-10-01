@@ -1651,7 +1651,7 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
             gradient = next((lk.from_node.color_ramp.elements for lk in ntree if lk.from_node.type == 'VALTORGB' and lk.to_node.type in bgmixer), False)
             background_color_chunk.add_variable("color", _3ds_float_color(bg_color))
             background_chunk.add_subchunk(background_color_chunk)
-            if bg_image:
+            if bg_image and bg_image is not None:
                 background_image = _3ds_chunk(BITMAP)
                 background_flag = _3ds_chunk(USE_BITMAP)
                 background_image.add_variable("image", _3ds_string(sane_name(bg_image.name)))
@@ -1938,11 +1938,10 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
             obj_hierarchy_chunk = _3ds_chunk(OBJECT_HIERARCHY)
             obj_parent_chunk = _3ds_chunk(OBJECT_PARENT)
             obj_hierarchy_chunk.add_variable("hierarchy", _3ds_ushort(object_id[ob.name]))
-            if ob.parent is None or (ob.parent.name not in object_id):
-                obj_parent_chunk.add_variable("parent", _3ds_ushort(ROOT_OBJECT))
-            else:  # Get the parent ID from the object_id dict
+            if ob.parent is not None and (ob.parent.name in object_id):
+                obj_parent_chunk = _3ds_chunk(OBJECT_PARENT)
                 obj_parent_chunk.add_variable("parent", _3ds_ushort(object_id[ob.parent.name]))
-            obj_hierarchy_chunk.add_subchunk(obj_parent_chunk)
+                obj_hierarchy_chunk.add_subchunk(obj_parent_chunk)
             object_chunk.add_subchunk(obj_hierarchy_chunk)
 
         # Add light object and hierarchy chunks to object info
@@ -1976,11 +1975,10 @@ def save(operator, context, filepath="", scale_factor=1.0, use_scene_unit=False,
             obj_hierarchy_chunk = _3ds_chunk(OBJECT_HIERARCHY)
             obj_parent_chunk = _3ds_chunk(OBJECT_PARENT)
             obj_hierarchy_chunk.add_variable("hierarchy", _3ds_ushort(object_id[ob.name]))
-            if ob.parent is None or (ob.parent.name not in object_id):
-                obj_parent_chunk.add_variable("parent", _3ds_ushort(ROOT_OBJECT))
-            else:  # Get the parent ID from the object_id dict
+            if ob.parent is not None and (ob.parent.name in object_id):
+                obj_parent_chunk = _3ds_chunk(OBJECT_PARENT)
                 obj_parent_chunk.add_variable("parent", _3ds_ushort(object_id[ob.parent.name]))
-            obj_hierarchy_chunk.add_subchunk(obj_parent_chunk)
+                obj_hierarchy_chunk.add_subchunk(obj_parent_chunk)
             object_chunk.add_subchunk(obj_hierarchy_chunk)
 
         # Add light object and hierarchy chunks to object info
