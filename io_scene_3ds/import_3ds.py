@@ -811,7 +811,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
             if contextWorld is None:
                 path, filename = os.path.split(file.name)
                 realname, ext = os.path.splitext(filename)
-                newWorld = bpy.data.worlds.new("Fog: " + realname)
+                contextWorld = bpy.data.worlds.new("Fog: " + realname)
                 context.scene.world = contextWorld
             contextWorld.use_nodes = True
             links = contextWorld.node_tree.links
