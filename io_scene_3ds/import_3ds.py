@@ -264,19 +264,19 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
         links.new(img_wrap.node_image.outputs['Color'], mixer.inputs[2])
         links.new(mixer.outputs['Color'], shader.inputs['Base Color'])
     elif mapto == 'ROUGHNESS':
-        img_wrap = newShade.roughness_texture
+        img_wrap = contextWrapper.roughness_texture
     elif mapto == 'METALLIC':
         shader.location = (300,300)
-        img_wrap = newShade.metallic_texture
+        img_wrap = contextWrapper.metallic_texture
     elif mapto == 'SPECULARITY':
         shader.location = (0,-300)
-        img_wrap = newShade.specular_tint_texture
+        img_wrap = contextWrapper.specular_tint_texture
     elif mapto == 'ALPHA':
         shader.location = (300,300)
-        img_wrap = newShade.alpha_texture
+        img_wrap = contextWrapper.alpha_texture
     elif mapto == 'EMISSION':
         shader.location = (0,-900)
-        img_wrap = newShade.emission_color_texture
+        img_wrap = contextWrapper.emission_color_texture
     elif mapto == 'NORMAL':
         shader.location = (300, 300)
         img_wrap = contextWrapper.normalmap_texture
