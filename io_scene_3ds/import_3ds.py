@@ -641,8 +641,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         temp_data = file.read(SZ_U_INT * 2)
         track_chunk.bytes_read += SZ_U_INT * 2
         nkeys = read_long(track_chunk)
-        if nkeys == 0:
-            keyframe_data[0] = default_data
         for i in range(nkeys):
             nframe = read_long(track_chunk)
             nflags = read_short(track_chunk)
@@ -657,8 +655,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         temp_data = file.read(SZ_U_SHORT * 5)
         track_chunk.bytes_read += SZ_U_SHORT * 5
         nkeys = read_long(track_chunk)
-        if nkeys == 0:
-            keyframe_angle[0] = default_value
         for i in range(nkeys):
             nframe = read_long(track_chunk)
             nflags = read_short(track_chunk)
@@ -1333,7 +1329,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and tracking == 'AMBIENT':  # Ambient
             keyframe_data = {}
-            default_data = child.color[:]
+            keyframe_data[0] = child.color[:]
             child.color = read_track_data(new_chunk)[0]
             ambinode.inputs[0].default_value[:3] = child.color
             ambilite.outputs[0].default_value[:3] = child.color
@@ -1347,7 +1343,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and tracking == 'LIGHT':  # Color
             keyframe_data = {}
-            default_data = child.data.color[:]
+            keyframe_data[0] = child.data.color[:]
             child.data.color = read_track_data(new_chunk)[0]
             for keydata in keyframe_data.items():
                 child.data.color = keydata[1]
@@ -1356,7 +1352,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracktype == 'OBJECT':  # Translation
             keyframe_data = {}
-            default_data = child.location[:]
+            keyframe_data[0] = child.location[:]
             child.location = read_track_data(new_chunk)[0]
             if child.type in {'LIGHT', 'CAMERA'}:
                 trackposition[0] = child.location
@@ -1408,12 +1404,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif KEYFRAME and new_chunk.ID == ROT_TRACK_TAG and tracktype == 'OBJECT':  # Rotation
             keyframe_rotation = {}
+            keyframe_rotation[0] = child.rotation_axis_angle[:]
             tflags = read_short(new_chunk)
             temp_data = file.read(SZ_U_INT * 2)
             new_chunk.bytes_read += SZ_U_INT * 2
             nkeys = read_long(new_chunk)
-            if nkeys == 0:
-                keyframe_rotation[0] = child.rotation_axis_angle[:]
             if tflags & 0x8:  # Flag 0x8 locks X axis
                 child.lock_rotation[0] = True
             if tflags & 0x10:  # Flag 0x10 locks Y axis
@@ -1446,7 +1441,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and tracktype == 'OBJECT':  # Scale
             keyframe_data = {}
-            default_data = child.scale[:]
+            keyframe_data[0] = child.scale[:]
             child.scale = read_track_data(new_chunk)[0]
             if contextTrack_flag & 0x8:  # Flag 0x8 locks X axis
                 child.lock_scale[0] = True
@@ -1466,7 +1461,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif KEYFRAME and new_chunk.ID == ROLL_TRACK_TAG and tracktype == 'OBJECT':  # Roll angle
             keyframe_angle = {}
-            default_value = child.rotation_euler.y
+            keyframe_angle[0] = child.rotation_euler.y
             child.rotation_euler.y = read_track_angle(new_chunk)[0]
             for keydata in keyframe_angle.items():
                 child.rotation_euler.y = keydata[1]
@@ -1476,7 +1471,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif KEYFRAME and new_chunk.ID == FOV_TRACK_TAG and tracking == 'CAMERA':  # Field of view
             keyframe_angle = {}
-            default_value = child.data.angle
+            keyframe_angle[0] = child.data.angle
             child.data.angle = read_track_angle(new_chunk)[0]
             for keydata in keyframe_angle.items():
                 child.data.lens = (child.data.sensor_width / 2) / math.tan(keydata[1] / 2)
@@ -1485,7 +1480,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif KEYFRAME and new_chunk.ID == HOTSPOT_TRACK_TAG and tracking == 'LIGHT' and spotting == 'SPOT':  # Hotspot
             keyframe_angle = {}
             cone_angle = math.degrees(child.data.spot_size)
-            default_value = cone_angle-(child.data.spot_blend * math.floor(cone_angle))
+            keyframe_angle[0] = cone_angle-(child.data.spot_blend * math.floor(cone_angle))
             hot_spot = math.degrees(read_track_angle(new_chunk)[0])
             child.data.spot_blend = 1.0 - (hot_spot / cone_angle)
             for keydata in keyframe_angle.items():
@@ -1494,7 +1489,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif KEYFRAME and new_chunk.ID == FALLOFF_TRACK_TAG and tracking == 'LIGHT' and spotting == 'SPOT':  # Falloff
             keyframe_angle = {}
-            default_value = math.degrees(child.data.spot_size)
+            keyframe_angle[0] = math.degrees(child.data.spot_size)
             child.data.spot_size = read_track_angle(new_chunk)[0]
             for keydata in keyframe_angle.items():
                 child.data.spot_size = keydata[1]
