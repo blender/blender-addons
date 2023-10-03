@@ -25,7 +25,10 @@ from math import pi
 
 import bpy
 from bpy.types import Operator
-from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import (
+    pgettext_tip as tip_,
+    contexts as i18n_contexts
+)
 from mathutils import Vector
 
 from bpy.props import (
@@ -731,7 +734,9 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         ('HASHED', "Hashed","Use noise to dither the binary visibility (works well with multi-samples)"),
         ('OPAQUE', "Opaque","Render surface without transparency"),
     )
-    blend_method: EnumProperty(name="Blend Mode", items=BLEND_METHODS, default='BLEND', description="Blend Mode for Transparent Faces")
+    blend_method: EnumProperty(
+        name="Blend Mode", items=BLEND_METHODS, default='BLEND',
+        description="Blend Mode for Transparent Faces", translation_context=i18n_contexts.id_material)
 
     SHADOW_METHODS = (
         ('CLIP', "Clip","Use the alpha threshold to clip the visibility (binary visibility)"),
@@ -739,7 +744,9 @@ class IMPORT_IMAGE_OT_to_plane(Operator, AddObjectHelper):
         ('OPAQUE',"Opaque","Material will cast shadows without transparency"),
         ('NONE',"None","Material will cast no shadow"),
     )
-    shadow_method: EnumProperty(name="Shadow Mode", items=SHADOW_METHODS, default='CLIP', description="Shadow mapping method")
+    shadow_method: EnumProperty(
+        name="Shadow Mode", items=SHADOW_METHODS, default='CLIP',
+        description="Shadow mapping method", translation_context=i18n_contexts.id_material)
 
     use_backface_culling: BoolProperty(
         name="Backface Culling", default=False,
