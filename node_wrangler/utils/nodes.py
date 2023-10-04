@@ -194,9 +194,9 @@ def is_viewer_link(link, output_node):
     return False
 
 
-def get_group_output_node(tree):
+def get_group_output_node(tree, output_node_type='GROUP_OUTPUT'):
     for node in tree.nodes:
-        if node.type == 'GROUP_OUTPUT' and node.is_active_output:
+        if node.type == output_node_type and node.is_active_output:
             return node
 
 
