@@ -269,7 +269,7 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
         shader.location = (300,300)
         img_wrap = contextWrapper.metallic_texture
     elif mapto == 'SPECULARITY':
-        shader.location = (0,-300)
+        shader.location = (-300,-300)
         img_wrap = contextWrapper.specular_tint_texture
     elif mapto == 'ALPHA':
         shader.location = (300,300)
