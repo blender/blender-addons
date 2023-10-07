@@ -312,10 +312,12 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
         img_wrap.extension = 'CLIP'
 
     if alpha == 'alpha':
+        own_node = img_wrap.node_image
+        contextWrapper.material.blend_method = 'HASHED'
+        links.new(own_node.outputs['Alpha'], img_wrap.socket_dst)
         for link in links:
             if link.from_node.type == 'TEX_IMAGE' and link.to_node.type == 'MIX_RGB':
                 tex = link.from_node.image.name
-                own_node = img_wrap.node_image
                 own_map = img_wrap.node_mapping
                 if tex == image.name:
                     links.new(link.from_node.outputs['Alpha'], img_wrap.socket_dst)
@@ -325,9 +327,6 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
                         if imgs.name[-3:].isdigit():
                             if not imgs.users:
                                 bpy.data.images.remove(imgs)
-                else:
-                    links.new(img_wrap.node_image.outputs['Alpha'], img_wrap.socket_dst)
-        contextWrapper.material.blend_method = 'HASHED'
 
     shader.location = (300, 300)
     contextWrapper._grid_to_location(1, 0, dst_node=contextWrapper.node_out, ref_node=shader)
