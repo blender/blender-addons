@@ -274,6 +274,8 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
     elif mapto == 'ALPHA':
         shader.location = (-300,0)
         img_wrap = contextWrapper.alpha_texture
+        img_wrap.use_alpha = False
+        links.new(img_wrap.node_image.outputs['Color'], img_wrap.socket_dst)
     elif mapto == 'EMISSION':
         shader.location = (0,-900)
         img_wrap = contextWrapper.emission_color_texture
