@@ -546,6 +546,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 img = load_image(texture_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
                 temp_chunk.bytes_read += read_str_len  # plus one for the null character that gets removed
 
+            elif temp_chunk.ID == MAT_BUMP_PERCENT:
+                contextWrapper.normalmap_strength = (float(read_short(temp_chunk) / 100))
+
             elif temp_chunk.ID == MAT_MAP_TILING:
                 """Control bit flags, where 0x1 activates decaling, 0x2 activates mirror,
                 0x8 activates inversion, 0x10 deactivates tiling, 0x20 activates summed area sampling,
