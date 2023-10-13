@@ -257,12 +257,15 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
         mixer.inputs[0].default_value = pct / 100
         mixer.inputs[1].default_value = (
             tint1[:3] + [1] if tint1 else shader.inputs['Base Color'].default_value[:])
-        if tint2 is not None:
-            mixer.inputs[2].default_value = tint2[:3] + [1]
         contextWrapper._grid_to_location(1, 2, dst_node=mixer, ref_node=shader)
         img_wrap = contextWrapper.base_color_texture
-        links.new(img_wrap.node_image.outputs['Color'], mixer.inputs[2])
         links.new(mixer.outputs['Color'], shader.inputs['Base Color'])
+        if tint2 is not None:
+            img_wrap.colorspace_name = 'Non-Color'
+            mixer.inputs[2].default_value = tint2[:3] + [1]
+            links.new(img_wrap.node_image.outputs['Color'], mixer.inputs[0])
+        else:
+            links.new(img_wrap.node_image.outputs['Color'], mixer.inputs[2])
     elif mapto == 'ROUGHNESS':
         img_wrap = contextWrapper.roughness_texture
     elif mapto == 'METALLIC':
