@@ -3470,31 +3470,56 @@ def load(operator, context, filepath="",
     def _():
         fbx_tmpl = fbx_template_get((b'Geometry', b'KFbxShape'))
 
+        # - FBX             | - Blender equivalent
+        # Mesh              | `Mesh`
+        # BlendShape        | `Key`
+        # BlendShapeChannel | `ShapeKey`, but without its `.data`.
+        # Shape             | `ShapeKey.data`, but also includes normals and the values are relative to the base Mesh
+        #                   | instead of being absolute. The data is sparse, so each Shape has an "Indexes" array too.
+        #                   | FBX 2020 introduced 'Modern Style' Shapes that also support tangents, binormals, vertex
+        #                   | colors and UVs, and can be absolute values instead of relative, but 'Modern Style' Shapes
+        #                   | are not currently supported.
+        #
+        # The FBX connections between Shapes and Meshes form multiple many-many relationships:
+        # Mesh >-< BlendShape >-< BlendShapeChannel >-< Shape
+        # In practice, the relationships are almost never many-many and are more typically 1-many or 1-1:
+        #   Mesh --- BlendShape:
+        #     usually 1-1 and the FBX SDK might enforce that each BlendShape is connected to at most one Mesh.
+        #   BlendShape --< BlendShapeChannel:
+        #     usually 1-many.
+        #   BlendShapeChannel --- or uncommonly --< Shape:
+        #     usually 1-1, but 1-many is a documented feature.
+
+        def connections_gen(c_src_uuid, fbx_id, fbx_type):
+            """Helper to reduce duplicate code"""
+            # Rarely, an imported FBX file will have duplicate connections. For Shape Key related connections, FBX
+            # appears to ignore the duplicates, or overwrite the existing duplicates such that the end result is the
+            # same as ignoring them, so keep a set of the seen connections and ignore any duplicates.
+            seen_connections = set()
+            for c_dst_uuid, ctype in fbx_connection_map.get(c_src_uuid, ()):
+                if ctype.props[0] != b'OO':
+                    # 'Object-Object' connections only.
+                    continue
+                fbx_data, bl_data = fbx_table_nodes.get(c_dst_uuid, (None, None))
+                if fbx_data is None or fbx_data.id != fbx_id or fbx_data.props[2] != fbx_type:
+                    # Either `c_dst_uuid` doesn't exist, or it has a different id or type.
+                    continue
+                connection_key = (c_src_uuid, c_dst_uuid)
+                if connection_key in seen_connections:
+                    # The connection is a duplicate, skip it.
+                    continue
+                seen_connections.add(connection_key)
+                yield c_dst_uuid, fbx_data, bl_data
+
         mesh_to_shapes = {}
-        for s_uuid, s_item in fbx_table_nodes.items():
-            fbx_sdata, bl_sdata = s_item = fbx_table_nodes.get(s_uuid, (None, None))
+        for s_uuid, (fbx_sdata, _bl_sdata) in fbx_table_nodes.items():
             if fbx_sdata is None or fbx_sdata.id != b'Geometry' or fbx_sdata.props[2] != b'Shape':
                 continue
 
             # shape -> blendshapechannel -> blendshape -> mesh.
-            for bc_uuid, bc_ctype in fbx_connection_map.get(s_uuid, ()):
-                if bc_ctype.props[0] != b'OO':
-                    continue
-                fbx_bcdata, _bl_bcdata = fbx_table_nodes.get(bc_uuid, (None, None))
-                if fbx_bcdata is None or fbx_bcdata.id != b'Deformer' or fbx_bcdata.props[2] != b'BlendShapeChannel':
-                    continue
-                for bs_uuid, bs_ctype in fbx_connection_map.get(bc_uuid, ()):
-                    if bs_ctype.props[0] != b'OO':
-                        continue
-                    fbx_bsdata, _bl_bsdata = fbx_table_nodes.get(bs_uuid, (None, None))
-                    if fbx_bsdata is None or fbx_bsdata.id != b'Deformer' or fbx_bsdata.props[2] != b'BlendShape':
-                        continue
-                    for m_uuid, m_ctype in fbx_connection_map.get(bs_uuid, ()):
-                        if m_ctype.props[0] != b'OO':
-                            continue
-                        fbx_mdata, bl_mdata = fbx_table_nodes.get(m_uuid, (None, None))
-                        if fbx_mdata is None or fbx_mdata.id != b'Geometry' or fbx_mdata.props[2] != b'Mesh':
-                            continue
+            for bc_uuid, fbx_bcdata, _bl_bcdata in connections_gen(s_uuid, b'Deformer', b'BlendShapeChannel'):
+                for bs_uuid, _fbx_bsdata, _bl_bsdata in connections_gen(bc_uuid, b'Deformer', b'BlendShape'):
+                    for m_uuid, _fbx_mdata, bl_mdata in connections_gen(bs_uuid, b'Geometry', b'Mesh'):
                         # Blenmeshes are assumed already created at that time!
                         assert(isinstance(bl_mdata, bpy.types.Mesh))
                         # Group shapes by mesh so that each mesh only needs to be processed once for all of its shape
