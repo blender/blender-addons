@@ -1298,12 +1298,9 @@ def make_object_node(ob, translation, rotation, scale, name_id):
         obj_node_header_chunk.add_variable("name", _3ds_string(sane_name(name)))
         obj_node_header_chunk.add_variable("flags1", _3ds_ushort(0x0040))
 
-        """Flags2 defines 0x01 for display path, 0x02 use autosmooth, 0x04 object frozen,
+        """Flags2 defines 0x01 for display path, 0x04 object frozen,
         0x10 for motion blur, 0x20 for material morph and bit 0x40 for mesh morph."""
-        if ob.type == 'MESH' and ob.data.use_auto_smooth:
-            obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0x02))
-        else:
-            obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0))
+        obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0))
     obj_node_header_chunk.add_variable("parent", _3ds_ushort(ROOT_OBJECT))
 
     '''
@@ -1342,12 +1339,6 @@ def make_object_node(ob, translation, rotation, scale, name_id):
         obj_boundbox.add_variable("min", _3ds_point_3d(ob.bound_box[0]))
         obj_boundbox.add_variable("max", _3ds_point_3d(ob.bound_box[6]))
         obj_node.add_subchunk(obj_boundbox)
-
-        # Add smooth angle if autosmooth is used
-        if ob.type == 'MESH' and ob.data.use_auto_smooth:
-            obj_morph_smooth = _3ds_chunk(OBJECT_MORPH_SMOOTH)
-            obj_morph_smooth.add_variable("angle", _3ds_float(round(ob.data.auto_smooth_angle, 6)))
-            obj_node.add_subchunk(obj_morph_smooth)
 
     # Add track chunks for position, rotation, size
     ob_scale = scale[name]  # and collect masterscale

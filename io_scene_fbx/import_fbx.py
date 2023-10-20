@@ -1653,8 +1653,6 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
             1, fbx_item_size, layer_id,
             xform=np.logical_not,  # in FBX, 0 (False) is sharp, but in Blender True is sharp.
             )
-        # We only set sharp edges here, not face smoothing itself...
-        mesh.use_auto_smooth = True
         return False
     elif fbx_layer_mapping == b'ByPolygon':
         blen_data = MESH_ATTRIBUTE_SHARP_FACE.ensure(mesh.attributes).data
@@ -1737,23 +1735,23 @@ def blen_read_geom_layer_normal(fbx_obj, mesh, xform=None):
     bl_norm_dtype = np.single
     item_size = 3
     # try loops, then polygons, then vertices.
-    tries = ((mesh.loops, "Loops", False, blen_read_geom_array_mapped_polyloop),
+    tries = ((mesh.attributes["temp_custom_normals"].data, "Loops", False, blen_read_geom_array_mapped_polyloop),
              (mesh.polygons, "Polygons", True, blen_read_geom_array_mapped_polygon),
              (mesh.vertices, "Vertices", True, blen_read_geom_array_mapped_vert))
     for blen_data, blen_data_type, is_fake, func in tries:
         bdata = np.zeros((len(blen_data), item_size), dtype=bl_norm_dtype) if is_fake else blen_data
-        if func(mesh, bdata, "normal", bl_norm_dtype,
+        if func(mesh, bdata, "vector", bl_norm_dtype,
                 fbx_layer_data, fbx_layer_index, fbx_layer_mapping, fbx_layer_ref, 3, item_size, layer_id, xform, True):
             if blen_data_type == "Polygons":
                 # To expand to per-loop normals, repeat each per-polygon normal by the number of loops of each polygon.
                 poly_loop_totals = np.empty(len(mesh.polygons), dtype=np.uintc)
                 mesh.polygons.foreach_get("loop_total", poly_loop_totals)
                 loop_normals = np.repeat(bdata, poly_loop_totals, axis=0)
-                mesh.loops.foreach_set("normal", loop_normals.ravel())
+                mesh.attributes["temp_custom_normals"].data.foreach_set("normal", loop_normals.ravel())
             elif blen_data_type == "Vertices":
                 # We have to copy vnors to lnors! Far from elegant, but simple.
                 loop_vertex_indices = MESH_ATTRIBUTE_CORNER_VERT.to_ndarray(mesh.attributes)
-                mesh.loops.foreach_set("normal", bdata[loop_vertex_indices].ravel())
+                mesh.attributes["temp_custom_normals"].data.foreach_set("normal", bdata[loop_vertex_indices].ravel())
             return True
 
     blen_read_geom_array_error_mapping("normal", fbx_layer_mapping)
@@ -1877,7 +1875,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     if settings.use_custom_normals:
         # Note: we store 'temp' normals in loops, since validate() may alter final mesh,
         #       we can only set custom lnors *after* calling it.
-        mesh.create_normals_split()
+        mesh.attributes.new("temp_custom_normals", 'FLOAT_VECTOR', 'CORNER')
         if geom_mat_no is None:
             ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh)
         else:
@@ -1889,7 +1887,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     if ok_normals:
         bl_nors_dtype = np.single
         clnors = np.empty(len(mesh.loops) * 3, dtype=bl_nors_dtype)
-        mesh.loops.foreach_get("normal", clnors)
+        mesh.attributes["temp_custom_normals"].data.foreach_get("vector", clnors)
 
         if not ok_smooth:
             sharp_face = MESH_ATTRIBUTE_SHARP_FACE.get(attributes)
@@ -1900,10 +1898,8 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
         # Iterating clnors into a nested tuple first is faster than passing clnors.reshape(-1, 3) directly into
         # normals_split_custom_set. We use clnors.data since it is a memoryview, which is faster to iterate than clnors.
         mesh.normals_split_custom_set(tuple(zip(*(iter(clnors.data),) * 3)))
-        mesh.use_auto_smooth = True
-
     if settings.use_custom_normals:
-        mesh.free_normals_split()
+        mesh.attributes.remove(mesh.attributes["temp_custom_normals"])
 
     if not ok_smooth:
         sharp_face = MESH_ATTRIBUTE_SHARP_FACE.get(attributes)

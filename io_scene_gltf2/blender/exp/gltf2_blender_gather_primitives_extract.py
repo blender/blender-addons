@@ -64,8 +64,6 @@ class PrimitiveCreator:
             self.blender_object = self.export_settings['vtree'].nodes[self.uuid_for_skined_data].blender_object
 
         self.use_normals = self.export_settings['gltf_normals']
-        if self.use_normals:
-            self.blender_mesh.calc_normals_split()
 
         self.use_tangents = False
         if self.use_normals and self.export_settings['gltf_tangents']:
@@ -776,7 +774,6 @@ class PrimitiveCreator:
             self.normals = np.array(self.normals, dtype=np.float32)
         else:
             self.normals = np.empty(len(self.blender_mesh.loops) * 3, dtype=np.float32)
-            self.blender_mesh.calc_normals_split()
             self.blender_mesh.loops.foreach_get('normal', self.normals)
 
         self.normals = self.normals.reshape(len(self.blender_mesh.loops), 3)

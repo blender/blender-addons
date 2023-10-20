@@ -1331,8 +1331,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MORPH_SMOOTH and tracking == 'OBJECT':  # Smooth angle
             smooth_angle = read_float(new_chunk)
             if child.data is not None:  # Check if child is a dummy
-                child.data.use_auto_smooth = True
-                child.data.auto_smooth_angle = smooth_angle
+                child.data.set_sharp_from_angle(smooth_angle)
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and tracking == 'AMBIENT':  # Ambient
             keyframe_data = {}
