@@ -1747,11 +1747,13 @@ def blen_read_geom_layer_normal(fbx_obj, mesh, xform=None):
                 poly_loop_totals = np.empty(len(mesh.polygons), dtype=np.uintc)
                 mesh.polygons.foreach_get("loop_total", poly_loop_totals)
                 loop_normals = np.repeat(bdata, poly_loop_totals, axis=0)
-                mesh.attributes["temp_custom_normals"].data.foreach_set("normal", loop_normals.ravel())
+                mesh.attributes["temp_custom_normals"].data.foreach_set("vector", loop_normals.ravel())
             elif blen_data_type == "Vertices":
+                # Note: Currently unreachable because `blen_read_geom_array_mapped_polyloop` covers all the supported
+                # import cases covered by `blen_read_geom_array_mapped_vert`.
                 # We have to copy vnors to lnors! Far from elegant, but simple.
                 loop_vertex_indices = MESH_ATTRIBUTE_CORNER_VERT.to_ndarray(mesh.attributes)
-                mesh.attributes["temp_custom_normals"].data.foreach_set("normal", bdata[loop_vertex_indices].ravel())
+                mesh.attributes["temp_custom_normals"].data.foreach_set("vector", bdata[loop_vertex_indices].ravel())
             return True
 
     blen_read_geom_array_error_mapping("normal", fbx_layer_mapping)
