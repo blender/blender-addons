@@ -656,7 +656,7 @@ def pov_torus_define(context, op, ob):
         bpy.ops.object.mode_set(mode="EDIT")
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
-        ob.data.set_sharp_from_angle(0.6)
+        ob.data.set_sharp_from_angle(angle=0.6)
         ob.pov.object_as = "TORUS"
         ob.update_tag() # as prop set via python not updated in depsgraph
 

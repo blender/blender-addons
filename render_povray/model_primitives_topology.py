@@ -171,7 +171,7 @@ def pov_superellipsoid_define(context, op, ob):
         bpy.ops.object.mode_set(mode="EDIT")
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
-        ob.data.set_sharp_from_angle(1.3)
+        ob.data.set_sharp_from_angle(angle=1.3)
         ob.pov.object_as = "SUPERELLIPSOID"
         ob.update_tag() # as prop set via python not updated in depsgraph
 
@@ -1050,7 +1050,7 @@ def pov_parametric_define(context, op, ob):
         bpy.ops.object.mode_set(mode="EDIT")
         bpy.ops.mesh.hide(unselected=False)
         bpy.ops.object.mode_set(mode="OBJECT")
-        ob.data.set_sharp_from_angle(0.6)
+        ob.data.set_sharp_from_angle(angle=0.6)
         ob.pov.object_as = "PARAMETRIC"
         ob.update_tag() # as prop set via python not updated in depsgraph
         return{'FINISHED'}

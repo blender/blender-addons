@@ -677,7 +677,7 @@ def mu_set_auto_smooth(self, angle, affect, set_smooth_shading):
 
                 #bpy.ops.object.shade_smooth()
 
-            object.data.set_sharp_from_angle(angle)  # 35 degrees as radians
+            object.data.set_sharp_from_angle(angle=angle)  # 35 degrees as radians
 
             objects_affected += 1
 
