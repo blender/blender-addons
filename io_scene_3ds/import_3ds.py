@@ -274,6 +274,10 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
     elif mapto == 'SPECULARITY':
         shader.location = (300,0)
         img_wrap = contextWrapper.specular_tint_texture
+        if tint1:
+            img_wrap.node_dst.inputs['Coat Tint'].default_value = tint1[:3] + [1]
+        if tint2:
+            img_wrap.node_dst.inputs['Sheen Tint'].default_value = tint2[:3] + [1]
     elif mapto == 'ALPHA':
         shader.location = (-300,0)
         img_wrap = contextWrapper.alpha_texture
@@ -324,8 +328,11 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
                 own_map = img_wrap.node_mapping
                 if tex == image.name:
                     links.new(link.from_node.outputs['Alpha'], img_wrap.socket_dst)
-                    nodes.remove(own_map)
-                    nodes.remove(own_node)
+                    try:
+                        nodes.remove(own_map)
+                        nodes.remove(own_node)
+                    except:
+                        pass
                     for imgs in bpy.data.images:
                         if imgs.name[-3:].isdigit():
                             if not imgs.users:
