@@ -650,12 +650,15 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
         mat_sub_angle.add_variable("mapangle", _3ds_float(round(texslot.rotation[2], 6)))
         mat_sub.add_subchunk(mat_sub_angle)
 
-        if texslot.socket_dst.identifier in {'Base Color', 'Specular Tint'}:
-            rgb = _3ds_chunk(MAP_COL1)  # Add tint color
-            base = texslot.owner_shader.material.diffuse_color[:3]
-            spec = texslot.owner_shader.material.specular_color[:]
-            rgb.add_variable("mapcolor", _3ds_rgb_color(spec if texslot.socket_dst.identifier == 'Specular Tint' else base))
-            mat_sub.add_subchunk(rgb)
+        if texslot.socket_dst.identifier in {'Base Color', 'Specular Tint'}: # Add tint color
+            tint = texslot.socket_dst.identifier == 'Base Color' and texslot.image.colorspace_settings.name == 'Non-Color'
+            if tint or texslot.socket_dst.identifier == 'Specular Tint':
+                tint1 = _3ds_chunk(MAP_COL1)
+                tint2 = _3ds_chunk(MAP_COL2)
+                tint1.add_variable("tint1", _3ds_rgb_color(texslot.node_dst.inputs['Coat Tint'].default_value[:3]))
+                tint2.add_variable("tint2", _3ds_rgb_color(texslot.node_dst.inputs['Sheen Tint'].default_value[:3]))
+                mat_sub.add_subchunk(tint1)
+                mat_sub.add_subchunk(tint2)
 
     # Store all textures for this mapto in order. This at least is what the
     # 3DS exporter did so far, afaik most readers will just skip over 2nd textures
