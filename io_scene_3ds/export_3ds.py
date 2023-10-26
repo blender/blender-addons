@@ -54,6 +54,8 @@ MATSHINESS = 0xA040  # Specular intensity of the object/material (percent)
 MATSHIN2 = 0xA041  # Reflection of the object/material (percent)
 MATSHIN3 = 0xA042  # metallic/mirror of the object/material (percent)
 MATTRANS = 0xA050  # Transparency value (100-OpacityValue) (percent)
+MATXPFALL = 0xA052  # Transparency falloff ratio (percent)
+MATREFBLUR = 0xA053  # Reflection blurring ratio (percent)
 MATSELFILLUM = 0xA080  # # Material self illumination flag
 MATSELFILPCT = 0xA084  # Self illumination strength (percent)
 MATWIRE = 0xA085  # Material wireframe rendered flag
@@ -706,6 +708,7 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(make_percent_subchunk(MATSHIN2, wrap.specular))
         material_chunk.add_subchunk(make_percent_subchunk(MATSHIN3, wrap.metallic))
         material_chunk.add_subchunk(make_percent_subchunk(MATTRANS, 1 - wrap.alpha))
+        material_chunk.add_subchunk(make_percent_subchunk(MATXPFALL, wrap.transmission))
         material_chunk.add_subchunk(make_percent_subchunk(MATSELFILPCT, wrap.emission_strength))
         material_chunk.add_subchunk(shading)
 
