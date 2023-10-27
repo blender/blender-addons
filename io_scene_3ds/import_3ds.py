@@ -361,6 +361,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
     contextColor = None
     contextWrapper = None
     contextMatrix = None
+    contextReflection = None
     contextTransmission = None
     contextMesh_vertls = None
     contextMesh_facels = None
@@ -544,6 +545,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         contextWrapper.emission_color = contextMaterial.line_color[:3]
         contextWrapper.emission_strength = contextMaterial.line_priority / 100
         contextWrapper.alpha = contextMaterial.diffuse_color[3] = contextAlpha
+        contextWrapper.node_principled_bsdf.inputs['Coat Weight'].default_value = contextReflection
 
         while (new_chunk.bytes_read < new_chunk.length):
             read_chunk(file, temp_chunk)
@@ -907,6 +909,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         # If material chunk
         elif new_chunk.ID == MATERIAL:
             contextAlpha = True
+            contextReflection = False
             contextTransmission = False
             contextColor = mathutils.Color((0.8, 0.8, 0.8))
             contextMaterial = bpy.data.materials.new('Material')
@@ -1004,6 +1007,16 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
 
+        elif new_chunk.ID == MAT_REFBLUR:
+            read_chunk(file, temp_chunk)
+            if temp_chunk.ID == PCTI:
+                contextReflection = float(read_short(temp_chunk) / 100)
+            elif temp_chunk.ID == PCTF:
+                contextReflection = float(read_float(temp_chunk))
+            else:
+                skip_to_end(file, temp_chunk)
+            new_chunk.bytes_read += temp_chunk.bytes_read
+
         elif new_chunk.ID == MAT_SELF_ILPCT:
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == PCT_SHORT:
@@ -1027,6 +1040,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
                 contextWrapper.emission_color = contextMaterial.line_color[:3]
                 contextWrapper.emission_strength = contextMaterial.line_priority / 100
                 contextWrapper.alpha = contextMaterial.diffuse_color[3] = contextAlpha
+                contextWrapper.node_principled_bsdf.inputs['Coat Weight'].default_value = contextReflection
                 contextWrapper.use_nodes = False
                 if shading >= 3:
                     contextWrapper.use_nodes = True
