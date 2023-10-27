@@ -1001,7 +1001,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif new_chunk.ID == MAT_XPFALL:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == PCTI:
+            if temp_chunk.ID == PCT_SHORT:
                 contextTransmission = float(read_short(temp_chunk) / 100)
             else:
                 skip_to_end(file, temp_chunk)
@@ -1009,9 +1009,9 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
         elif new_chunk.ID == MAT_REFBLUR:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == PCTI:
+            if temp_chunk.ID == PCT_SHORT:
                 contextReflection = float(read_short(temp_chunk) / 100)
-            elif temp_chunk.ID == PCTF:
+            elif temp_chunk.ID == PCT_FLOAT:
                 contextReflection = float(read_float(temp_chunk))
             else:
                 skip_to_end(file, temp_chunk)
