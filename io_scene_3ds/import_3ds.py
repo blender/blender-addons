@@ -1002,7 +1002,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         elif new_chunk.ID == MAT_XPFALL:
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == PCT_SHORT:
-                contextTransmission = float(read_short(temp_chunk) / 100)
+                contextTransmission = float(abs(read_short(temp_chunk) / 100))
             else:
                 skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
