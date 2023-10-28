@@ -1306,9 +1306,9 @@ def make_object_node(ob, translation, rotation, scale, name_id):
         obj_node_header_chunk.add_variable("flags1", _3ds_ushort(0x0040))
         # Flag 0x01 display path 0x02 use autosmooth 0x04 object frozen 0x10 motion blur 0x20 material morph 0x40 mesh morph
         if ob.type == 'MESH' and 'Smooth by Angle' in ob.modifiers:
-            ob_node_header_chunk.add_variable("flags2", _3ds_ushort(0x02))
+            obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0x02))
         else:
-            ob_node_header_chunk.add_variable("flags2", _3ds_ushort(0))
+            obj_node_header_chunk.add_variable("flags2", _3ds_ushort(0))
     obj_node_header_chunk.add_variable("parent", _3ds_ushort(ROOT_OBJECT))
 
     '''
