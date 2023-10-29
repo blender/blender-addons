@@ -22,6 +22,7 @@ from bpy.app.translations import (pgettext_iface as iface_,
                                   pgettext_data as data_)
 from . import translations
 
+import re
 
 # Property Definitions
 class AnimallProperties(bpy.types.PropertyGroup):
@@ -231,10 +232,10 @@ class VIEW3D_PT_animall(Panel):
             if (obj.data.animation_data is not None
                     and obj.data.animation_data.action is not None):
                 for fcurve in context.active_object.data.animation_data.action.fcurves:
-                    if fcurve.data_path.startswith("vertex_colors"):
+                    if bpy.ops.anim.update_attribute_animation_animall.poll():
                         col = layout.column(align=True)
-                        col.label(text="Object includes old-style vertex colors. Consider updating them.", icon="ERROR")
-                        col.operator("anim.update_vertex_color_animation_animall", icon="FILE_REFRESH")
+                        col.label(text="Object includes old-style attributes. Consider updating them.", icon="ERROR")
+                        col.operator("anim.update_attribute_animation_animall", icon="FILE_REFRESH")
                         break
 
         elif obj.type in {'CURVE', 'SURFACE'}:
@@ -612,11 +613,19 @@ class ANIM_OT_clear_animation_animall(Operator):
         return {'FINISHED'}
 
 
-class ANIM_OT_update_vertex_color_animation_animall(Operator):
-    bl_label = "Update Vertex Color Animation"
-    bl_idname = "anim.update_vertex_color_animation_animall"
-    bl_description = "Update old vertex color channel formats from pre-3.3 versions"
+class ANIM_OT_update_attribute_animation_animall(Operator):
+    bl_label = "Update Attribute Animation"
+    bl_idname = "anim.update_attribute_animation_animall"
+    bl_description = "Update attributes from the old format"
     bl_options = {'REGISTER', 'UNDO'}
+
+    path_re = re.compile(r"^vertex_colors|(vertices|edges)\[([0-9]+)\]\.(bevel_weight|crease)")
+    attribute_map = {
+        ("vertices", "bevel_weight"): ("bevel_weight_vert", "FLOAT", "POINT"),
+        ("edges", "bevel_weight"):    ("bevel_weight_edge", "FLOAT", "POINT"),
+        ("vertices", "crease"):       ("crease_vert", "FLOAT", "EDGE"),
+        ("edges", "crease"):          ("crease_edge", "FLOAT", "EDGE"),
+    }
 
     @classmethod
     def poll(self, context):
@@ -626,21 +635,29 @@ class ANIM_OT_update_vertex_color_animation_animall(Operator):
                 or context.active_object.data.animation_data.action is None):
             return False
         for fcurve in context.active_object.data.animation_data.action.fcurves:
-            if fcurve.data_path.startswith("vertex_colors"):
+            if self.path_re.match(fcurve.data_path):
                 return True
 
     def execute(self, context):
         for fcurve in context.active_object.data.animation_data.action.fcurves:
             if fcurve.data_path.startswith("vertex_colors"):
+                # Update pre-3.3 vertex colors
                 fcurve.data_path = fcurve.data_path.replace("vertex_colors", "attributes")
+            else:
+                # Update pre-4.0 attributes
+                match = self.path_re.match(fcurve.data_path)
+                if match is None:
+                    continue
+                domain, index, src_attribute = match.groups()
+                attribute, type, domain = self.attribute_map[(domain, src_attribute)]
+                get_attribute(context.active_object.data, attribute, type, domain)
+                fcurve.data_path = f'attributes["{attribute}"].data[{index}].value'
         return {'FINISHED'}
 
 # Add-ons Preferences Update Panel
 
 # Define Panel classes for updating
-panels = [
-        VIEW3D_PT_animall
-        ]
+panels = [VIEW3D_PT_animall]
 
 
 def update_panel(self, context):
@@ -682,7 +699,7 @@ class AnimallAddonPreferences(AddonPreferences):
 register_classes, unregister_classes = bpy.utils.register_classes_factory(
     (AnimallProperties, VIEW3D_PT_animall, ANIM_OT_insert_keyframe_animall,
      ANIM_OT_delete_keyframe_animall, ANIM_OT_clear_animation_animall,
-     ANIM_OT_update_vertex_color_animation_animall, AnimallAddonPreferences))
+     ANIM_OT_update_attribute_animation_animall, AnimallAddonPreferences))
 
 def register():
     register_classes()
