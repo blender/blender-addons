@@ -5,8 +5,8 @@
 bl_info = {
     "name": "AnimAll",
     "author": "Daniel Salazar (ZanQdo), Damien Picard (pioverfour)",
-    "version": (0, 9, 6),
-    "blender": (3, 3, 0),
+    "version": (0, 10, 0),
+    "blender": (4, 0, 0),
     "location": "3D View > Toolbox > Animation tab > AnimAll",
     "description": "Allows animation of mesh, lattice, curve and surface data",
     "warning": "",
@@ -49,10 +49,12 @@ class AnimallProperties(bpy.types.PropertyGroup):
         name="Vertex Bevel",
         description="Insert keyframes on vertex bevel weight",
         default=False)
-    # key_vertex_crease: BoolProperty(
-    #     name="Vertex Crease",
-    #     description="Insert keyframes on vertex crease weight",
-    #     default=False)
+
+    key_vertex_crease: BoolProperty(
+        name="Vertex Crease",
+        description="Insert keyframes on vertex crease weight",
+        default=False)
+
     key_vertex_group: BoolProperty(
         name="Vertex Group",
         description="Insert keyframes on active vertex group values",
@@ -67,8 +69,8 @@ class AnimallProperties(bpy.types.PropertyGroup):
         description="Insert keyframes on edge creases",
         default=False)
 
-    key_attribute: BoolProperty(
-        name="Attribute",
+    key_active_attribute: BoolProperty(
+        name="Active Attribute",
         description="Insert keyframes on active attribute values",
         default=False)
     key_uvs: BoolProperty(
@@ -115,6 +117,13 @@ def delete_key(data, key):
         pass
 
 
+def get_attribute(data, name, type=None, domain=None):
+    if name in data.attributes:
+        return data.attributes[name]
+    if type is not None and domain is not None:
+        return data.attributes.new(name, type, domain)
+
+
 def get_attribute_paths(data, attribute, key_selected):
     # Cannot animate string attributes?
     if attribute.data_type == 'STRING':
@@ -143,6 +152,18 @@ def get_attribute_paths(data, attribute, key_selected):
                 or attribute.domain == 'FACE' and data.polygons[e_i].select
                 or attribute.domain == 'CORNER' and is_selected_vert_loop(data, e_i)):
             yield (f'attributes["{attribute.name}"].data[{e_i}].{attribute_key}', group % e_i)
+
+
+def insert_attribute_key(data, attribute, key_selected):
+    for path, group in get_attribute_paths(data, attribute, key_selected):
+        if path:
+            insert_key(data, path, group=group)
+
+
+def delete_attribute_key(data, attribute, key_selected):
+    for path, group in get_attribute_paths(data, attribute, key_selected):
+        if path:
+            delete_key(data, path)
 
 
 def is_selected_vert_loop(data, loop_i):
@@ -191,6 +212,7 @@ class VIEW3D_PT_animall(Panel):
             col = layout.column(heading="Points", align=True)
             col.prop(animall_properties, "key_point_location")
             col.prop(animall_properties, "key_vertex_bevel", text="Bevel")
+            col.prop(animall_properties, "key_vertex_crease", text="Crease")
             col.prop(animall_properties, "key_vertex_group")
 
             col = layout.column(heading="Edges", align=True)
@@ -201,7 +223,7 @@ class VIEW3D_PT_animall(Panel):
             col.prop(animall_properties, "key_material_index")
 
             col = layout.column(heading="Others", align=True)
-            col.prop(animall_properties, "key_attribute")
+            col.prop(animall_properties, "key_active_attribute")
             col.prop(animall_properties, "key_uvs")
             col.prop(animall_properties, "key_shape_key")
 
@@ -345,13 +367,12 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                             insert_key(vert, 'co', group=data_("Vertex %s") % v_i)
 
                 if animall_properties.key_vertex_bevel:
-                    for v_i, vert in enumerate(data.vertices):
-                        if not animall_properties.key_selected or vert.select:
-                            insert_key(vert, 'bevel_weight', group=data_("Vertex %s") % v_i)
-                # if animall_properties.key_vertex_crease:
-                #     for v_i, vert in enumerate(data.vertices):
-                #         if not animall_properties.key_selected or vert.select:
-                #             insert_key(vert, 'crease', group=data_("Vertex %s") % v_i)
+                    attribute = get_attribute(data, "bevel_weight_vert", 'FLOAT', 'POINT')
+                    insert_attribute_key(data, attribute, animall_properties.key_selected)
+
+                if animall_properties.key_vertex_crease:
+                    attribute = get_attribute(data, "crease_vert", 'FLOAT', 'POINT')
+                    insert_attribute_key(data, attribute, animall_properties.key_selected)
 
                 if animall_properties.key_vertex_group:
                     for v_i, vert in enumerate(data.vertices):
@@ -360,21 +381,19 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                                 insert_key(group, 'weight', group=data_("Vertex %s") % v_i)
 
                 if animall_properties.key_edge_bevel:
-                    for e_i, edge in enumerate(data.edges):
-                        if not animall_properties.key_selected or edge.select:
-                            insert_key(edge, 'bevel_weight', group=data_("Edge %s") % e_i)
+                    attribute = get_attribute(data, "bevel_weight_edge", 'FLOAT', 'EDGE')
+                    insert_attribute_key(data, attribute, animall_properties.key_selected)
 
                 if animall_properties.key_edge_crease:
-                    for e_i, edge in enumerate(data.edges):
-                        if not animall_properties.key_selected or edge.select:
-                            insert_key(edge, 'crease', group=data_("Edge %s") % e_i)
+                    attribute = get_attribute(data, "crease_edge", 'FLOAT', 'EDGE')
+                    insert_attribute_key(data, attribute, animall_properties.key_selected)
 
                 if animall_properties.key_material_index:
                     for p_i, polygon in enumerate(data.polygons):
                         if not animall_properties.key_selected or polygon.select:
                             insert_key(polygon, 'material_index', group=data_("Face %s") % p_i)
 
-                if animall_properties.key_attribute:
+                if animall_properties.key_active_attribute:
                     if data.attributes.active is not None:
                         for path, group in get_attribute_paths(
                                 data, data.attributes.active,
@@ -459,9 +478,14 @@ class ANIM_OT_delete_keyframe_animall(Operator):
                             delete_key(vert, 'co')
 
                 if animall_properties.key_vertex_bevel:
-                    for vert in data.vertices:
-                        if not animall_properties.key_selected or vert.select:
-                            delete_key(vert, 'bevel_weight')
+                    attribute = get_attribute(data, "bevel_weight_vert", 'FLOAT', 'POINT')
+                    if attribute is not None:
+                        delete_attribute_key(data, attribute, animall_properties.key_selected)
+
+                if animall_properties.key_vertex_crease:
+                    attribute = get_attribute(data, "crease_vert", 'FLOAT', 'POINT')
+                    if attribute is not None:
+                        delete_attribute_key(data, attribute, animall_properties.key_selected)
 
                 if animall_properties.key_vertex_group:
                     for vert in data.vertices:
@@ -469,20 +493,20 @@ class ANIM_OT_delete_keyframe_animall(Operator):
                             for group in vert.groups:
                                 delete_key(group, 'weight')
 
-                # if animall_properties.key_vertex_crease:
-                #     for vert in data.vertices:
-                #         if not animall_properties.key_selected or vert.select:
-                #             delete_key(vert, 'crease')
-
                 if animall_properties.key_edge_bevel:
-                    for edge in data.edges:
-                        if not animall_properties.key_selected or edge.select:
-                            delete_key(edge, 'bevel_weight')
+                    attribute = get_attribute(data, "bevel_weight_edge", 'FLOAT', 'EDGE')
+                    if attribute is not None:
+                        delete_attribute_key(data, attribute, animall_properties.key_selected)
 
                 if animall_properties.key_edge_crease:
-                    for edge in data.edges:
-                        if not animall_properties.key_selected or vert.select:
-                            delete_key(edge, 'crease')
+                    attribute = get_attribute(data, "crease_edge", 'FLOAT', 'EDGE')
+                    if attribute is not None:
+                        delete_attribute_key(data, attribute, animall_properties.key_selected)
+
+                if animall_properties.key_material_index:
+                    for p_i, polygon in enumerate(data.polygons):
+                        if not animall_properties.key_selected or polygon.select:
+                            delete_key(polygon, 'material_index')
 
                 if animall_properties.key_shape_key:
                     if obj.active_shape_key:
@@ -496,7 +520,7 @@ class ANIM_OT_delete_keyframe_animall(Operator):
                             if not animall_properties.key_selected or uv.select:
                                 delete_key(uv, 'uv')
 
-                if animall_properties.key_attribute:
+                if animall_properties.key_active_attribute:
                     if data.attributes.active is not None:
                         for path, _group in get_attribute_paths(
                                 data, data.attributes.active,
