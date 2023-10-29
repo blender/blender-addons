@@ -629,7 +629,7 @@ def _transformation_curves_gen(item, values_arrays, channel_keys):
     # Create matrices/euler from the initial transformation values of this item.
     # These variables will be updated in-place as we iterate through each frame.
     lcl_translation_mat = Matrix.Translation(transform_data.loc)
-    lcl_rotation_eul = Euler(transform_data.rot, transform_data.rot_ord)
+    lcl_rotation_eul = Euler(convert_deg_to_rad_iter(transform_data.rot), transform_data.rot_ord)
     lcl_scaling_mat = Matrix()
     lcl_scaling_mat[0][0], lcl_scaling_mat[1][1], lcl_scaling_mat[2][2] = transform_data.sca
 
