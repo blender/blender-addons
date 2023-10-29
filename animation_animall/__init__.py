@@ -443,6 +443,8 @@ class ANIM_OT_delete_keyframe_animall(Operator):
         for obj in objects:
             data = obj.data
             if obj.type == 'MESH':
+                bpy.ops.object.mode_set(mode='OBJECT')
+
                 if animall_properties.key_point_location:
                     for vert in data.vertices:
                         if not animall_properties.key_selected or vert.select:
@@ -505,6 +507,8 @@ class ANIM_OT_delete_keyframe_animall(Operator):
                                         or attribute.domain == 'FACE' and data.polygons[e_i].select
                                         or attribute.domain == 'CORNER' and is_selected_vert_loop(data, e_i)):
                                     delete_key(data, f'attributes["{attribute.name}"].data[{e_i}].{attribute_key}')
+
+                bpy.ops.object.mode_set(mode=mode)
 
             elif obj.type == 'LATTICE':
                 if animall_properties.key_shape_key:
