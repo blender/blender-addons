@@ -645,7 +645,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
         hyp = math.sqrt(pow(plane.x,2) + pow(plane.y,2))
         dia = math.sqrt(pow(hyp,2) + pow(plane.z,2))
         yaw = math.atan2(math.copysign(hyp, sign_xy), axis_xy)
-        bow = math.acos(hyp / dia)
+        bow = math.acos(hyp / dia) if dia != 0 else 0
         turn = angle - yaw if check_sign else angle + yaw
         tilt = angle - bow if loca.z > target.z else angle + bow
         pan = yaw if check_axes else turn
