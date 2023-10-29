@@ -115,6 +115,36 @@ def delete_key(data, key):
         pass
 
 
+def get_attribute_paths(data, attribute, key_selected):
+    # Cannot animate string attributes?
+    if attribute.data_type == 'STRING':
+        yield ("", "")
+
+    if attribute.data_type in {'FLOAT', 'INT', 'BOOLEAN', 'INT8'}:
+        attribute_key = "value"
+    elif attribute.data_type in {'FLOAT_COLOR', 'BYTE_COLOR'}:
+        attribute_key = "color"
+    elif attribute.data_type in {'FLOAT_VECTOR', 'FLOAT2'}:
+        attribute_key = "vector"
+
+    if attribute.domain == 'POINT':
+        group = data_("Vertex %s")
+    elif attribute.domain == 'EDGE':
+        group = data_("Edge %s")
+    elif attribute.domain == 'FACE':
+        group = data_("Face %s")
+    elif attribute.domain == 'CORNER':
+        group = data_("Loop %s")
+
+    for e_i, _attribute_data in enumerate(attribute.data):
+        if (not key_selected
+                or attribute.domain == 'POINT' and data.vertices[e_i].select
+                or attribute.domain == 'EDGE' and data.edges[e_i].select
+                or attribute.domain == 'FACE' and data.polygons[e_i].select
+                or attribute.domain == 'CORNER' and is_selected_vert_loop(data, e_i)):
+            yield (f'attributes["{attribute.name}"].data[{e_i}].{attribute_key}', group % e_i)
+
+
 def is_selected_vert_loop(data, loop_i):
     """Get selection status of vertex corresponding to a loop"""
     vertex_index = data.loops[loop_i].vertex_index
@@ -346,33 +376,11 @@ class ANIM_OT_insert_keyframe_animall(Operator):
 
                 if animall_properties.key_attribute:
                     if data.attributes.active is not None:
-                        attribute = data.attributes.active
-                        if attribute.data_type != 'STRING':
-                            # Cannot animate string attributes?
-                            if attribute.data_type in {'FLOAT', 'INT', 'BOOLEAN', 'INT8'}:
-                                attribute_key = "value"
-                            elif attribute.data_type in {'FLOAT_COLOR', 'BYTE_COLOR'}:
-                                attribute_key = "color"
-                            elif attribute.data_type in {'FLOAT_VECTOR', 'FLOAT2'}:
-                                attribute_key = "vector"
-
-                            if attribute.domain == 'POINT':
-                                group = data_("Vertex %s")
-                            elif attribute.domain == 'EDGE':
-                                group = data_("Edge %s")
-                            elif attribute.domain == 'FACE':
-                                group = data_("Face %s")
-                            elif attribute.domain == 'CORNER':
-                                group = data_("Loop %s")
-
-                            for e_i, _attribute_data in enumerate(attribute.data):
-                                if (not animall_properties.key_selected
-                                        or attribute.domain == 'POINT' and data.vertices[e_i].select
-                                        or attribute.domain == 'EDGE' and data.edges[e_i].select
-                                        or attribute.domain == 'FACE' and data.polygons[e_i].select
-                                        or attribute.domain == 'CORNER' and is_selected_vert_loop(data, e_i)):
-                                    insert_key(data, f'attributes["{attribute.name}"].data[{e_i}].{attribute_key}',
-                                            group=group % e_i)
+                        for path, group in get_attribute_paths(
+                                data, data.attributes.active,
+                                animall_properties.key_selected):
+                            if path:
+                                insert_key(data, path, group=group)
 
                 if animall_properties.key_uvs:
                     if data.uv_layers.active is not None:
@@ -490,23 +498,11 @@ class ANIM_OT_delete_keyframe_animall(Operator):
 
                 if animall_properties.key_attribute:
                     if data.attributes.active is not None:
-                        attribute = data.attributes.active
-                        if attribute.data_type != 'STRING':
-                            # Cannot animate string attributes?
-                            if attribute.data_type in {'FLOAT', 'INT', 'BOOLEAN', 'INT8'}:
-                                attribute_key = "value"
-                            elif attribute.data_type in {'FLOAT_COLOR', 'BYTE_COLOR'}:
-                                attribute_key = "color"
-                            elif attribute.data_type in {'FLOAT_VECTOR', 'FLOAT2'}:
-                                attribute_key = "vector"
-
-                            for e_i, _attribute_data in enumerate(attribute.data):
-                                if (not animall_properties.key_selected
-                                        or attribute.domain == 'POINT' and data.vertices[e_i].select
-                                        or attribute.domain == 'EDGE' and data.edges[e_i].select
-                                        or attribute.domain == 'FACE' and data.polygons[e_i].select
-                                        or attribute.domain == 'CORNER' and is_selected_vert_loop(data, e_i)):
-                                    delete_key(data, f'attributes["{attribute.name}"].data[{e_i}].{attribute_key}')
+                        for path, _group in get_attribute_paths(
+                                data, data.attributes.active,
+                                animall_properties.key_selected):
+                            if path:
+                                delete_key(data, path)
 
                 bpy.ops.object.mode_set(mode=mode)
 
