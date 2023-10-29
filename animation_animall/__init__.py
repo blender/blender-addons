@@ -406,7 +406,7 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                     if data.uv_layers.active is not None:
                         for uv_i, uv in enumerate(data.uv_layers.active.data):
                             if not animall_properties.key_selected or uv.select:
-                                insert_key(uv, 'uv', group=data_("UV layer %s") % uv_i)
+                                insert_key(uv, 'uv', group=data_("UV Layer %s") % uv_i)
 
                 if animall_properties.key_shape_key:
                     if obj.active_shape_key_index > 0:
