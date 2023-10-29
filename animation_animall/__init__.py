@@ -126,7 +126,7 @@ def is_selected_vert_loop(data, loop_i):
 class VIEW3D_PT_animall(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "Animate"
+    bl_category = "Animation"
     bl_label = ''
 
     @classmethod
@@ -643,7 +643,7 @@ class AnimallAddonPreferences(AddonPreferences):
     category: StringProperty(
         name="Tab Category",
         description="Choose a name for the category of the panel",
-        default="Animate",
+        default="Animation",
         update=update_panel
     )
 
