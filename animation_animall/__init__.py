@@ -189,7 +189,7 @@ class VIEW3D_PT_animall(Panel):
 
         layout = self.layout
         row = layout.row()
-        row.label (text = 'AnimAll', icon = 'ARMATURE_DATA')
+        row.label(text='AnimAll', icon='ARMATURE_DATA')
 
     def draw(self, context):
         obj = context.active_object
@@ -430,9 +430,15 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                                     if obj.active_shape_key_index > 0:
                                         CV = obj.active_shape_key.data[global_spline_index]
                                         insert_key(CV, 'co', group=data_("%s Spline %s CV %s") % (sk_name, s_i, v_i))
-                                        insert_key(CV, 'handle_left', group=data_("%s Spline %s CV %s") % (sk_name, s_i, v_i))
-                                        insert_key(CV, 'handle_right', group=data_("%s Spline %s CV %s") % (sk_name, s_i, v_i))
-                                        insert_key(CV, 'radius', group=data_("%s Spline %s CV %s") % (sk_name, s_i, v_i))
+                                        insert_key(
+                                            CV, 'handle_left', group=data_("%s Spline %s CV %s") %
+                                            (sk_name, s_i, v_i))
+                                        insert_key(
+                                            CV, 'handle_right', group=data_("%s Spline %s CV %s") %
+                                            (sk_name, s_i, v_i))
+                                        insert_key(
+                                            CV, 'radius', group=data_("%s Spline %s CV %s") %
+                                            (sk_name, s_i, v_i))
                                         insert_key(CV, 'tilt', group=data_("%s Spline %s CV %s") % (sk_name, s_i, v_i))
                                 global_spline_index += 1
 
@@ -442,7 +448,8 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                                     if obj.active_shape_key_index > 0:
                                         CV = obj.active_shape_key.data[global_spline_index]
                                         insert_key(CV, 'co', group=data_("%s Spline %s CV %s") % (sk_name, s_i, v_i))
-                                        insert_key(CV, 'radius', group=data_("%s Spline %s CV %s") % (sk_name, s_i, v_i))
+                                        insert_key(
+                                            CV, 'radius', group=data_("%s Spline %s CV %s") % (sk_name, s_i, v_i))
                                         insert_key(CV, 'tilt', group=data_("%s Spline %s CV %s") % (sk_name, s_i, v_i))
                                 global_spline_index += 1
 
@@ -653,6 +660,7 @@ class ANIM_OT_update_attribute_animation_animall(Operator):
                 get_attribute(context.active_object.data, attribute, type, domain)
                 fcurve.data_path = f'attributes["{attribute}"].data[{index}].value'
         return {'FINISHED'}
+
 
 # Add-ons Preferences Update Panel
 
