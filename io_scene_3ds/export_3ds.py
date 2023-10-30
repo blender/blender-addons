@@ -628,8 +628,11 @@ def make_material_texture_chunk(chunk_id, texslots, pct):
         mat_sub_mapflags.add_variable("mapflags", _3ds_ushort(mapflags))
         mat_sub.add_subchunk(mat_sub_mapflags)
 
-        mat_sub_texblur = _3ds_chunk(MAT_MAP_TEXBLUR)  # Based on observation this is usually 1.0
-        mat_sub_texblur.add_variable("maptexblur", _3ds_float(1.0))
+        texblur = 0.0
+        mat_sub_texblur = _3ds_chunk(MAT_MAP_TEXBLUR)
+        if texslot.socket_dst.identifier in {'Base Color', 'Specular Tint'}:
+            texblur = texslot.node_dst.inputs['Sheen Weight'].default_value
+        mat_sub_texblur.add_variable("maptexblur", _3ds_float(round(texblur, 6)))
         mat_sub.add_subchunk(mat_sub_texblur)
 
         mat_sub_uscale = _3ds_chunk(MAT_MAP_USCALE)
