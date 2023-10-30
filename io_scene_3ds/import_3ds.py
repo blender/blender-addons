@@ -90,6 +90,7 @@ MAT_SHIN_MAP = 0xA33C  # This is a header for a new roughness map
 MAT_SELFI_MAP = 0xA33D  # This is a header for a new emission map
 MAT_MAP_FILEPATH = 0xA300  # This holds the file name of the texture
 MAT_MAP_TILING = 0xA351  # 2nd bit (from LSB) is mirror UV flag
+MAT_MAP_TEXBLUR = 0xA353  # Texture blurring factor (float 0-1)
 MAT_MAP_USCALE = 0xA354  # U axis scaling
 MAT_MAP_VSCALE = 0xA356  # V axis scaling
 MAT_MAP_UOFFSET = 0xA358  # U axis offset
@@ -559,6 +560,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, CONSTRAI
 
             elif temp_chunk.ID == MAT_BUMP_PERCENT:
                 contextWrapper.normalmap_strength = (float(read_short(temp_chunk) / 100))
+            elif mapto in {'COLOR', 'SPECULARITY'} and temp_chunk.ID == MAT_MAP_TEXBLUR:
+                contextWrapper.node_principled_bsdf.inputs['Sheen Weight'].default_value = float(read_float(temp_chunk))
 
             elif temp_chunk.ID == MAT_MAP_TILING:
                 """Control bit flags, where 0x1 activates decaling, 0x2 activates mirror,
