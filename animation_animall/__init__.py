@@ -17,7 +17,6 @@ bl_info = {
 import bpy
 from bpy.types import (Operator, Panel, AddonPreferences)
 from bpy.props import (BoolProperty, StringProperty)
-from bpy.app.handlers import persistent
 from bpy.app.translations import (pgettext_iface as iface_,
                                   pgettext_data as data_)
 from . import translations
