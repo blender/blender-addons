@@ -1037,6 +1037,12 @@ class NWMergeNodes(Operator, NWBase):
         if selected_mix and selected_math and merge_type == 'AUTO':
             selected_mix += selected_math
             selected_math = []
+
+        # If no nodes are selected, do nothing and pass through.
+        if not (selected_mix + selected_shader + selected_geometry + selected_math
+                + selected_vector + selected_z + selected_alphaover):
+            return {'PASS_THROUGH'}
+
         for nodes_list in [
                 selected_mix,
                 selected_shader,
