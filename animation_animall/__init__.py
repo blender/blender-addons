@@ -127,7 +127,7 @@ def get_attribute(data, name, type=None, domain=None):
 def get_attribute_paths(data, attribute, key_selected):
     # Cannot animate string attributes?
     if attribute.data_type == 'STRING':
-        yield ("", "")
+        return ()
 
     if attribute.data_type in {'FLOAT', 'INT', 'BOOLEAN', 'INT8'}:
         attribute_key = "value"
