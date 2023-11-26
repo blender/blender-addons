@@ -950,7 +950,6 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset, glo
                 blen_store_keyframes(fbx_key_times, blen_curve, values, anim_offset, fps)
 
     elif isinstance(item, ShapeKey):
-        deform_values = shape_key_deforms.setdefault(item, [])
         for fbxprop, channel_to_curve in fbx_curves.items():
             assert(fbxprop == b'DeformPercent')
             for channel, curve in channel_to_curve.items():
@@ -964,8 +963,10 @@ def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset, glo
 
                 # Store the minimum and maximum shape key values, so that the shape key's slider range can be expanded
                 # if necessary after reading all animations.
-                deform_values.append(values.min())
-                deform_values.append(values.max())
+                if values.size:
+                    deform_values = shape_key_deforms.setdefault(item, [])
+                    deform_values.append(values.min())
+                    deform_values.append(values.max())
 
     elif isinstance(item, Camera):
         for fbxprop, channel_to_curve in fbx_curves.items():
