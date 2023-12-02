@@ -1398,7 +1398,18 @@ def blen_read_geom_array_mapped_vert(
         xform=None, quiet=False,
         ):
     if fbx_layer_mapping == b'ByVertice':
-        if fbx_layer_ref == b'Direct':
+        if fbx_layer_ref == b'IndexToDirect':
+            # XXX Looks like we often get no fbx_layer_index in this case, shall not happen but happens...
+            #     We fallback to 'Direct' mapping in this case.
+            #~ assert(fbx_layer_index is not None)
+            if fbx_layer_index is None:
+                blen_read_geom_array_foreach_set_direct(blen_data, blen_attr, blen_dtype, fbx_layer_data, stride,
+                                                        item_size, descr, xform)
+            else:
+                blen_read_geom_array_foreach_set_indexed(blen_data, blen_attr, blen_dtype, fbx_layer_data,
+                                                         fbx_layer_index, stride, item_size, descr, xform)
+            return True
+        elif fbx_layer_ref == b'Direct':
             assert(fbx_layer_index is None)
             blen_read_geom_array_foreach_set_direct(blen_data, blen_attr, blen_dtype, fbx_layer_data, stride, item_size,
                                                     descr, xform)
@@ -1754,8 +1765,6 @@ def blen_read_geom_layer_normal(fbx_obj, mesh, xform=None):
                 loop_normals = np.repeat(bdata, poly_loop_totals, axis=0)
                 mesh.attributes["temp_custom_normals"].data.foreach_set("vector", loop_normals.ravel())
             elif blen_data_type == "Vertices":
-                # Note: Currently unreachable because `blen_read_geom_array_mapped_polyloop` covers all the supported
-                # import cases covered by `blen_read_geom_array_mapped_vert`.
                 # We have to copy vnors to lnors! Far from elegant, but simple.
                 loop_vertex_indices = MESH_ATTRIBUTE_CORNER_VERT.to_ndarray(mesh.attributes)
                 mesh.attributes["temp_custom_normals"].data.foreach_set("vector", bdata[loop_vertex_indices].ravel())
