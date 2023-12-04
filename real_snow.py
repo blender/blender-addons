@@ -6,8 +6,8 @@ bl_info = {
     "name": "Real Snow",
     "description": "Generate snow mesh",
     "author": "Marco Pavanello, Drew Perttula",
-    "version": (1, 3, 1),
-    "blender": (4, 0, 0),
+    "version": (1, 3, 2),
+    "blender": (4, 1, 0),
     "location": "View 3D > Properties Panel",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/object/real_snow.html",
     "tracker_url": "https://gitlab.com/marcopavanello/real-snow/-/issues",
@@ -341,7 +341,7 @@ def add_material(obj: bpy.types.Object):
     link.new(mapping.outputs[0], noise3.inputs[0])
     link.new(coord.outputs[3], mapping.inputs[0])
     # Set displacement and add material
-    mat.cycles.displacement_method = "DISPLACEMENT"
+    mat.displacement_method = "DISPLACEMENT"
     obj.data.materials.append(mat)
 
 
