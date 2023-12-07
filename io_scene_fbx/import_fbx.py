@@ -2770,7 +2770,13 @@ class FbxImportHelperNode:
         pose_bone = arm.bl_obj.pose.bones[self.bl_bone]
         pose_bone.matrix_basis = self.get_bind_matrix().inverted_safe() @ self.get_matrix()
 
-        if settings.use_custom_props:
+        # `self.fbx_elem` can be `None` in cases where the imported hierarchy contains a mix of bone and non-bone FBX
+        # Nodes parented to one another, e.g. "bone1"->"mesh1"->"bone2". In Blender, an Armature can only consist of
+        # bones, so to maintain the imported hierarchy, a placeholder bone with the same name as "mesh1" is inserted
+        # into the Armature and then the imported "mesh1" Object is parented to the placeholder bone. The placeholder
+        # bone won't have a `self.fbx_elem` because it belongs to the "mesh1" Object instead.
+        # See FbxImportHelperNode.find_fake_bones().
+        if settings.use_custom_props and self.fbx_elem:
             blen_read_custom_properties(self.fbx_elem, pose_bone, settings)
 
         for child in self.children:
