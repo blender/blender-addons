@@ -2557,7 +2557,9 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
     def poll(cls, context):
         return (nw_check(context)
                 and nw_check_space_type(cls, context, 'CompositorNodeTree')
-                and "Viewer Node" in [i.name for i in bpy.data.images]
+                and any(img.source == 'VIEWER'
+                        and img.render_slots == 0
+                        for img in bpy.data.images)
                 and sum(bpy.data.images["Viewer Node"].size) > 0)  # False if not connected or connected but no image
 
     def execute(self, context):
