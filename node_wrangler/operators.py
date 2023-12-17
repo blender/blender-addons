@@ -503,7 +503,8 @@ class NWPreviewNode(Operator, NWBase):
 
     @staticmethod
     def get_output_sockets(node_tree):
-        return [item for item in node_tree.interface.items_tree if item.item_type == 'SOCKET' and item.in_out in {'OUTPUT', 'BOTH'}]
+        return [item for item in node_tree.interface.items_tree
+                if item.item_type == 'SOCKET' and item.in_out in {'OUTPUT', 'BOTH'}]
 
     def ensure_viewer_socket(self, node, socket_type, connect_socket=None):
         """Check if a viewer output already exists in a node group, otherwise create it"""
@@ -530,7 +531,8 @@ class NWPreviewNode(Operator, NWBase):
 
         if viewer_socket is None:
             # Create viewer socket
-            viewer_socket = node.node_tree.interface.new_socket(viewer_socket_name, in_out='OUTPUT', socket_type=socket_type)
+            viewer_socket = node.node_tree.interface.new_socket(
+                viewer_socket_name, in_out='OUTPUT', socket_type=socket_type)
             viewer_socket.NWViewerSocket = True
         return viewer_socket
 
@@ -672,7 +674,7 @@ class NWPreviewNode(Operator, NWBase):
         mlocx = event.mouse_region_x
         mlocy = event.mouse_region_y
         select_node = bpy.ops.node.select(location=(mlocx, mlocy), extend=False)
-        if not 'FINISHED' in select_node:  # only run if mouse click is on a node
+        if 'FINISHED' not in select_node:  # only run if mouse click is on a node
             return {'CANCELLED'}
 
         active_tree, path_to_tree = get_active_tree(context)
