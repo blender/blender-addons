@@ -707,8 +707,9 @@ class NWPreviewNode(Operator, NWBase):
                             break
                     if geometryoutindex is None:
                         # Create geometry socket
-                        geometryoutput.inputs.new(socket_type, 'Geometry')
-                        geometryoutindex = len(geometryoutput.inputs) - 1
+                        geometry_output_socket = base_node_tree.interface.new_socket(
+                            'Geometry', in_out='OUTPUT', socket_type='NodeSocketGeometry')
+                        geometryoutindex = geometry_output_socket.index
 
                     output_socket = geometryoutput.inputs[geometryoutindex]
 
