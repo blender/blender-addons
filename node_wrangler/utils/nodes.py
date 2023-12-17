@@ -217,15 +217,19 @@ def get_output_location(tree):
 
 def nw_check(context):
     space = context.space_data
-    valid_trees = ["ShaderNodeTree", "CompositorNodeTree", "TextureNodeTree", "GeometryNodeTree"]
 
-    if (space.type == 'NODE_EDITOR'
+    return (space.type == 'NODE_EDITOR'
             and space.node_tree is not None
-            and space.node_tree.library is None
-            and space.tree_type in valid_trees):
-        return True
+            and space.node_tree.library is None)
 
-    return False
+
+def nw_check_space_type(cls, context, *args):
+    if context.space_data.tree_type not in args:
+        tree_types_str = ", ".join(t.split('NodeTree')[0].lower() for t in sorted(args))
+        cls.poll_message_set("Current node tree type not supported.\n"
+                             "Should be one of " + tree_types_str + ".")
+        return False
+    return True
 
 
 def get_first_enabled_output(node):

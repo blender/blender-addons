@@ -29,8 +29,8 @@ from .utils.draw import draw_callback_nodeoutline
 from .utils.paths import match_files_to_socket_names, split_into_components
 from .utils.nodes import (node_mid_pt, autolink, node_at_pos, get_active_tree, get_nodes_links, is_viewer_socket,
                           is_viewer_link, get_group_output_node, get_output_location, force_update, get_internal_socket,
-                          nw_check, NWBase, get_first_enabled_output, is_visible_socket, viewer_socket_name)
-
+                          nw_check, nw_check_space_type, NWBase, get_first_enabled_output, is_visible_socket,
+                          viewer_socket_name)
 
 class NWLazyMix(Operator, NWBase):
     """Add a Mix RGB/Shader node by interactively drawing lines between nodes"""
@@ -244,7 +244,11 @@ class NWDeleteUnused(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        return nw_check(context) and context.space_data.node_tree.nodes
+        """Disabled for custom nodes as we do not know which nodes are supported."""
+        return (nw_check(context)
+                and nw_check_space_type(cls, context, 'ShaderNodeTree', 'CompositorNodeTree',
+                                        'TextureNodeTree', 'GeometryNodeTree')
+                and context.space_data.node_tree.nodes)
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -445,7 +449,8 @@ class NWResetBG(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        return nw_check(context) and context.space_data.tree_type == 'CompositorNodeTree'
+        return (nw_check(context)
+                and nw_check_space_type(cls, context, 'CompositorNodeTree'))
 
     def execute(self, context):
         context.space_data.backdrop_zoom = 1
@@ -461,6 +466,11 @@ class NWAddAttrNode(Operator, NWBase):
     bl_options = {'REGISTER', 'UNDO'}
 
     attr_name: StringProperty()
+
+    @classmethod
+    def poll(cls, context):
+        return (nw_check(context)
+                and nw_check_space_type(cls, context, 'ShaderNodeTree'))
 
     def execute(self, context):
         bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type="ShaderNodeAttribute")
@@ -485,8 +495,9 @@ class NWPreviewNode(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
+        """Already implemented natively for compositing nodes."""
         return (nw_check(context)
-                and context.space_data.tree_type in {'ShaderNodeTree', 'GeometryNodeTree'}
+                and nw_check_space_type(cls, context, 'ShaderNodeTree', 'GeometryNodeTree')
                 and (not context.active_node
                      or context.active_node.type not in {"OUTPUT_MATERIAL", "OUTPUT_WORLD"}))
 
@@ -797,7 +808,8 @@ class NWReloadImages(Operator):
     @classmethod
     def poll(cls, context):
         return (nw_check(context)
-                and context.space_data.tree_type != 'GeometryNodeTree'
+                and nw_check_space_type(cls, context, 'ShaderNodeTree', 'CompositorNodeTree',
+                                        'TextureNodeTree', 'GeometryNodeTree')
                 and context.active_node is not None
                 and any(is_visible_socket(out) for out in context.active_node.outputs))
 
@@ -922,6 +934,12 @@ class NWMergeNodes(Operator, NWBase):
             for link in prev_links:
                 connect_sockets(new_node.outputs[0], link.to_node.inputs[0])
         return new_node
+
+    @classmethod
+    def poll(cls, context):
+        return (nw_check(context)
+                and nw_check_space_type(cls, context, 'ShaderNodeTree', 'CompositorNodeTree',
+                                        'TextureNodeTree', 'GeometryNodeTree'))
 
     def execute(self, context):
         settings = context.preferences.addons[__package__].preferences
@@ -1234,6 +1252,12 @@ class NWBatchChangeNodes(Operator, NWBase):
         items=operations + navs,
     )
 
+    @classmethod
+    def poll(cls, context):
+        return (nw_check(context)
+                and nw_check_space_type(cls, context, 'ShaderNodeTree', 'CompositorNodeTree',
+                                        'TextureNodeTree', 'GeometryNodeTree'))
+
     def execute(self, context):
         blend_type = self.blend_type
         operation = self.operation
@@ -1537,7 +1561,8 @@ class NWAddTextureSetup(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        return nw_check(context) and context.space_data.tree_type == 'ShaderNodeTree'
+        return (nw_check(context)
+                and nw_check_space_type(cls, context, 'ShaderNodeTree'))
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -1639,7 +1664,8 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
 
     @classmethod
     def poll(cls, context):
-        return nw_check(context) and context.space_data.tree_type == 'ShaderNodeTree'
+        return (nw_check(context)
+                and nw_check_space_type(cls, context, 'ShaderNodeTree'))
 
     def execute(self, context):
         # Check if everything is ok
@@ -2172,7 +2198,10 @@ class NWLinkToOutputNode(Operator):
 
     @classmethod
     def poll(cls, context):
+        """Disabled for custom nodes as we do not know which nodes are outputs."""
         return (nw_check(context)
+                and nw_check_space_type(cls, context, 'ShaderNodeTree', 'CompositorNodeTree',
+                                        'TextureNodeTree', 'GeometryNodeTree')
                 and context.active_node is not None
                 and any(is_visible_socket(out) for out in context.active_node.outputs))
 
@@ -2455,7 +2484,8 @@ class NWViewerFocus(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return nw_check(context) and context.space_data.tree_type == 'CompositorNodeTree'
+        return (nw_check(context)
+                and nw_check_space_type(cls, context, 'CompositorNodeTree'))
 
     def execute(self, context):
         return {'FINISHED'}
@@ -2526,7 +2556,7 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
     @classmethod
     def poll(cls, context):
         return (nw_check(context)
-                and context.space_data.tree_type == 'CompositorNodeTree'
+                and nw_check_space_type(cls, context, 'CompositorNodeTree')
                 and "Viewer Node" in [i.name for i in bpy.data.images]
                 and sum(bpy.data.images["Viewer Node"].size) > 0)  # False if not connected or connected but no image
 
