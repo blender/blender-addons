@@ -244,11 +244,7 @@ class NWDeleteUnused(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        valid = False
-        if nw_check(context):
-            if context.space_data.node_tree.nodes:
-                valid = True
-        return valid
+        return nw_check(context) and context.space_data.node_tree.nodes
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -335,11 +331,7 @@ class NWSwapLinks(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        valid = False
-        if nw_check(context):
-            if context.selected_nodes:
-                valid = len(context.selected_nodes) <= 2
-        return valid
+        return nw_check(context) and context.selected_nodes and len(context.selected_nodes) <= 2
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -453,11 +445,7 @@ class NWResetBG(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        valid = False
-        if nw_check(context):
-            snode = context.space_data
-            valid = snode.tree_type == 'CompositorNodeTree'
-        return valid
+        return nw_check(context) and context.space_data.tree_type == 'CompositorNodeTree'
 
     def execute(self, context):
         context.space_data.backdrop_zoom = 1
@@ -497,15 +485,10 @@ class NWPreviewNode(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        if nw_check(context):
-            space = context.space_data
-            if space.tree_type in {'ShaderNodeTree', 'GeometryNodeTree'}:
-                if context.active_node:
-                    if context.active_node.type not in {"OUTPUT_MATERIAL", "OUTPUT_WORLD"}:
-                        return True
-                else:
-                    return True
-        return False
+        return (nw_check(context)
+                and context.space_data.tree_type in {'ShaderNodeTree', 'GeometryNodeTree'}
+                and (not context.active_node
+                     or context.active_node.type not in {"OUTPUT_MATERIAL", "OUTPUT_WORLD"}))
 
     @staticmethod
     def get_output_sockets(node_tree):
@@ -813,14 +796,10 @@ class NWReloadImages(Operator):
 
     @classmethod
     def poll(cls, context):
-        valid = False
-        if nw_check(context) and context.space_data.tree_type != 'GeometryNodeTree':
-            if context.active_node is not None:
-                for out in context.active_node.outputs:
-                    if is_visible_socket(out):
-                        valid = True
-                        break
-        return valid
+        return (nw_check(context)
+                and context.space_data.tree_type != 'GeometryNodeTree'
+                and context.active_node is not None
+                and any(is_visible_socket(out) for out in context.active_node.outputs))
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -1340,14 +1319,9 @@ class NWCopySettings(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        valid = False
-        if nw_check(context):
-            if (
-                    context.active_node is not None and
-                    context.active_node.type != 'FRAME'
-            ):
-                valid = True
-        return valid
+        return (nw_check(context)
+                and context.active_node is not None
+                and context.active_node.type != 'FRAME')
 
     def execute(self, context):
         node_active = context.active_node
@@ -1563,11 +1537,7 @@ class NWAddTextureSetup(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        if nw_check(context):
-            space = context.space_data
-            if space.tree_type == 'ShaderNodeTree':
-                return True
-        return False
+        return nw_check(context) and context.space_data.tree_type == 'ShaderNodeTree'
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -1669,12 +1639,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
 
     @classmethod
     def poll(cls, context):
-        valid = False
-        if nw_check(context):
-            space = context.space_data
-            if space.tree_type == 'ShaderNodeTree':
-                valid = True
-        return valid
+        return nw_check(context) and context.space_data.tree_type == 'ShaderNodeTree'
 
     def execute(self, context):
         # Check if everything is ok
@@ -2008,12 +1973,9 @@ class NWLinkActiveToSelected(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        valid = False
-        if nw_check(context):
-            if context.active_node is not None:
-                if context.active_node.select:
-                    valid = True
-        return valid
+        return (nw_check(context)
+                and context.active_node is not None
+                and context.active_node.select)
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -2210,14 +2172,9 @@ class NWLinkToOutputNode(Operator):
 
     @classmethod
     def poll(cls, context):
-        valid = False
-        if nw_check(context):
-            if context.active_node is not None:
-                for out in context.active_node.outputs:
-                    if is_visible_socket(out):
-                        valid = True
-                        break
-        return valid
+        return (nw_check(context)
+                and context.active_node is not None
+                and any(is_visible_socket(out) for out in context.active_node.outputs))
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -2568,13 +2525,10 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
-        valid = False
-        if nw_check(context):
-            if context.space_data.tree_type == 'CompositorNodeTree':
-                if "Viewer Node" in [i.name for i in bpy.data.images]:
-                    if sum(bpy.data.images["Viewer Node"].size) > 0:  # False if not connected or connected but no image
-                        valid = True
-        return valid
+        return (nw_check(context)
+                and context.space_data.tree_type == 'CompositorNodeTree'
+                and "Viewer Node" in [i.name for i in bpy.data.images]
+                and sum(bpy.data.images["Viewer Node"].size) > 0)  # False if not connected or connected but no image
 
     def execute(self, context):
         fp = self.filepath
