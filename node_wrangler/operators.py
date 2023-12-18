@@ -27,10 +27,9 @@ from .interface import NWConnectionListInputs, NWConnectionListOutputs
 from .utils.constants import blend_types, geo_combine_operations, operations, navs, get_texture_node_types, rl_outputs
 from .utils.draw import draw_callback_nodeoutline
 from .utils.paths import match_files_to_socket_names, split_into_components
-from .utils.nodes import (node_mid_pt, autolink, node_at_pos, get_active_tree, get_nodes_links, is_viewer_socket,
-                          is_viewer_link, get_group_output_node, get_output_location, force_update, get_internal_socket,
-                          nw_check, nw_check_space_type, NWBase, get_first_enabled_output, is_visible_socket,
-                          viewer_socket_name)
+from .utils.nodes import (node_mid_pt, autolink, node_at_pos, get_nodes_links, is_viewer_socket, is_viewer_link,
+                          get_group_output_node, get_output_location, force_update, get_internal_socket, nw_check,
+                          nw_check_space_type, NWBase, get_first_enabled_output, is_visible_socket, viewer_socket_name)
 
 class NWLazyMix(Operator, NWBase):
     """Add a Mix RGB/Shader node by interactively drawing lines between nodes"""
@@ -677,9 +676,10 @@ class NWPreviewNode(Operator, NWBase):
         if 'FINISHED' not in select_node:  # only run if mouse click is on a node
             return {'CANCELLED'}
 
-        active_tree, path_to_tree = get_active_tree(context)
-        nodes, links = active_tree.nodes, active_tree.links
+
         base_node_tree = space.node_tree
+        active_tree = context.space_data.edit_tree
+        nodes = active_tree.nodes
         active = nodes.active
 
         if not active and not any(is_visible_socket(out) for out in active.outputs):

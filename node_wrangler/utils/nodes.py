@@ -138,23 +138,8 @@ def store_mouse_cursor(context, event):
         space.cursor_location = tree.view_center
 
 
-def get_active_tree(context):
-    tree = context.space_data.node_tree
-    path = []
-    # Get nodes from currently edited tree.
-    # If user is editing a group, space_data.node_tree is still the base level (outside group).
-    # context.active_node is in the group though, so if space_data.node_tree.nodes.active is not
-    # the same as context.active_node, the user is in a group.
-    # Check recursively until we find the real active node_tree:
-    if tree.nodes.active:
-        while tree.nodes.active != context.active_node:
-            tree = tree.nodes.active.node_tree
-            path.append(tree)
-    return tree, path
-
-
 def get_nodes_links(context):
-    tree, path = get_active_tree(context)
+    tree = context.space_data.edit_tree
     return tree.nodes, tree.links
 
 
