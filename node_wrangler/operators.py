@@ -505,6 +505,19 @@ class NWPreviewNode(Operator, NWBase):
         return [item for item in node_tree.interface.items_tree
                 if item.item_type == 'SOCKET' and item.in_out in {'OUTPUT', 'BOTH'}]
 
+    def init_shader_variables(self, space, shader_type):
+        if shader_type == 'OBJECT':
+            if space.id in bpy.data.lights.values():
+                self.shader_output_type = "OUTPUT_LIGHT"
+                self.shader_output_ident = "ShaderNodeOutputLight"
+            else:
+                self.shader_output_type = "OUTPUT_MATERIAL"
+                self.shader_output_ident = "ShaderNodeOutputMaterial"
+
+        elif shader_type == 'WORLD':
+            self.shader_output_type = "OUTPUT_WORLD"
+            self.shader_output_ident = "ShaderNodeOutputWorld"
+
     def ensure_viewer_socket(self, node_tree, socket_type, connect_socket=None):
         """Check if a viewer output already exists in a node group, otherwise create it"""
         viewer_socket = None
@@ -532,25 +545,12 @@ class NWPreviewNode(Operator, NWBase):
             viewer_socket.NWViewerSocket = True
         return viewer_socket
 
-    def init_shader_variables(self, space, shader_type):
-        if shader_type == 'OBJECT':
-            if space.id in bpy.data.lights.values():
-                self.shader_output_type = "OUTPUT_LIGHT"
-                self.shader_output_ident = "ShaderNodeOutputLight"
-            else:
-                self.shader_output_type = "OUTPUT_MATERIAL"
-                self.shader_output_ident = "ShaderNodeOutputMaterial"
-
-        elif shader_type == 'WORLD':
-            self.shader_output_type = "OUTPUT_WORLD"
-            self.shader_output_ident = "ShaderNodeOutputWorld"
-
     @staticmethod
-    def ensure_group_output(tree):
+    def ensure_group_output(node_tree):
         """Check if a group output node exists, otherwise create it"""
-        groupout = get_group_output_node(tree)
+        groupout = get_group_output_node(node_tree)
         if groupout is None:
-            groupout = tree.nodes.new('NodeGroupOutput')
+            groupout = node_tree.nodes.new('NodeGroupOutput')
             loc_x, loc_y = get_output_location(tree)
             groupout.location.x = loc_x
             groupout.location.y = loc_y
@@ -620,7 +620,7 @@ class NWPreviewNode(Operator, NWBase):
             for mat in bpy.data.materials:
                 if mat.node_tree == bpy.context.space_data.node_tree or not hasattr(mat.node_tree, "nodes"):
                     continue
-                # get viewer node
+                # Get viewer node
                 output_node = get_group_output_node(mat.node_tree,
                                                     output_node_type=self.shader_output_type)
                 if output_node is not None:
