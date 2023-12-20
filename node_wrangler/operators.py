@@ -598,16 +598,22 @@ class NWPreviewNode(Operator, NWBase):
         interface.active_index = min(interface.active_index, len(interface.items_tree) - 1)
 
     def link_leads_to_used_socket(self, link):
-        """Return True if link leads to a socket that is already used in this material"""
+        """Return True if link leads to a socket that is already used in this node"""
         socket = get_internal_socket(link.to_socket)
-        return (socket and self.is_socket_used_active_mat(socket))
+        return socket and self.is_socket_used_active_tree(socket)
 
-    def is_socket_used_active_mat(self, socket):
-        """Ensure used sockets in active material is calculated and check given socket"""
+    def is_socket_used_active_tree(self, socket):
+        """Ensure used sockets in active node tree is calculated and check given socket"""
         if not hasattr(self, "used_viewer_sockets_active_mat"):
             self.used_viewer_sockets_active_mat = []
-            output_node = get_group_output_node(bpy.context.space_data.node_tree,
-                                                output_node_type=self.shader_output_type)
+
+            node_tree = bpy.context.space_data.node_tree
+            output_node = None
+            if node_tree.type == 'GEOMETRY':
+                output_node = get_group_output_node(node_tree)
+            elif node_tree.type == 'SHADER':
+                output_node = get_group_output_node(node_tree,
+                                                    output_node_type=self.shader_output_type)
 
             if output_node is not None:
                 self.search_sockets(output_node, self.used_viewer_sockets_active_mat)
