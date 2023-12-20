@@ -505,13 +505,10 @@ class NWPreviewNode(Operator, NWBase):
         return [item for item in node_tree.interface.items_tree
                 if item.item_type == 'SOCKET' and item.in_out in {'OUTPUT', 'BOTH'}]
 
-    def ensure_viewer_socket(self, node, socket_type, connect_socket=None):
+    def ensure_viewer_socket(self, node_tree, socket_type, connect_socket=None):
         """Check if a viewer output already exists in a node group, otherwise create it"""
-        if not hasattr(node, "node_tree"):
-            return None
-
         viewer_socket = None
-        output_sockets = self.get_output_sockets(node.node_tree)
+        output_sockets = self.get_output_sockets(node_tree)
         if len(output_sockets):
             for i, socket in enumerate(output_sockets):
                 if is_viewer_socket(socket) and socket.socket_type == socket_type:
@@ -520,7 +517,7 @@ class NWPreviewNode(Operator, NWBase):
                     if is_used:
                         if connect_socket is None:
                             continue
-                        groupout = get_group_output_node(node.node_tree)
+                        groupout = get_group_output_node(node_tree)
                         groupout_input = groupout.inputs[i]
                         links = groupout_input.links
                         if connect_socket not in [link.from_socket for link in links]:
@@ -530,7 +527,7 @@ class NWPreviewNode(Operator, NWBase):
 
         if viewer_socket is None:
             # Create viewer socket
-            viewer_socket = node.node_tree.interface.new_socket(
+            viewer_socket = node_tree.interface.new_socket(
                 viewer_socket_name, in_out='OUTPUT', socket_type=socket_type)
             viewer_socket.NWViewerSocket = True
         return viewer_socket
@@ -630,39 +627,59 @@ class NWPreviewNode(Operator, NWBase):
                     self.search_sockets(output_node, self.used_viewer_sockets_other_mats)
         return socket in self.used_viewer_sockets_other_mats
 
-    def get_output_index(self, base_node_tree, nodes, output_node, socket_type, check_type=False):
+    def get_output_index(self, node, output_node, is_base_node_tree, socket_type, check_type=False):
         """Get the next available output socket in the active node"""
         out_i = None
         valid_outputs = []
-        for i, out in enumerate(nodes.active.outputs):
+        for i, out in enumerate(node.outputs):
             if is_visible_socket(out) and (not check_type or out.type == socket_type):
                 valid_outputs.append(i)
         if valid_outputs:
             out_i = valid_outputs[0]  # Start index of node's outputs
         for i, valid_i in enumerate(valid_outputs):
-            for out_link in nodes.active.outputs[valid_i].links:
+            for out_link in node.outputs[valid_i].links:
                 if is_viewer_link(out_link, output_node):
-                    if nodes == base_node_tree.nodes or self.link_leads_to_used_socket(out_link):
+                    if is_base_node_tree or self.link_leads_to_used_socket(out_link):
                         if i < len(valid_outputs) - 1:
                             out_i = valid_outputs[i + 1]
                         else:
                             out_i = valid_outputs[0]
         return out_i
 
-    def create_links(self, tree, link_end, active, out_i, socket_type):
-        """Create links through node groups until we reach the active node"""
-        while tree.nodes.active != active:
-            node = tree.nodes.active
+    def create_links(self, path, node, active_node_socket_id, socket_type):
+        """Create links at each step in the node group path."""
+        path = list(reversed(path))
+        # Starting from the level of the active node
+        for path_index, path_element in enumerate(path[:-1]):
+            # Ensure there is a viewer node and it has an input
+            tree = path_element.node_tree
             viewer_socket = self.ensure_viewer_socket(
-                node, socket_type, connect_socket=active.outputs[out_i] if node.node_tree.nodes.active == active else None)
-            link_start = node.outputs[viewer_socket.identifier]
+                tree, socket_type,
+                connect_socket = node.outputs[active_node_socket_id]
+                if path_index == 0 else None)
             if viewer_socket in self.delete_sockets:
                 self.delete_sockets.remove(viewer_socket)
+
+            # Connect the current to its viewer
+            link_start = node.outputs[active_node_socket_id]
+            link_end = self.ensure_group_output(tree).inputs[viewer_socket.identifier]
             connect_sockets(link_start, link_end)
-            # Iterate
-            link_end = self.ensure_group_output(node.node_tree).inputs[viewer_socket.identifier]
-            tree = tree.nodes.active.node_tree
-        connect_sockets(active.outputs[out_i], link_end)
+
+            # Go up in the node group hierarchy
+            next_tree = path[path_index + 1].node_tree
+            node = next(n for n in next_tree.nodes
+                        if n.type == 'GROUP'
+                        and n.node_tree == tree)
+            tree = next_tree
+            active_node_socket_id = viewer_socket.identifier
+        return node.outputs[active_node_socket_id]
+
+    def cleanup(self):
+        # Delete sockets
+        for socket in self.delete_sockets:
+            if not self.is_socket_used_other_mats(socket):
+                tree = socket.id_data
+                self.remove_socket(tree, socket)
 
     def invoke(self, context, event):
         space = context.space_data
@@ -676,9 +693,9 @@ class NWPreviewNode(Operator, NWBase):
         if 'FINISHED' not in select_node:  # only run if mouse click is on a node
             return {'CANCELLED'}
 
-
         base_node_tree = space.node_tree
         active_tree = context.space_data.edit_tree
+        path = context.space_data.path
         nodes = active_tree.nodes
         active = nodes.active
 
@@ -689,40 +706,41 @@ class NWPreviewNode(Operator, NWBase):
         self.delete_sockets = []
         self.scan_nodes(base_node_tree, self.delete_sockets)
 
-        # For geometry node trees we just connect to the group output
-        if space.tree_type == "GeometryNodeTree" and active.outputs:
-            socket_type = 'GEOMETRY'
+        if not active.outputs:
+            self.cleanup()
+            return {'CANCELLED'}
+
+        # For geometry node trees, we just connect to the group output
+        if space.tree_type == "GeometryNodeTree":
+            socket_type = 'NodeSocketGeometry'
 
             # Find (or create if needed) the output of this node tree
             output_node = self.ensure_group_output(base_node_tree)
 
-            out_i = self.get_output_index(base_node_tree, nodes, output_node, 'GEOMETRY', check_type=True)
+            active_node_socket_index = self.get_output_index(
+                active, output_node, base_node_tree == active_tree, 'GEOMETRY', check_type=True
+            )
             # If there is no 'GEOMETRY' output type - We can't preview the node
-            if out_i is None:
+            if active_node_socket_index is None:
                 return {'CANCELLED'}
 
             # Find an input socket of the output of type geometry
-            geometry_out_index = None
+            output_node_socket_index = None
             for i, inp in enumerate(output_node.inputs):
-                if inp.type == socket_type:
-                    geometry_out_index = i
+                if inp.type == 'GEOMETRY':
+                    output_node_socket_index = i
                     break
-            if geometry_out_index is None:
+            if output_node_socket_index is None:
                 # Create geometry socket
                 geometry_out_socket = base_node_tree.interface.new_socket(
-                    'Geometry', in_out='OUTPUT', socket_type='NodeSocketGeometry'
+                    'Geometry', in_out='OUTPUT', socket_type=socket_type
                 )
-                geometry_out_index = geometry_out_socket.index
+                output_node_socket_index = geometry_out_socket.index
 
-            output_socket = output_node.inputs[geometry_out_index]
-
-            self.create_links(base_node_tree, output_socket, active, out_i, 'NodeSocketGeometry')
-
-        # What follows is code for the shader editor
-        elif space.tree_type == "ShaderNodeTree" and active.outputs:
-            shader_type = space.shader_type
-            self.init_shader_variables(space, shader_type)
+        # For shader node trees, we connect to a material output
+        elif space.tree_type == "ShaderNodeTree":
             socket_type = 'NodeSocketShader'
+            self.init_shader_variables(space, space.shader_type)
 
             # Get or create material_output node
             output_node = get_group_output_node(base_node_tree,
@@ -732,19 +750,25 @@ class NWPreviewNode(Operator, NWBase):
                 output_node.location = get_output_location(base_node_tree)
                 output_node.select = False
 
-            out_i = self.get_output_index(base_node_tree, nodes, output_node, 'SHADER')
+            active_node_socket_index = self.get_output_index(
+                active, output_node, base_node_tree == active_tree, 'SHADER'
+            )
+            if active.outputs[active_node_socket_index].name == "Volume":
+                output_node_socket_index = 1
+            else:
+                output_node_socket_index = 0
 
-            materialout_index = 1 if active.outputs[out_i].name == "Volume" else 0
-            output_socket = output_node.inputs[materialout_index]
+        # If there are no nested node groups, the link starts at the active node
+        node_output = active.outputs[active_node_socket_index]
+        if len(path) > 1:
+            # Recursively connect inside nested node groups and get the one from base level
+            node_output = self.create_links(path, active, active_node_socket_index, socket_type)
+        output_node_input = output_node.inputs[output_node_socket_index]
 
-            self.create_links(base_node_tree, output_socket, active, out_i, 'NodeSocketShader')
+        # Connect at base level
+        connect_sockets(node_output, output_node_input)
 
-        # Delete sockets
-        for socket in self.delete_sockets:
-            if not self.is_socket_used_other_mats(socket):
-                tree = socket.id_data
-                self.remove_socket(tree, socket)
-
+        self.cleanup()
         nodes.active = active
         active.select = True
         force_update(context)
