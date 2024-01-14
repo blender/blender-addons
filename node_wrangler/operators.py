@@ -759,6 +759,12 @@ class NWPreviewNode(Operator, NWBase):
             active_node_socket_index = self.get_output_index(
                 active, output_node, base_node_tree == active_tree, 'SHADER'
             )
+
+            # Cancel if no socket was found. This can happen for group input
+            # nodes with only a virtual socket output.
+            if active_node_socket_index is None:
+                return {'CANCELLED'}
+
             if active.outputs[active_node_socket_index].name == "Volume":
                 output_node_socket_index = 1
             else:
