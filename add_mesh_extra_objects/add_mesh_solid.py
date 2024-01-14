@@ -164,8 +164,6 @@ def createSolid(plato, vtrunc, etrunc, dual, snub):
         if vtrunc == 0:    # no truncation needed
             if dual:
                 vInput, fInput = source(plato)
-                vInput = [i * supposedSize for i in vInput]
-                return vInput, fInput
             vInput = [-i * supposedSize for i in vInput]
             # Inverting vInput turns the mesh inside-out, so normals need to be flipped.
             return vInput, flippedFaceNormals(fInput)
