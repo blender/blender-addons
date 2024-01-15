@@ -16,35 +16,6 @@ from bpy.props import (
 from bpy_extras.object_utils import object_data_add
 
 
-# this function creates a chain of quads and, when necessary, a remaining tri
-# for each polygon created in this script. be aware though, that this function
-# assumes each polygon is convex.
-#  poly: list of faces, or a single face, like those
-#        needed for mesh.from_pydata.
-#  returns the tessellated faces.
-
-def createPolys(poly):
-    # check for faces
-    if len(poly) == 0:
-        return []
-    # one or more faces
-    if type(poly[0]) == type(1):
-        poly = [poly]  # if only one,  make it a list of one face
-    faces = []
-    for i in poly:
-        L = len(i)
-        # let all faces of 3 or 4 verts be
-        if L < 5:
-            faces.append(i)
-        # split all polygons in half and bridge the two halves
-        else:
-            f = [[i[x], i[x + 1], i[L - 2 - x], i[L - 1 - x]] for x in range(L // 2 - 1)]
-            faces.extend(f)
-            if L & 1 == 1:
-                faces.append([i[L // 2 - 1 + x] for x in [0, 1, 2]])
-    return faces
-
-
 # function to make the reduce function work as a workaround to sum a list of vectors
 
 def vSum(list):
@@ -500,9 +471,6 @@ class Solids(bpy.types.Operator):
                                    self.dual,
                                    self.snub
                                    )
-
-        # turn n-gons in quads and tri's
-        faces = createPolys(faces)
 
         # resize to normal size, or if keepSize, make sure all verts are of length 'size'
         if self.keepSize:
