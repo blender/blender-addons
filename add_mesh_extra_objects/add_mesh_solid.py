@@ -51,6 +51,11 @@ def vSum(list):
     return reduce(lambda a, b: a + b, list)
 
 
+# Get a copy of the input faces, but with the normals flipped by reversing the order of the vertex indices of each face.
+def flippedFaceNormals(faces):
+    return [list(reversed(vertexIndices)) for vertexIndices in faces]
+
+
 # creates the 5 platonic solids as a base for the rest
 #  plato: should be one of {"4","6","8","12","20"}. decides what solid the
 #         outcome will be.
@@ -146,7 +151,8 @@ def createSolid(plato, vtrunc, etrunc, dual, snub):
             vInput, fInput = source(dualSource[plato])
             supposedSize = vSum(vInput[i] for i in fInput[0]).length / len(fInput[0])
             vInput = [-i * supposedSize for i in vInput]            # mirror it
-            return vInput, fInput
+            # Inverting vInput turns the mesh inside-out, so normals need to be flipped.
+            return vInput, flippedFaceNormals(fInput)
         return source(plato)
     elif 0 < vtrunc <= 0.5:  # simple truncation of the source
         vInput, fInput = source(plato)
@@ -161,7 +167,8 @@ def createSolid(plato, vtrunc, etrunc, dual, snub):
                 vInput = [i * supposedSize for i in vInput]
                 return vInput, fInput
             vInput = [-i * supposedSize for i in vInput]
-            return vInput, fInput
+            # Inverting vInput turns the mesh inside-out, so normals need to be flipped.
+            return vInput, flippedFaceNormals(fInput)
 
     # generate connection database
     vDict = [{} for i in vInput]
@@ -269,6 +276,10 @@ def createSolid(plato, vtrunc, etrunc, dual, snub):
     if supposedSize and not dual:                    # this to make the vtrunc > 1 work
         supposedSize *= len(fvOutput[0]) / vSum(vOutput[i] for i in fvOutput[0]).length
         vOutput = [-i * supposedSize for i in vOutput]
+        # Inverting vOutput turns the mesh inside-out, so normals need to be flipped.
+        flipNormals = True
+    else:
+        flipNormals = False
 
     # create new faces by replacing old vert IDs by newly generated verts
     ffOutput = [[] for i in fInput]
@@ -287,7 +298,10 @@ def createSolid(plato, vtrunc, etrunc, dual, snub):
                 ffOutput[x].append(fvOutput[i][vData[i][3].index(x) - 1])
 
     if not dual:
-        return vOutput, fvOutput + feOutput + ffOutput
+        fOutput = fvOutput + feOutput + ffOutput
+        if flipNormals:
+            fOutput = flippedFaceNormals(fOutput)
+        return vOutput, fOutput
     else:
         # do the same procedure as above,  only now on the generated mesh
         # generate connection database
