@@ -8,6 +8,8 @@ import bmesh
 from mathutils import Vector
 from mathutils.geometry import intersect_point_line
 
+from .snap_context_l.utils_projection import intersect_ray_ray_fac
+
 from .common_utilities import snap_utilities
 from .common_classes import (
     CharMap,
@@ -286,34 +288,41 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
 
         is_making_lines = bool(self.list_verts_co)
 
-        if (event.type == 'MOUSEMOVE' or self.bool_update) and self.charmap.length_entered_value == 0.0:
+        if (event.type == 'MOUSEMOVE' or self.bool_update):
             mval = Vector((event.mouse_region_x, event.mouse_region_y))
-
-            if self.rv3d.view_matrix != self.rotMat:
-                self.rotMat = self.rv3d.view_matrix.copy()
-                self.bool_update = True
-                snap_utilities.cache.clear()
-            else:
-                self.bool_update = False
-
-            self.snap_obj, self.prevloc, self.location, self.type, self.bm, self.geom, self.len = snap_utilities(
-                self.sctx,
-                self.main_snap_obj,
-                mval,
-                constrain=self.vector_constrain,
-                previous_vert=(
-                    self.list_verts[-1] if self.list_verts else None),
-                increment=self.incremental)
-
-            self.snap_to_grid()
-
-            if is_making_lines:
+            if self.charmap.length_entered_value != 0.0:
+                ray_dir, ray_orig = self.sctx.get_ray(mval)
                 loc = self.list_verts_co[-1]
-                self.curr_dir = self.location - loc
-                if self.preferences.auto_constrain:
-                    vec, cons_type = self.constrain.update(
-                        self.sctx.region, self.sctx.rv3d, mval, loc)
-                    self.vector_constrain = [loc, loc + vec, cons_type]
+                fac = intersect_ray_ray_fac(loc, self.curr_dir, ray_orig, ray_dir)
+                if fac < 0.0:
+                    self.curr_dir.negate()
+                    self.location = loc - (self.location - loc)
+            else:
+                if self.rv3d.view_matrix != self.rotMat:
+                    self.rotMat = self.rv3d.view_matrix.copy()
+                    self.bool_update = True
+                    snap_utilities.cache.clear()
+                else:
+                    self.bool_update = False
+
+                self.snap_obj, self.prevloc, self.location, self.type, self.bm, self.geom, self.len = snap_utilities(
+                    self.sctx,
+                    self.main_snap_obj,
+                    mval,
+                    constrain=self.vector_constrain,
+                    previous_vert=(
+                        self.list_verts[-1] if self.list_verts else None),
+                    increment=self.incremental)
+
+                self.snap_to_grid()
+
+                if is_making_lines:
+                    loc = self.list_verts_co[-1]
+                    self.curr_dir = self.location - loc
+                    if self.preferences.auto_constrain:
+                        vec, cons_type = self.constrain.update(
+                            self.sctx.region, self.sctx.rv3d, mval, loc)
+                        self.vector_constrain = [loc, loc + vec, cons_type]
 
         elif event.value == 'PRESS':
             if is_making_lines and self.charmap.modal_(context, event):
