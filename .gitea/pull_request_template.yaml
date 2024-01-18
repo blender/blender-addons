@@ -6,9 +6,9 @@ body:
       value: |
         ### Instructions
 
-        * [Contributing a new add-on](https://wiki.blender.org/wiki/Process/Addons)
-        * [Contributing code](https://wiki.blender.org/index.php/Dev:Doc/Process/Contributing_Code)
-        * [Effective code review](https://wiki.blender.org/index.php/Dev:Doc/Tools/Code_Review)
+        * [Contributing a new add-on](https://developer.blender.org/docs/handbook/addons/)
+        * [Contributing code](https://developer.blender.org/docs/handbook/contributing/)
+        * [Effective code review](https://developer.blender.org/docs/handbook/contributing/pull_requests/)
 
         By submitting code here, you agree that the code is (compatible with) GNU GPL v2 or later.
 
