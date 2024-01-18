@@ -243,6 +243,7 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
         self.bool_update = True
         self.vector_constrain = ()
         self.len = 0
+        self.curr_dir = Vector()
 
         if not (self.bm and self.obj):
             self.obj = context.edit_object
@@ -261,8 +262,6 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
     def modal(self, context, event):
         if self.navigation_ops.run(context, event, self.prevloc if self.vector_constrain else self.location):
             return {'RUNNING_MODAL'}
-
-        context.area.tag_redraw()
 
         if event.ctrl and event.type == 'Z' and event.value == 'PRESS':
             bpy.ops.ed.undo()
@@ -308,23 +307,22 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
 
             self.snap_to_grid()
 
-            if is_making_lines and self.preferences.auto_constrain:
+            if is_making_lines:
                 loc = self.list_verts_co[-1]
-                vec, type = self.constrain.update(
-                    self.sctx.region, self.sctx.rv3d, mval, loc)
-                self.vector_constrain = [loc, loc + vec, type]
+                self.curr_dir = self.location - loc
+                if self.preferences.auto_constrain:
+                    vec, cons_type = self.constrain.update(
+                        self.sctx.region, self.sctx.rv3d, mval, loc)
+                    self.vector_constrain = [loc, loc + vec, cons_type]
 
-        if event.value == 'PRESS':
+        elif event.value == 'PRESS':
             if is_making_lines and self.charmap.modal_(context, event):
                 self.bool_update = self.charmap.length_entered_value == 0.0
 
                 if not self.bool_update:
                     text_value = self.charmap.length_entered_value
-                    vector = (self.location -
-                              self.list_verts_co[-1]).normalized()
-                    self.location = self.list_verts_co[-1] + \
-                        (vector * text_value)
-                    del vector
+                    vector = self.curr_dir.normalized()
+                    self.location = self.list_verts_co[-1] + (vector * text_value)
 
             elif self.constrain.modal(event, self._shift_contrain_callback):
                 self.bool_update = True
@@ -379,6 +377,8 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
                     self.list_verts = []
                     self.list_verts_co = []
                     self.charmap.clear()
+        else:
+            return {'RUNNING_MODAL'}
 
         a = ""
         if is_making_lines:
@@ -387,10 +387,8 @@ class SnapUtilitiesLine(SnapUtilities, bpy.types.Operator):
         context.area.header_text_set(
             text="hit: %.3f %.3f %.3f %s" % (*self.location, a))
 
-        if True or is_making_lines:
-            return {'RUNNING_MODAL'}
-
-        return {'PASS_THROUGH'}
+        context.area.tag_redraw()
+        return {'RUNNING_MODAL'}
 
     def draw_callback_px(self):
         if self.bm:
