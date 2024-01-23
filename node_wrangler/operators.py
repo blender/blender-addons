@@ -1983,77 +1983,70 @@ class NWAddReroutes(Operator, NWBase):
     )
 
     def execute(self, context):
-        tree_type = context.space_data.node_tree.type
-        option = self.option
-        nodes, links = get_nodes_links(context)
-        # output valid when option is 'all' or when 'loose' output has no links
-        valid = False
+        nodes, _links = get_nodes_links(context)
         post_select = []  # nodes to be selected after execution
+        y_offset = -22.0
+
         # create reroutes and recreate links
         for node in [n for n in nodes if n.select]:
-            if node.outputs:
-                x = node.location.x
-                y = node.location.y
-                width = node.width
-                # unhide 'REROUTE' nodes to avoid issues with location.y
-                if node.type == 'REROUTE':
-                    node.hide = False
-                # Hack needed to calculate real width
-                if node.hide:
-                    bpy.ops.node.select_all(action='DESELECT')
-                    helper = nodes.new('NodeReroute')
-                    helper.select = True
-                    node.select = True
-                    # resize node and helper to zero. Then check locations to calculate width
-                    bpy.ops.transform.resize(value=(0.0, 0.0, 0.0))
-                    width = 2.0 * (helper.location.x - node.location.x)
-                    # restore node location
-                    node.location = x, y
-                    # delete helper
-                    node.select = False
-                    # only helper is selected now
-                    bpy.ops.node.delete()
-                x = node.location.x + width + 20.0
-                if node.type != 'REROUTE':
-                    y -= 35.0
-                y_offset = -22.0
-                loc = x, y
+            if not node.outputs:
+                node.select = False
+                continue
+            x, y = node.location
+            width = node.width
+            # unhide 'REROUTE' nodes to avoid issues with location.y
+            if node.type == 'REROUTE':
+                node.hide = False
+            # Hack needed to calculate real width
+            if node.hide:
+                bpy.ops.node.select_all(action='DESELECT')
+                helper = nodes.new('NodeReroute')
+                helper.select = True
+                node.select = True
+                # resize node and helper to zero. Then check locations to calculate width
+                bpy.ops.transform.resize(value=(0.0, 0.0, 0.0))
+                width = 2.0 * (helper.location.x - node.location.x)
+                # restore node location
+                node.location = x, y
+                # delete helper
+                node.select = False
+                # only helper is selected now
+                bpy.ops.node.delete()
+            x = node.location.x + width + 20.0
+            if node.type != 'REROUTE':
+                y -= 35.0
+
             reroutes_count = 0  # will be used when aligning reroutes added to hidden nodes
             for out_i, output in enumerate(node.outputs):
-                pass_used = False  # initial value to be analyzed if 'R_LAYERS'
-                # if node != 'R_LAYERS' - "pass_used" not needed, so set it to True
-                if node.type != 'R_LAYERS':
-                    pass_used = True
-                else:  # if 'R_LAYERS' check if output represent used render pass
+                if node.type == 'R_LAYERS' and output.name != 'Alpha':
+                    # if 'R_LAYERS' check if output is used in render pass
+                    # if output is "Alpha", assume it's used. Not available in passes
                     node_scene = node.scene
                     node_layer = node.layer
-                    # If output - "Alpha" is analyzed - assume it's used. Not represented in passes.
-                    if output.name == 'Alpha':
-                        pass_used = True
-                    else:
+                    for rlo in rl_outputs:
                         # check entries in global 'rl_outputs' variable
-                        for rlo in rl_outputs:
-                            if output.name in {rlo.output_name, rlo.exr_output_name}:
-                                pass_used = getattr(node_scene.view_layers[node_layer], rlo.render_pass)
-                                break
-                if pass_used:
-                    valid = ((option == 'ALL') or
-                             (option == 'LOOSE' and not output.links) or
-                             (option == 'LINKED' and output.links))
-                    # Add reroutes only if valid, but offset location in all cases.
-                    if valid:
-                        n = nodes.new('NodeReroute')
-                        nodes.active = n
-                        for link in output.links:
-                            connect_sockets(n.outputs[0], link.to_socket)
-                        connect_sockets(output, n.inputs[0])
-                        n.location = loc
-                        post_select.append(n)
-                    reroutes_count += 1
-                    y += y_offset
-                    loc = x, y
+                        if output.name in {rlo.output_name, rlo.exr_output_name}:
+                            if not getattr(node_scene.view_layers[node_layer], rlo.render_pass):
+                                node.select = False
+                                continue
+                # Output is valid when option is 'all' or when 'loose' output has no links.
+                valid = ((self.option == 'ALL') or
+                         (self.option == 'LOOSE' and not output.links) or
+                         (self.option == 'LINKED' and output.links))
+                # Add reroutes only if valid, but offset location in all cases.
+                if valid:
+                    n = nodes.new('NodeReroute')
+                    nodes.active = n
+                    for link in output.links:
+                        connect_sockets(n.outputs[0], link.to_socket)
+                    connect_sockets(output, n.inputs[0])
+                    n.location = x, y
+                    post_select.append(n)
+                reroutes_count += 1
+                y += y_offset
             # disselect the node so that after execution of script only newly created nodes are selected
             node.select = False
+
             # nicer reroutes distribution along y when node.hide
             if node.hide:
                 y_translate = reroutes_count * y_offset / 2.0 - y_offset - 35.0
