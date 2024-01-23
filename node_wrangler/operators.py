@@ -1990,7 +1990,6 @@ class NWAddReroutes(Operator, NWBase):
         # Create reroutes and recreate links.
         for node in [n for n in nodes if n.select]:
             if not node.outputs:
-                node.select = False
                 continue
             x, y = node.location
             width = node.width
@@ -2029,7 +2028,6 @@ class NWAddReroutes(Operator, NWBase):
                         # Check entries in global 'rl_outputs' variable.
                         if output.name in {rlo.output_name, rlo.exr_output_name}:
                             if not getattr(node_scene.view_layers[node_layer], rlo.render_pass):
-                                node.select = False
                                 continue
                 # Output is valid when option is 'all' or when 'loose' output has no links.
                 valid = ((self.option == 'ALL') or
@@ -2046,16 +2044,20 @@ class NWAddReroutes(Operator, NWBase):
                     post_select.append(n)
                 reroutes_count += 1
                 y += y_offset
-            # Deselect the node so that after execution of script only newly created nodes are selected.
-            node.select = False
 
             # Nicer reroutes distribution along y when node.hide.
             if node.hide:
                 y_translate = reroutes_count * y_offset / 2.0 - y_offset - 35.0
                 for reroute in [r for r in nodes if r.select]:
                     reroute.location.y -= y_translate
-            for node in post_select:
-                node.select = True
+
+        if post_select:
+            for node in nodes:
+                # Select only newly created nodes.
+                node.select = node in post_select
+        else:
+            # No new nodes were created.
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 
