@@ -2018,6 +2018,8 @@ class NWAddReroutes(Operator, NWBase):
 
             reroutes_count = 0  # Will be used when aligning reroutes added to hidden nodes.
             for out_i, output in enumerate(node.outputs):
+                if output.is_unavailable:
+                    continue
                 if node.type == 'R_LAYERS' and output.name != 'Alpha':
                     # If 'R_LAYERS' check if output is used in render pass.
                     # If output is "Alpha", assume it's used. Not available in passes.
