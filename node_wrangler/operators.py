@@ -1984,47 +1984,47 @@ class NWAddReroutes(Operator, NWBase):
 
     def execute(self, context):
         nodes, _links = get_nodes_links(context)
-        post_select = []  # nodes to be selected after execution
+        post_select = []  # Nodes to be selected after execution.
         y_offset = -22.0
 
-        # create reroutes and recreate links
+        # Create reroutes and recreate links.
         for node in [n for n in nodes if n.select]:
             if not node.outputs:
                 node.select = False
                 continue
             x, y = node.location
             width = node.width
-            # unhide 'REROUTE' nodes to avoid issues with location.y
+            # Unhide 'REROUTE' nodes to avoid issues with location.y
             if node.type == 'REROUTE':
                 node.hide = False
-            # Hack needed to calculate real width
+            # Hack needed to calculate real width.
             if node.hide:
                 bpy.ops.node.select_all(action='DESELECT')
                 helper = nodes.new('NodeReroute')
                 helper.select = True
                 node.select = True
-                # resize node and helper to zero. Then check locations to calculate width
+                # Resize node and helper to zero. Then check locations to calculate width.
                 bpy.ops.transform.resize(value=(0.0, 0.0, 0.0))
                 width = 2.0 * (helper.location.x - node.location.x)
-                # restore node location
+                # Restore node location.
                 node.location = x, y
-                # delete helper
+                # Delete helper.
                 node.select = False
-                # only helper is selected now
+                # Only helper is selected now.
                 bpy.ops.node.delete()
             x = node.location.x + width + 20.0
             if node.type != 'REROUTE':
                 y -= 35.0
 
-            reroutes_count = 0  # will be used when aligning reroutes added to hidden nodes
+            reroutes_count = 0  # Will be used when aligning reroutes added to hidden nodes.
             for out_i, output in enumerate(node.outputs):
                 if node.type == 'R_LAYERS' and output.name != 'Alpha':
-                    # if 'R_LAYERS' check if output is used in render pass
-                    # if output is "Alpha", assume it's used. Not available in passes
+                    # If 'R_LAYERS' check if output is used in render pass.
+                    # If output is "Alpha", assume it's used. Not available in passes.
                     node_scene = node.scene
                     node_layer = node.layer
                     for rlo in rl_outputs:
-                        # check entries in global 'rl_outputs' variable
+                        # Check entries in global 'rl_outputs' variable.
                         if output.name in {rlo.output_name, rlo.exr_output_name}:
                             if not getattr(node_scene.view_layers[node_layer], rlo.render_pass):
                                 node.select = False
@@ -2044,10 +2044,10 @@ class NWAddReroutes(Operator, NWBase):
                     post_select.append(n)
                 reroutes_count += 1
                 y += y_offset
-            # disselect the node so that after execution of script only newly created nodes are selected
+            # Deselect the node so that after execution of script only newly created nodes are selected.
             node.select = False
 
-            # nicer reroutes distribution along y when node.hide
+            # Nicer reroutes distribution along y when node.hide.
             if node.hide:
                 y_translate = reroutes_count * y_offset / 2.0 - y_offset - 35.0
                 for reroute in [r for r in nodes if r.select]:
