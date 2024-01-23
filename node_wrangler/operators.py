@@ -2019,8 +2019,8 @@ class NWAddReroutes(Operator, NWBase):
                 valid = ((self.option == 'ALL') or
                          (self.option == 'LOOSE' and not output.links) or
                          (self.option == 'LINKED' and output.links))
-                # Add reroutes only if valid, but offset location in all cases.
                 if valid:
+                    # Add reroutes only if valid.
                     n = nodes.new('NodeReroute')
                     nodes.active = n
                     for link in output.links:
@@ -2029,8 +2029,10 @@ class NWAddReroutes(Operator, NWBase):
                     n.location = x, y
                     new_node_reroutes.append(n)
                     post_select.append(n)
-                reroutes_count += 1
-                y += y_offset
+                if valid or not output.hide:
+                    # Offset reroutes for all outputs, except hidden ones.
+                    reroutes_count += 1
+                    y += y_offset
 
             # Nicer reroutes distribution along y when node.hide.
             if node.hide:
