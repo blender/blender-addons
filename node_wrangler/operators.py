@@ -1991,28 +1991,14 @@ class NWAddReroutes(Operator, NWBase):
         for node in [n for n in nodes if n.select]:
             if not node.outputs:
                 continue
-            x, y = node.location
-            width = node.width
+            x = node.location.x + node.width + 20.0
+            y = node.location.y
+            new_node_reroutes = []
+
             # Unhide 'REROUTE' nodes to avoid issues with location.y
             if node.type == 'REROUTE':
                 node.hide = False
-            # Hack needed to calculate real width.
-            if node.hide:
-                bpy.ops.node.select_all(action='DESELECT')
-                helper = nodes.new('NodeReroute')
-                helper.select = True
-                node.select = True
-                # Resize node and helper to zero. Then check locations to calculate width.
-                bpy.ops.transform.resize(value=(0.0, 0.0, 0.0))
-                width = 2.0 * (helper.location.x - node.location.x)
-                # Restore node location.
-                node.location = x, y
-                # Delete helper.
-                node.select = False
-                # Only helper is selected now.
-                bpy.ops.node.delete()
-            x = node.location.x + width + 20.0
-            if node.type != 'REROUTE':
+            else:
                 y -= 35.0
 
             reroutes_count = 0  # Will be used when aligning reroutes added to hidden nodes.
@@ -2041,6 +2027,7 @@ class NWAddReroutes(Operator, NWBase):
                         connect_sockets(n.outputs[0], link.to_socket)
                     connect_sockets(output, n.inputs[0])
                     n.location = x, y
+                    new_node_reroutes.append(n)
                     post_select.append(n)
                 reroutes_count += 1
                 y += y_offset
@@ -2048,7 +2035,7 @@ class NWAddReroutes(Operator, NWBase):
             # Nicer reroutes distribution along y when node.hide.
             if node.hide:
                 y_translate = reroutes_count * y_offset / 2.0 - y_offset - 35.0
-                for reroute in [r for r in nodes if r.select]:
+                for reroute in new_node_reroutes:
                     reroute.location.y -= y_translate
 
         if post_select:
