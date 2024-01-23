@@ -2241,6 +2241,8 @@ class NWAddReroutes(Operator, NWBase):
                 loc = x, y
             reroutes_count = 0  # will be used when aligning reroutes added to hidden nodes
             for out_i, output in enumerate(node.outputs):
+                if output.is_unavailable:
+                    continue
                 pass_used = False  # initial value to be analyzed if 'R_LAYERS'
                 # if node != 'R_LAYERS' - "pass_used" not needed, so set it to True
                 if node.type != 'R_LAYERS':
