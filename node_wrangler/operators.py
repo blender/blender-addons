@@ -2212,30 +2212,14 @@ class NWAddReroutes(Operator, NWBase):
         # create reroutes and recreate links
         for node in [n for n in nodes if n.select]:
             if node.outputs:
-                x = node.location.x
+                x = node.location.x + node.width + 20.0
                 y = node.location.y
-                width = node.width
+                new_node_reroutes = []
+
                 # unhide 'REROUTE' nodes to avoid issues with location.y
                 if node.type == 'REROUTE':
                     node.hide = False
-                # When node is hidden - width_hidden not usable.
-                # Hack needed to calculate real width
-                if node.hide:
-                    bpy.ops.node.select_all(action='DESELECT')
-                    helper = nodes.new('NodeReroute')
-                    helper.select = True
-                    node.select = True
-                    # resize node and helper to zero. Then check locations to calculate width
-                    bpy.ops.transform.resize(value=(0.0, 0.0, 0.0))
-                    width = 2.0 * (helper.location.x - node.location.x)
-                    # restore node location
-                    node.location = x, y
-                    # delete helper
-                    node.select = False
-                    # only helper is selected now
-                    bpy.ops.node.delete()
-                x = node.location.x + width + 20.0
-                if node.type != 'REROUTE':
+                else:
                     y -= 35.0
                 y_offset = -22.0
                 loc = x, y
@@ -2271,6 +2255,7 @@ class NWAddReroutes(Operator, NWBase):
                             connect_sockets(n.outputs[0], link.to_socket)
                         connect_sockets(output, n.inputs[0])
                         n.location = loc
+                        new_node_reroutes.append(n)
                         post_select.append(n)
                     reroutes_count += 1
                     y += y_offset
@@ -2280,7 +2265,7 @@ class NWAddReroutes(Operator, NWBase):
             # nicer reroutes distribution along y when node.hide
             if node.hide:
                 y_translate = reroutes_count * y_offset / 2.0 - y_offset - 35.0
-                for reroute in [r for r in nodes if r.select]:
+                for reroute in new_node_reroutes:
                     reroute.location.y -= y_translate
             for node in post_select:
                 node.select = True
