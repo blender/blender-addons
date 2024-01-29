@@ -1480,7 +1480,7 @@ class NWCopySettings(Operator, NWBase):
                 new_node.location = node_loc
 
             for str_from, str_to in reconnections:
-                node_tree.connect_sockets(eval(str_from), eval(str_to))
+                connect_sockets(eval(str_from), eval(str_to))
 
             success_names.append(new_node.name)
 
