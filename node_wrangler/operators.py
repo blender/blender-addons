@@ -557,7 +557,7 @@ class NWPreviewNode(Operator, NWBase):
         groupout = get_group_output_node(node_tree)
         if groupout is None:
             groupout = node_tree.nodes.new('NodeGroupOutput')
-            loc_x, loc_y = get_output_location(tree)
+            loc_x, loc_y = get_output_location(node_tree)
             groupout.location.x = loc_x
             groupout.location.y = loc_y
             groupout.select = False
