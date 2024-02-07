@@ -503,7 +503,7 @@ class NWPreviewNode(Operator, NWBase):
     @classmethod
     def poll(cls, context):
         """Already implemented natively for compositing nodes."""
-        return (nw_check(cls, context)
+        return (nw_check(cls, context) and nw_check_not_empty(cls, context)
                 and nw_check_space_type(cls, context, {'ShaderNodeTree', 'GeometryNodeTree'}))
 
     @staticmethod
