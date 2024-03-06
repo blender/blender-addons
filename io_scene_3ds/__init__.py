@@ -46,7 +46,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
 
     filename_ext = ".3ds"
     filter_glob: StringProperty(default="*.3ds", options={'HIDDEN'})
-    # filepath: StringProperty(subtype='FILE_PATH', options={'SKIP_SAVE'})
+    filepath: StringProperty(subtype='FILE_PATH', options={'SKIP_SAVE'})
 
     constrain_size: FloatProperty(
         name="Constrain Size",
@@ -105,15 +105,8 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         default=False,
     )
 
-    # @classmethod
-    # def poll(cls, context):
-    #     return (context.area and context.area.type == "VIEW_3D")
-
     def execute(self, context):
         from . import import_3ds
-        # if not self.filepath or not self.filepath.endswith(".3ds"):
-        #     return {'CANCELLED'}
-
         keywords = self.as_keywords(ignore=("axis_forward",
                                             "axis_up",
                                             "filter_glob",
@@ -126,12 +119,6 @@ class Import3DS(bpy.types.Operator, ImportHelper):
 
         return import_3ds.load(self, context, **keywords)
 
-    # def invoke(self, context, event):
-    #     if self.filepath:
-    #         return self.execute(context)
-    #     context.window_manager.fileselect_add(self)
-    #     return {'RUNNING_MODAL'}
-
     def draw(self, context):
         pass
 
@@ -140,7 +127,7 @@ class MAX3DS_FH_import(bpy.types.FileHandler):
     bl_idname = "MAX3DS_FH_import"
     bl_label = "File handler for 3ds import"
     bl_import_operator = "import_scene.max3ds"
-    bl_file_extensions = ".3ds"
+    bl_file_extensions = ".3ds;.3DS"
 
     @classmethod
     def poll_drop(cls, context):
