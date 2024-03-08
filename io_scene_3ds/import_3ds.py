@@ -1671,10 +1671,12 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True,
     object_dictionary.clear()
     object_matrix.clear()
 
+    """
     if APPLY_MATRIX:
         for ob in imported_objects:
             if ob.type == 'MESH':
                 ob.data.transform(ob.matrix_local.inverted())
+    """
 
     if UNITS:
         unit_mtx = mathutils.Matrix.Scale(MEASURE,4)
