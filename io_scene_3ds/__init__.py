@@ -13,6 +13,7 @@ from bpy.props import (
     EnumProperty,
     FloatProperty,
     StringProperty,
+    CollectionProperty,
 )
 import bpy
 bl_info = {
@@ -47,6 +48,8 @@ class Import3DS(bpy.types.Operator, ImportHelper):
     filename_ext = ".3ds"
     filter_glob: StringProperty(default="*.3ds", options={'HIDDEN'})
     filepath: StringProperty(subtype='FILE_PATH', options={'SKIP_SAVE'})
+    files: CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+    directory: StringProperty(subtype='DIR_PATH')
 
     constrain_size: FloatProperty(
         name="Constrain Size",
