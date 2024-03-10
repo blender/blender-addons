@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 2, 2),
+    "version": (4, 2, 3),
     'blender': (4, 1, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -673,6 +673,15 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         default=False
     )
 
+    export_optimize_armature_disable_viewport: BoolProperty(
+        name='Disable viewport if possible',
+        description=(
+            "When exporting armature, disable viewport for other objects, "
+            "for performance. Drivers on shape keys for skined meshes prevent this optimization for now"
+        ),
+        default=False
+    )
+
     export_negative_frame: EnumProperty(
         name='Negative Frames',
         items=(('SLIDE', 'Slide',
@@ -1031,6 +1040,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             export_settings['gltf_optimize_animation'] = self.export_optimize_animation_size
             export_settings['gltf_optimize_animation_keep_armature'] = self.export_optimize_animation_keep_anim_armature
             export_settings['gltf_optimize_animation_keep_object'] = self.export_optimize_animation_keep_anim_object
+            export_settings['gltf_optimize_armature_disable_viewport'] = self.export_optimize_armature_disable_viewport
             export_settings['gltf_export_anim_single_armature'] = self.export_anim_single_armature
             export_settings['gltf_export_reset_pose_bones'] = self.export_reset_pose_bones
             export_settings['gltf_export_reset_sk_data'] = self.export_morph_reset_sk_data
@@ -1044,6 +1054,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             export_settings['gltf_optimize_animation'] = False
             export_settings['gltf_optimize_animation_keep_armature'] = False
             export_settings['gltf_optimize_animation_keep_object'] = False
+            export_settings['gltf_optimize_armature_disable_viewport'] = False
             export_settings['gltf_export_anim_single_armature'] = False
             export_settings['gltf_export_reset_pose_bones'] = False
             export_settings['gltf_export_reset_sk_data'] = False
@@ -1846,6 +1857,9 @@ class GLTF_PT_export_animation_optimize(bpy.types.Panel):
 
         row = layout.row()
         row.prop(operator, 'export_optimize_animation_keep_anim_object')
+
+        row = layout.row()
+        row.prop(operator, 'export_optimize_armature_disable_viewport')
 
 
 class GLTF_PT_export_user_extensions(bpy.types.Panel):
