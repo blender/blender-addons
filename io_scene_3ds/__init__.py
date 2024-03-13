@@ -107,6 +107,12 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         description="Read the 3D cursor location",
         default=False,
     )
+    use_collection: BoolProperty(
+        name="Collection",
+        description="Create a new collection",
+        default=False,
+    )
+
 
     def execute(self, context):
         from . import import_3ds
@@ -165,6 +171,9 @@ class MAX3DS_PT_import_include(bpy.types.Panel):
         layrow = layout.row(align=True)
         layrow.prop(operator, "use_keyframes")
         layrow.label(text="", icon='ANIM' if operator.use_keyframes else 'DECORATE_DRIVER')
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "use_collection")
+        layrow.label(text="", icon='OUTLINER_COLLECTION' if operator.use_collection else 'GROUP')
         layrow = layout.row(align=True)
         layrow.prop(operator, "use_cursor")
         layrow.label(text="", icon='PIVOT_CURSOR' if operator.use_cursor else 'CURSOR')
