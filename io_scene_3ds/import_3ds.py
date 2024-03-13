@@ -1776,20 +1776,22 @@ def load(operator, context, files=None, directory="", filepath="", constrain_siz
          use_apply_transform=True, global_matrix=None, use_cursor=False, use_center_pivot=False, use_collection=False):
 
     # Get the active collection
-    collection_init = bpy.context.view_layer.active_layer_collection.collection
+    collection_init = context.view_layer.active_layer_collection.collection
 
     # Load each selected file
     for file in files:
         # Create new collections if activated (collection name = 3ds file name)
         if use_collection: 
             collection = bpy.data.collections.new(Path(file.name).stem)
-            bpy.context.scene.collection.children.link(collection)
-            bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection.children[collection.name]
+            context.scene.collection.children.link(collection)
+            context.view_layer.active_layer_collection = context.view_layer.layer_collection.children[collection.name]
         load_3ds(Path(directory, file.name), context, CONSTRAIN=constrain_size, UNITS=use_scene_unit,
              IMAGE_SEARCH=use_image_search, FILTER=object_filter, WORLD_MATRIX=use_world_matrix, KEYFRAME=use_keyframes,
              APPLY_MATRIX=use_apply_transform, CONVERSE=global_matrix, CURSOR=use_cursor, PIVOT=use_center_pivot,)
 
     # Retrive the initial collection as active
-    bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection.children[collection_init.name]
+    active = context.view_layer.layer_collection.children.get(collection_init.name)
+    if active is not None:
+        context.view_layer.active_layer_collection = active
 
     return {'FINISHED'}
