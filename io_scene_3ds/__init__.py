@@ -102,14 +102,14 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         description="Transform to matrix world",
         default=False,
     )
-    use_cursor: BoolProperty(
-        name="Cursor Origin",
-        description="Read the 3D cursor location",
-        default=False,
-    )
     use_collection: BoolProperty(
         name="Collection",
         description="Create a new collection",
+        default=False,
+    )
+    use_cursor: BoolProperty(
+        name="Cursor Origin",
+        description="Read the 3D cursor location",
         default=False,
     )
 
@@ -258,14 +258,14 @@ class Export3DS(bpy.types.Operator, ExportHelper):
         description="Object types to export",
         default={'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY'},
     )
-    use_hierarchy: BoolProperty(
-        name="Hierarchy",
-        description="Export hierarchy chunks",
-        default=False,
-    )
     use_keyframes: BoolProperty(
         name="Animation",
         description="Write the keyframe data",
+        default=True,
+    )
+    use_hierarchy: BoolProperty(
+        name="Hierarchy",
+        description="Export hierarchy chunks",
         default=False,
     )
     use_cursor: BoolProperty(
@@ -319,11 +319,11 @@ class MAX3DS_PT_export_include(bpy.types.Panel):
         layrow.label(text="", icon='RESTRICT_SELECT_OFF' if operator.use_selection else 'RESTRICT_SELECT_ON')
         layout.column().prop(operator, "object_filter")
         layrow = layout.row(align=True)
-        layrow.prop(operator, "use_hierarchy")
-        layrow.label(text="", icon='OUTLINER' if operator.use_hierarchy else 'CON_CHILDOF')
-        layrow = layout.row(align=True)
         layrow.prop(operator, "use_keyframes")
         layrow.label(text="", icon='ANIM' if operator.use_keyframes else 'DECORATE_DRIVER')
+        layrow = layout.row(align=True)
+        layrow.prop(operator, "use_hierarchy")
+        layrow.label(text="", icon='OUTLINER' if operator.use_hierarchy else 'CON_CHILDOF')
         layrow = layout.row(align=True)
         layrow.prop(operator, "use_cursor")
         layrow.label(text="", icon='PIVOT_CURSOR' if operator.use_cursor else 'CURSOR')
