@@ -6,6 +6,7 @@ from ctypes import *
 from pathlib import Path
 
 from ...io.exp.gltf2_io_binary_data import BinaryData
+from ...io.com.gltf2_io_debug import print_console
 from ...io.com.gltf2_io_draco_compression_extension import dll_path
 
 
@@ -89,7 +90,7 @@ def __traverse_node(node, f):
 
 def __encode_node(node, dll, export_settings, encoded_primitives_cache):
     if node.mesh is not None:
-        export_settings['log'].info('Draco encoder: Encoding mesh {}.'.format(node.name))
+        print_console('INFO', 'Draco encoder: Encoding mesh {}.'.format(node.name))
         for primitive in node.mesh.primitives:
             __encode_primitive(primitive, dll, export_settings, encoded_primitives_cache)
 
@@ -111,7 +112,7 @@ def __encode_primitive(primitive, dll, export_settings, encoded_primitives_cache
         return
 
     if 'POSITION' not in attributes:
-        export_settings['log'].warning('Draco encoder: Primitive without positions encountered. Skipping.')
+        print_console('WARNING', 'Draco encoder: Primitive without positions encountered. Skipping.')
         return
 
     positions = attributes['POSITION']
@@ -140,7 +141,7 @@ def __encode_primitive(primitive, dll, export_settings, encoded_primitives_cache
 
     preserve_triangle_order = primitive.targets is not None and len(primitive.targets) > 0
     if not dll.encoderEncode(encoder, preserve_triangle_order):
-        export_settings['log'].error('Could not encode primitive. Skipping primitive.')
+        print_console('ERROR', 'Could not encode primitive. Skipping primitive.')
 
     byte_length = dll.encoderGetByteLength(encoder)
     encoded_data = bytes(byte_length)
