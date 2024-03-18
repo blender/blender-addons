@@ -72,11 +72,6 @@ def write_mesh(context, report_cb):
     obj = layer.objects.active
     export_data_layers = print_3d.use_data_layers
 
-    # Make sure at least one object is selected.
-    if not context.selected_objects:
-        report_cb({'ERROR'}, "No objects selected")
-        return False
-
     # Create name 'export_path/blendname-objname'
     # add the filename component
     if bpy.data.is_saved:

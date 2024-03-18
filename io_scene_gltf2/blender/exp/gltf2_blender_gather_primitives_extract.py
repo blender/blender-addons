@@ -6,6 +6,7 @@ import numpy as np
 from copy import deepcopy
 from mathutils import Vector
 from ...blender.com.gltf2_blender_data_path import get_sk_exported
+from ...io.com.gltf2_io_debug import print_console
 from ...io.com.gltf2_io_constants import ROUNDING_DIGIT
 from ...io.exp.gltf2_io_user_extensions import export_user_extensions
 from ...io.com import gltf2_io_constants
@@ -18,7 +19,7 @@ from . import gltf2_blender_gather_skins
 
 def extract_primitives(materials, blender_mesh, uuid_for_skined_data, blender_vertex_groups, modifiers, export_settings):
     """Extract primitives from a mesh."""
-    export_settings['log'].info("Extracting primitive: " + blender_mesh.name)
+    print_console('INFO', 'Extracting primitive: ' + blender_mesh.name)
 
     primitive_creator = PrimitiveCreator(materials, blender_mesh, uuid_for_skined_data, blender_vertex_groups, modifiers, export_settings)
     primitive_creator.prepare_data()
@@ -77,7 +78,7 @@ class PrimitiveCreator:
                     self.blender_mesh.calc_tangents()
                     self.use_tangents = True
                 except Exception:
-                    self.export_settings['log'].warning("{}: Could not calculate tangents. Please try to triangulate the mesh first.".format(self.blender_mesh.name), popup=True)
+                    print_console('WARNING', 'Could not calculate tangents. Please try to triangulate the mesh first.')
 
         self.tex_coord_max = 0
         if self.export_settings['gltf_texcoords']:
@@ -186,7 +187,7 @@ class PrimitiveCreator:
             # Seems we sometime can have name collision about attributes
             # Avoid crash and ignoring one of duplicated attribute name
             if attr['gltf_attribute_name'] in [a['gltf_attribute_name'] for a in self.blender_attributes]:
-                self.export_settings['log'].warning('Attribute collision name: ' + blender_attribute.name + ", ignoring one of them")
+                print_console('WARNING', 'Attribute collision name: ' + blender_attribute.name + ", ignoring one of them")
                 continue
 
             self.blender_attributes.append(attr)
@@ -425,7 +426,7 @@ class PrimitiveCreator:
                         self.blender_mesh.attributes[attr].data.foreach_get('vector', data)
                         data = data.reshape(-1, 2)
                     else:
-                        self.export_settings['log'].warning('We are not managing this case (UVMap as custom attribute for unknown type)')
+                        print_console('WARNING', 'We are not managing this case yet (UVMap as custom attribute for unknown type)')
                         continue
                     # Blender UV space -> glTF UV space
                     # u,v -> u,1-v
@@ -447,7 +448,7 @@ class PrimitiveCreator:
                 pass
 
             elif material_info['vc_info']['color_type'] is None and material_info['vc_info']['alpha_type'] is not None:
-                self.export_settings['log'].warning('We are not managing this case (Vertex Color alpha without color)')
+                print_console('WARNING', 'We are not managing this case (Vertex Color alpha without color)')
 
             else:
                 vc_color_name = None
@@ -474,7 +475,7 @@ class PrimitiveCreator:
 
                     if materials_use_vc is not None and materials_use_vc != vc_key:
                         if warning_already_displayed is False:
-                            self.export_settings['log'].warning('glTF specification does not allow this case (multiple materials with different Vertex Color)')
+                            print_console('WARNING', 'glTF specification does not allow this case (multiple materials with different Vertex Color)')
                             warning_already_displayed = True
                         materials_use_vc = vc_key
 
@@ -519,12 +520,12 @@ class PrimitiveCreator:
                 all_uvmaps[tex] = uvmap_name
 
             if len(set(all_uvmaps.values())) > 1:
-                self.export_settings['log'].warning('We are not managing this case (multiple UVMap for UDIM)')
+                print_console('WARNING', 'We are not managing this case (multiple UVMap for UDIM)')
                 new_prim_indices[material_idx] = self.prim_indices[material_idx]
                 self.additional_materials.append(None)
                 continue
 
-            self.export_settings['log'].info('Splitting UDIM tiles into different primitives/materials')
+            print_console('INFO', 'Splitting UDIM tiles into different primitives/materials')
             # Retrieve UDIM images
             tex = list(material_info['udim_info'].keys())[0]
             image = material_info['udim_info'][tex]['image']
@@ -622,7 +623,7 @@ class PrimitiveCreator:
                         elif tex == "anisotropyTexture":
                             new_material.extensions["KHR_materials_anisotropy"].extension['anisotropyTexture'] = new_tex
                         else:
-                            self.export_settings['log'].warning('We are not managing this case (UDIM for {})'.format(tex))
+                            print_console('WARNING', 'We are not managing this case yet (UDIM for {})'.format(tex))
 
                     self.additional_materials.append((new_material, material_info, int(str(id(base_material)) + str(u) + str(v))))
 
@@ -695,7 +696,7 @@ class PrimitiveCreator:
         has_triangle_primitive = len(primitives) != 0
         primitives.extend(self.primitive_creation_edges_and_points())
 
-        self.export_settings['log'].info('Primitives created: %d' % len(primitives))
+        print_console('INFO', 'Primitives created: %d' % len(primitives))
 
         return primitives, [None]*len(primitives), self.attributes if has_triangle_primitive else None
 
@@ -768,7 +769,7 @@ class PrimitiveCreator:
         # No material for them, so only one primitive for each
         primitives.extend(self.primitive_creation_edges_and_points())
 
-        self.export_settings['log'].info('Primitives created: %d' % len(primitives))
+        print_console('INFO', 'Primitives created: %d' % len(primitives))
 
         return primitives
 
@@ -1060,7 +1061,7 @@ class PrimitiveCreator:
         elif attr['blender_domain'] in ['FACE']:
             data = np.empty(len(self.blender_mesh.polygons) * attr['len'], dtype=attr['type'])
         else:
-            self.export_settings['log'].error("domain not known")
+            print_console("ERROR", "domain not known")
 
         if attr['blender_data_type'] == "BYTE_COLOR":
             self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('color', data)
@@ -1092,7 +1093,7 @@ class PrimitiveCreator:
             self.blender_mesh.attributes[attr['blender_attribute_index']].data.foreach_get('value', data)
             data = data.reshape(-1, attr['len'])
         else:
-            self.export_settings['log'].error("blender type not found " +  attr['blender_data_type'])
+            print_console('ERROR',"blender type not found " +  attr['blender_data_type'])
 
         if attr['blender_domain'] in ['CORNER']:
             for i in range(attr['len']):
@@ -1128,7 +1129,7 @@ class PrimitiveCreator:
                 self.dots[attr['gltf_attribute_name'] + str(i)] = data_attr[:, i]
 
         else:
-            self.export_settings['log'].error("domain not known")
+            print_console("ERROR", "domain not known")
 
     def __get_uvs_attribute(self, blender_uv_idx, attr):
         layer = self.blender_mesh.uv_layers[blender_uv_idx]

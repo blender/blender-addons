@@ -340,7 +340,8 @@ def __get_image_data_mapping(sockets, results, use_tile, export_settings) -> Exp
     keys = list(composed_image.fills.keys()) # do not loop on dict, we may have to delete an element
     for k in [k for k in keys if isinstance(composed_image.fills[k], FillImage)]:
         if composed_image.fills[k].image.size[0] == 0 or composed_image.fills[k].image.size[1] == 0:
-            export_settings['log'].warning("Image '{}' has no size and cannot be exported.".format(
+            gltf2_io_debug.print_console("WARNING",
+                                         "Image '{}' has no size and cannot be exported.".format(
                                              composed_image.fills[k].image))
             del composed_image.fills[k]
 
