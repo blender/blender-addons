@@ -47,7 +47,6 @@ class Import3DS(bpy.types.Operator, ImportHelper):
 
     filename_ext = ".3ds"
     filter_glob: StringProperty(default="*.3ds", options={'HIDDEN'})
-    filepath: StringProperty(subtype='FILE_PATH', options={'SKIP_SAVE'})
     files: CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
     directory: StringProperty(subtype='DIR_PATH')
 
@@ -112,7 +111,6 @@ class Import3DS(bpy.types.Operator, ImportHelper):
         description="Read the 3D cursor location",
         default=False,
     )
-
 
     def execute(self, context):
         from . import import_3ds
@@ -225,10 +223,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
     bl_options = {'PRESET', 'UNDO'}
 
     filename_ext = ".3ds"
-    filter_glob: StringProperty(
-        default="*.3ds",
-        options={'HIDDEN'},
-    )
+    filter_glob: StringProperty(default="*.3ds", options={'HIDDEN'})
 
     scale_factor: FloatProperty(
         name="Scale Factor",
@@ -276,7 +271,6 @@ class Export3DS(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         from . import export_3ds
-
         keywords = self.as_keywords(ignore=("axis_forward",
                                             "axis_up",
                                             "filter_glob",
