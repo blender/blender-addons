@@ -910,7 +910,7 @@ class MESH_OT_print3d_hollow(Operator):
         if self.offset_direction == 'INSIDE':
             newverts, newquads = levelset.convertToQuads(-self.offset)
             if newquads.size == 0:
-                self.report({"ERROR"}, "Make sure target mesh has closed surface and offset value is less than half of target thickness")
+                self.report({'ERROR'}, "Make sure target mesh has closed surface and offset value is less than half of target thickness")
                 return {'FINISHED'}
         else:
             newverts, newquads = levelset.convertToQuads(self.offset)

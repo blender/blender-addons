@@ -121,14 +121,6 @@ class SceneProperties(PropertyGroup):
         min=0.0,
         max=math.radians(90.0),
     )
-    hollow_offset: FloatProperty(
-        name="Offset",
-        description="Surface offset in relation to original mesh",
-        default=1.0,
-        subtype='DISTANCE',
-        min=0.0,
-        step=1,
-        )
 
 
 classes = (
