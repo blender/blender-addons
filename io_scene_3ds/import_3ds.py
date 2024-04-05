@@ -1700,7 +1700,7 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True,
 
     imported_objects = []  # Fill this list with objects
     process_next_chunk(context, file, current_chunk, imported_objects, CONSTRAIN, FILTER,
-                       IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, CONVERSE, MEASURE, CURSOR)
+                       IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, APPLY_MATRIX, CONVERSE, MEASURE, CURSOR)
 
     # fixme, make unglobal
     object_dictionary.clear()
