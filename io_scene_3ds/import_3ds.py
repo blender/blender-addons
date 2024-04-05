@@ -1598,7 +1598,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                 ob.parent = object_dict.get(parent)
             except:  # object is None or self to parent exception
                 object_list.pop(ind)
-    
+
         #pivot_list[ind] += pivot_list[parent]  # Not sure this is correct, should parent space matrix be applied before combining?
 
     # if parent name
@@ -1609,6 +1609,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             if parent is not None:
                 ob.parent = parent
     parent_dictionary.clear()
+    matrix_transform.clear()
 
     # If hierarchy
     hierarchy = dict(zip(childs_list, parent_list))
