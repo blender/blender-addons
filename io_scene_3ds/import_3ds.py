@@ -1639,7 +1639,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                 cld = cld.parent
             if ob.type == 'MESH' and ob.data and ob.parent:
                 ob.data.transform(mat)
-    matrix_transform.clear()
 
 
 ##########
@@ -1703,6 +1702,7 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True,
                        IMAGE_SEARCH, WORLD_MATRIX, KEYFRAME, APPLY_MATRIX, CONVERSE, MEASURE, CURSOR)
 
     # fixme, make unglobal
+    matrix_transform.clear()
     object_dictionary.clear()
     object_matrix.clear()
 
@@ -1736,6 +1736,10 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True,
         if ob.type == 'MESH':
             if PIVOT:
                 bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
+            if not APPLY_MATRIX:  # Reset transform
+                bpy.ops.object.rotation_clear()
+                bpy.ops.object.location_clear()
+                bpy.ops.object.scale_clear()
 
     """
     if IMPORT_AS_INSTANCE:
