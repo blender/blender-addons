@@ -681,6 +681,8 @@
         keyframe_jitter_selected="#00bdff"
         keyframe_movehold="#808080"
         keyframe_movehold_selected="#00bdff"
+        keyframe_generated="#585858"
+        keyframe_generated_selected="#7c7c7c"
         keyframe_border="#00000080"
         keyframe_border_selected="#00bdffff"
         keyframe_scale_factor="1"
