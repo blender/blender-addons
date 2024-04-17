@@ -1609,7 +1609,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             if parent is not None:
                 ob.parent = parent
     parent_dictionary.clear()
-    matrix_transform.clear()
 
     # If hierarchy
     hierarchy = dict(zip(childs_list, parent_list))
@@ -1676,6 +1675,7 @@ def load_3ds(filepath, context, CONSTRAIN=10.0, UNITS=False, IMAGE_SEARCH=True,
 
     # fixme, make unglobal, clear in case
     object_dictionary.clear()
+    matrix_transform.clear()
     object_matrix.clear()
     scn = context.scene
 
