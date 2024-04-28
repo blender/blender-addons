@@ -1299,7 +1299,7 @@ def make_object_node(ob, translation, rotation, scale, name_id):
     obj_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
     parent = ob.parent
 
-    if ob.type == 'EMPTY':  # Forcing to use the real name for empties
+    if ob.type in {'EMPTY', 'ARMATURE'}:  # Forcing to use the real name for empties
         # Empties called $$$DUMMY and use OBJECT_INSTANCE_NAME chunk as name
         obj_node_header_chunk.add_variable("name", _3ds_string(b"$$$DUMMY"))
         obj_node_header_chunk.add_variable("flags1", _3ds_ushort(0x4000))
@@ -1335,12 +1335,12 @@ def make_object_node(ob, translation, rotation, scale, name_id):
         obj_node.add_subchunk(obj_parent_name_chunk)
 
     # Empty objects need to have an extra chunk for the instance name
-    if ob.type == 'EMPTY':  # Will use a real object name for empties for now
+    if ob.type in {'EMPTY', 'ARMATURE'}:  # Will use a real object name for empties for now
         obj_instance_name_chunk = _3ds_chunk(OBJECT_INSTANCE_NAME)
         obj_instance_name_chunk.add_variable("name", _3ds_string(sane_name(name)))
         obj_node.add_subchunk(obj_instance_name_chunk)
 
-    if ob.type in {'MESH', 'EMPTY'}:  # Add a pivot point at the object center
+    if ob.type in {'MESH', 'EMPTY', 'ARMATURE'}:  # Add a pivot point at the object center
         pivot_pos = (translation[name])
         obj_pivot_chunk = _3ds_chunk(OBJECT_PIVOT)
         obj_pivot_chunk.add_variable("pivot", _3ds_point_3d(pivot_pos))
@@ -1372,7 +1372,7 @@ def make_object_node(ob, translation, rotation, scale, name_id):
 
     obj_node.add_subchunk(make_track_chunk(POS_TRACK_TAG, ob, ob_pos, ob_rot, ob_scale))
 
-    if ob.type in {'MESH', 'EMPTY'}:
+    if ob.type in {'MESH', 'EMPTY', 'ARMATURE'}:
         obj_node.add_subchunk(make_track_chunk(ROT_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
         obj_node.add_subchunk(make_track_chunk(SCL_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
     if ob.type =='CAMERA':
@@ -1643,7 +1643,7 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
     else:
         objects = [ob for ob in items if ob.type in object_filter and ob.visible_get(view_layer=layer)]
 
-    empty_objects = [ob for ob in objects if ob.type == 'EMPTY']
+    empty_objects = [ob for ob in objects if ob.type in {'EMPTY', 'ARMATURE'}]
     light_objects = [ob for ob in objects if ob.type == 'LIGHT']
     camera_objects = [ob for ob in objects if ob.type == 'CAMERA']
 
