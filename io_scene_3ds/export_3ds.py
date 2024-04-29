@@ -780,6 +780,7 @@ def make_material_chunk(material, image):
 
         # Make sure no textures are lost. Everything that doesn't fit
         # into a channel is exported as secondary texture
+        matmap = None
         for link in mtlks:
             mxsecondary = link.from_node if link.from_node.type == 'TEX_IMAGE' and link.to_socket.identifier in {'Color1', 'A_Color'} else False
             if mxsecondary:
