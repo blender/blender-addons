@@ -218,9 +218,10 @@ class Export3DS(bpy.types.Operator, ExportHelper):
                ('CAMERA', "Camera".rjust(11), "", 'CAMERA_DATA',0x8),
                ('EMPTY', "Empty".rjust(11), "", 'EMPTY_AXIS',0x10),
                ('ARMATURE', "Armature".rjust(11), "", 'ARMATURE_DATA', 0x20),
+               ('OTHER', "Other".rjust(12), "", 'MATSHADERBALL', 0x40),
                ),
         description="Object types to export",
-        default={'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY', 'ARMATURE'},
+        default={'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY', 'ARMATURE', 'OTHER'},
     )
     use_keyframes: BoolProperty(
         name="Animation",

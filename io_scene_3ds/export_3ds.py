@@ -683,12 +683,7 @@ def make_material_chunk(material, image):
     material_chunk = _3ds_chunk(MATERIAL)
     name = _3ds_chunk(MATNAME)
     shading = _3ds_chunk(MATSHADING)
-
     name_str = material.name if material else "None"
-
-    # if image:
-    #     name_str += image.name
-
     name.add_variable("name", _3ds_string(sane_name(name_str)))
     material_chunk.add_subchunk(name)
 
@@ -974,9 +969,6 @@ def make_faces_chunk(tri_list, mesh, materialDict):
                 context_face_array = unique_mats[ma, img][1]
             except:
                 name_str = ma if ma else "None"
-                # if img:
-                #     name_str += img
-
                 context_face_array = _3ds_array()
                 unique_mats[ma, img] = _3ds_string(sane_name(name_str)), context_face_array
 
@@ -1577,6 +1569,7 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
     depsgraph = context.evaluated_depsgraph_get()
     items = scene.objects
     world = scene.world
+    other = {'CURVE', 'SURFACE', 'FONT', 'META'}
 
     unit_measure = 1.0
     if use_scene_unit:
@@ -1639,6 +1632,12 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
     materialDict = {}
     mesh_objects = []
 
+    if object_filter is None:
+        object_filter = {'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY', 'ARMATURE', 'OTHER'}
+
+    if 'OTHER' in object_filter:
+        object_filter |= other
+
     if use_selection:
         objects = [ob for ob in items if ob.type in object_filter and ob.visible_get(view_layer=layer) and ob.select_get(view_layer=layer)]
     else:
@@ -1660,10 +1659,14 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
             if ob.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
                 continue
 
-            try:
-                data = ob_derived.to_mesh()
-            except:
-                data = None
+            if ob.type in other:
+                item = ob.evaluated_get(depsgraph)
+                data = bpy.data.meshes.new_from_object(item, preserve_all_data_layers=True, depsgraph=depsgraph)
+            else:
+                try:
+                    data = ob_derived.to_mesh()
+                except:
+                    data = None
 
             if data:
                 matrix = global_matrix @ mtx
