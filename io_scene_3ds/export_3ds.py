@@ -1631,6 +1631,7 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
     # Make a list of all materials used in the selected meshes (use dictionary, each material is added once)
     materialDict = {}
     mesh_objects = []
+    free_objects = []
 
     if object_filter is None:
         object_filter = {'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY', 'ARMATURE', 'OTHER'}
@@ -1662,6 +1663,7 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
             if ob.type in other:
                 item = ob.evaluated_get(depsgraph)
                 data = bpy.data.meshes.new_from_object(item, preserve_all_data_layers=True, depsgraph=depsgraph)
+                free_objects.append(data)
             else:
                 try:
                     data = ob_derived.to_mesh()
@@ -2030,9 +2032,14 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
     # Close the file
     file.close()
 
+    # Remove free objects
+    for free in free_objects:
+        bpy.data.meshes.remove(free)
+
     # Clear name mapping vars, could make locals too
     del name_unique[:]
     name_mapping.clear()
+    free_objects.clear()
 
     # Debugging only: report the exporting time
     context.window.cursor_set('DEFAULT')
