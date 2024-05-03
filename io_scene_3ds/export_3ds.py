@@ -162,7 +162,6 @@ FALLOFF_TRACK_TAG = 0xB028  # Falloff transform tag
 
 ROOT_OBJECT = 0xFFFF  # Root object
 
-
 # So 3ds max can open files, limit names to 12 in length
 # this is very annoying for filenames!
 name_unique = []  # stores str, ascii only
@@ -1661,7 +1660,7 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
                 continue
 
             if ob.type in other:
-                item = ob.evaluated_get(depsgraph)
+                item = ob_derived.evaluated_get(depsgraph)
                 data = bpy.data.meshes.new_from_object(item, preserve_all_data_layers=True, depsgraph=depsgraph)
                 free_objects.append(data)
             else:
