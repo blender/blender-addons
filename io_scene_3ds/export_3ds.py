@@ -159,8 +159,11 @@ ROLL_TRACK_TAG = 0xB024  # Roll transform tag
 COL_TRACK_TAG = 0xB025  # Color transform tag
 HOTSPOT_TRACK_TAG = 0xB027  # Hotspot transform tag
 FALLOFF_TRACK_TAG = 0xB028  # Falloff transform tag
-
 ROOT_OBJECT = 0xFFFF  # Root object
+
+EMPTYS = {'EMPTY'}
+DUMMYS = {'ARMATURE', 'LATTICE', 'SPEAKER', 'VOLUME'}
+OTHERS = {'CURVE', 'SURFACE', 'FONT', 'META'}
 
 # So 3ds max can open files, limit names to 12 in length
 # this is very annoying for filenames!
@@ -1291,7 +1294,7 @@ def make_object_node(ob, translation, rotation, scale, name_id):
     obj_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
     parent = ob.parent
 
-    if ob.type in {'EMPTY', 'ARMATURE'}:  # Forcing to use the real name for empties
+    if ob.type in EMPTYS:  # Forcing to use the real name for empties
         # Empties called $$$DUMMY and use OBJECT_INSTANCE_NAME chunk as name
         obj_node_header_chunk.add_variable("name", _3ds_string(b"$$$DUMMY"))
         obj_node_header_chunk.add_variable("flags1", _3ds_ushort(0x4000))
@@ -1327,12 +1330,12 @@ def make_object_node(ob, translation, rotation, scale, name_id):
         obj_node.add_subchunk(obj_parent_name_chunk)
 
     # Empty objects need to have an extra chunk for the instance name
-    if ob.type in {'EMPTY', 'ARMATURE'}:  # Will use a real object name for empties for now
+    if ob.type in EMPTYS:  # Will use a real object name for empties for now
         obj_instance_name_chunk = _3ds_chunk(OBJECT_INSTANCE_NAME)
         obj_instance_name_chunk.add_variable("name", _3ds_string(sane_name(name)))
         obj_node.add_subchunk(obj_instance_name_chunk)
 
-    if ob.type in {'MESH', 'EMPTY', 'ARMATURE'}:  # Add a pivot point at the object center
+    if ob.type in {'MESH'} or EMPTYS:  # Add a pivot point at the object center
         pivot_pos = (translation[name])
         obj_pivot_chunk = _3ds_chunk(OBJECT_PIVOT)
         obj_pivot_chunk.add_variable("pivot", _3ds_point_3d(pivot_pos))
@@ -1364,7 +1367,7 @@ def make_object_node(ob, translation, rotation, scale, name_id):
 
     obj_node.add_subchunk(make_track_chunk(POS_TRACK_TAG, ob, ob_pos, ob_rot, ob_scale))
 
-    if ob.type in {'MESH', 'EMPTY', 'ARMATURE'}:
+    if ob.type in {'MESH'} or EMPTYS:
         obj_node.add_subchunk(make_track_chunk(ROT_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
         obj_node.add_subchunk(make_track_chunk(SCL_TRACK_TAG, ob, ob_pos, ob_rot, ob_size))
     if ob.type =='CAMERA':
@@ -1568,7 +1571,6 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
     depsgraph = context.evaluated_depsgraph_get()
     items = scene.objects
     world = scene.world
-    other = {'CURVE', 'SURFACE', 'FONT', 'META'}
 
     unit_measure = 1.0
     if use_scene_unit:
@@ -1637,15 +1639,16 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
 
     if 'OTHER' in object_filter:
         object_filter.remove('OTHER')
-        object_filter |= {'ARMATURE'}
-        object_filter |= other
+        object_filter.update(DUMMYS)
+        object_filter.update(OTHERS)
+        EMPTYS.update(DUMMYS)
 
     if use_selection:
         objects = [ob for ob in items if ob.type in object_filter and ob.visible_get(view_layer=layer) and ob.select_get(view_layer=layer)]
     else:
         objects = [ob for ob in items if ob.type in object_filter and ob.visible_get(view_layer=layer)]
 
-    empty_objects = [ob for ob in objects if ob.type in {'EMPTY', 'ARMATURE'}]
+    empty_objects = [ob for ob in objects if ob.type in EMPTYS]
     light_objects = [ob for ob in objects if ob.type == 'LIGHT']
     camera_objects = [ob for ob in objects if ob.type == 'CAMERA']
 
@@ -1653,7 +1656,6 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
         # Get derived objects
         derived_dict = bpy_extras.io_utils.create_derived_objects(depsgraph, [ob])
         derived = derived_dict.get(ob)
-
         if derived is None:
             continue
 
@@ -1661,7 +1663,7 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
             if ob.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
                 continue
 
-            if ob_derived.type in other:
+            if ob_derived.type in OTHERS:
                 item = ob_derived.evaluated_get(depsgraph)
                 data = bpy.data.meshes.new_from_object(item, preserve_all_data_layers=True, depsgraph=depsgraph)
                 free_objects.append(data)
