@@ -1555,8 +1555,8 @@ def make_ambient_node(world):
 ##########
 
 def save(operator, context, filepath="", collection="", scale_factor=1.0, use_scene_unit=False,
-         use_selection=False, object_filter=None, use_keyframes=True, use_hierarchy=False,
-         use_collection=False, global_matrix=None, use_cursor=False):
+         use_selection=False, object_filter=None, use_apply_transform=True, use_keyframes=True,
+         use_hierarchy=False, use_collection=False, global_matrix=None, use_cursor=False):
     """Save the Blender scene to a 3ds file."""
 
     # Time the export
@@ -1633,9 +1633,11 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
     free_objects = []
 
     if object_filter is None:
-        object_filter = {'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY', 'ARMATURE', 'OTHER'}
+        object_filter = {'WORLD', 'MESH', 'LIGHT', 'CAMERA', 'EMPTY', 'OTHER'}
 
     if 'OTHER' in object_filter:
+        object_filter.remove('OTHER')
+        object_filter |= {'ARMATURE'}
         object_filter |= other
 
     if use_selection:
@@ -1659,7 +1661,7 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
             if ob.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
                 continue
 
-            if ob.type in other:
+            if ob_derived.type in other:
                 item = ob_derived.evaluated_get(depsgraph)
                 data = bpy.data.meshes.new_from_object(item, preserve_all_data_layers=True, depsgraph=depsgraph)
                 free_objects.append(data)
@@ -1670,7 +1672,7 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
                     data = None
 
             if data:
-                matrix = global_matrix @ mtx
+                matrix = mtx @ global_matrix if use_apply_transform else global_matrix
                 data.transform(matrix)
                 data.transform(mtx_scale)
                 mesh_objects.append((ob_derived, data, matrix))
