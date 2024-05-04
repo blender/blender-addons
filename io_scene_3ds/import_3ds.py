@@ -1621,8 +1621,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
 
     # fix pivots
     for ind, ob in enumerate(object_list):
-        if ob is None:  # remove None
-            object_list.remove(ob)
+        if ob is None:
+            continue
         elif ob.type == 'MESH':
             pivot = pivot_list[ind]
             pivot_matrix = object_matrix.get(ob, mathutils.Matrix())  # unlikely to fail
