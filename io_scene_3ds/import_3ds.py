@@ -176,7 +176,6 @@ FALLOFF_TRACK_TAG = 0xB028  # Keyframe spotlight falloff track
 HIDE_TRACK_TAG = 0xB029  # Keyframe object hide track
 OBJECT_NODE_ID = 0xB030  # Keyframe object node id
 PARENT_NAME = 0x80F0  # Object parent name tree (dot seperated)
-
 ROOT_OBJECT = 0xFFFF
 
 global scn
@@ -1584,19 +1583,20 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
     # Assign parents to objects
     # check _if_ we need to assign first because doing so recalcs the depsgraph
     for ind, ob in enumerate(object_list):
+        if ob is None:
+            continue
         parent = object_parent[ind]
         if parent == ROOT_OBJECT:
-            if ob is not None:
-                ob.parent = None
+            ob.parent = None
         elif parent not in object_dict:
             try:
                 ob.parent = object_list[parent]
-            except:  # seems object is None or not in list
+            except:  # seems object not in list
                 object_list.pop(ind)
         else:  # get parent from node_id number
             try:
                 ob.parent = object_dict.get(parent)
-            except:  # object is None or self to parent exception
+            except:  # self to parent exception
                 pass
 
         #pivot_list[ind] += pivot_list[parent]  # Not sure this is correct, should parent space matrix be applied before combining?
