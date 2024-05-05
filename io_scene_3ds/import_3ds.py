@@ -1395,19 +1395,23 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             keyframe_data = {}
             keyframe_data[0] = child.data.color[:]
             child.data.color = read_track_data(new_chunk)[0]
-            if child.data.use_nodes and "Emission" in child.data.node_tree.nodes:
-                child.data.node_tree.nodes["Emission"].inputs[0].default_value[:3] = child.data.color
-            if child.data.use_nodes and "RGB" in child.data.node_tree.nodes:
-                child.data.node_tree.nodes["RGB"].outputs[0].default_value[:3] = child.data.color
+            child.data.use_nodes = True
+            tree = child.data.node_tree
+            emitnode = next((nd for nd in tree.nodes if nd.type == 'EMISSION'), False)
+            colornode = next((nd for nd in tree.nodes if nd.type == 'RGB'), False)
+            if emitnode:
+                emitnode.inputs[0].default_value[:3] = child.data.color
+            if colornode:
+                colornode.outputs[0].default_value[:3] = child.data.color
             for keydata in keyframe_data.items():
                 child.data.color = keydata[1]
                 child.data.keyframe_insert(data_path="color", frame=keydata[0])
-                if child.data.use_nodes and "Emission" in child.data.node_tree.nodes:
-                    child.data.node_tree.nodes["Emission"].inputs[0].default_value[:3] = keydata[1]
-                    child.data.node_tree.keyframe_insert(data_path="nodes[\"Emission\"].inputs[0].default_value", frame=keydata[0])
-                if child.data.use_nodes and "RGB" in child.data.node_tree.nodes:
-                    child.data.node_tree.nodes["RGB"].outputs[0].default_value[:3] = keydata[1]
-                    child.data.node_tree.keyframe_insert(data_path="nodes[\"RGB\"].outputs[0].default_value", frame=keydata[0])
+                if emitnode:
+                    emitnode.inputs[0].default_value[:3] = keydata[1]
+                    tree.keyframe_insert(data_path="nodes[\"Emission\"].inputs[0].default_value", frame=keydata[0])
+                if colornode:
+                    colornode.outputs[0].default_value[:3] = keydata[1]
+                    tree.keyframe_insert(data_path="nodes[\"RGB\"].outputs[0].default_value", frame=keydata[0])
             contextTrack_flag = False
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracktype == 'OBJECT':  # Translation
