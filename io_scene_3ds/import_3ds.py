@@ -402,7 +402,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             ContextMesh_facels = []
 
         if ContextMesh_vertls:
-
             bmesh.vertices.add(len(ContextMesh_vertls) // 3)
             bmesh.vertices.foreach_set("co", ContextMesh_vertls)
 
@@ -891,7 +890,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             contextWorld.mist_settings.use_mist = True
             contextWorld.mist_settings.start = read_float(new_chunk)
             contextWorld.mist_settings.height = read_float(new_chunk)
-            layerfog.inputs[1].default_value = read_float(new_chunk)
+            density = read_float(new_chunk)
+            layerfog.inputs[1].default_value = density if density < 1 else density * 0.01
             layerfog_flag = read_long(new_chunk)
             if layerfog_flag == 0:
                 contextWorld.mist_settings.falloff = 'LINEAR'
