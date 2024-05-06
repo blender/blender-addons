@@ -665,7 +665,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
         for i in range(nkeys):
             nframe = read_long(track_chunk)
             nflags = read_short(track_chunk)
-            for f in range(bin(nflags)[-4:].count('1')):
+            for f in range(bin(nflags)[-5:].count('1')):
                 temp_data = file.read(SZ_FLOAT)  # Check for spline terms
                 track_chunk.bytes_read += SZ_FLOAT
             trackdata = read_float_array(track_chunk)
@@ -679,7 +679,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
         for i in range(nkeys):
             nframe = read_long(track_chunk)
             nflags = read_short(track_chunk)
-            for f in range(bin(nflags)[-4:].count('1')):
+            for f in range(bin(nflags)[-5:].count('1')):
                 temp_data = file.read(SZ_FLOAT)  # Check for spline terms
                 track_chunk.bytes_read += SZ_FLOAT
             angle = read_float(track_chunk)
@@ -1486,7 +1486,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             for i in range(nkeys):
                 nframe = read_long(new_chunk)
                 nflags = read_short(new_chunk)
-                for f in range(bin(nflags)[-4:].count('1')):
+                for f in range(bin(nflags)[-5:].count('1')):
                     temp_data = file.read(SZ_FLOAT)  # Check for spline term values
                     new_chunk.bytes_read += SZ_FLOAT
                 temp_data = file.read(SZ_4FLOAT)
