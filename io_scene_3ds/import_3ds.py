@@ -1607,7 +1607,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             try:
                 ob.parent = object_list[parent]
             except Exception as exc:
-                print("/tError: ", exc)
+                print("\tError: ", exc)
         else:  # get parent from node_id number
             try:
                 ob.parent = object_dict.get(parent)
