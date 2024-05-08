@@ -261,13 +261,13 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
         contextWrapper._grid_to_location(1, 2, dst_node=mixer, ref_node=shader)
         img_wrap = contextWrapper.base_color_texture
         image.alpha_mode = 'CHANNEL_PACKED'
-        links.new(mixer.outputs['Color'], shader.inputs['Base Color'])
+        links.new(mixer.outputs[0], shader.inputs['Base Color'])
         if tint2 is not None:
             img_wrap.colorspace_name = 'Non-Color'
             mixer.inputs[2].default_value = tint2[:3] + [1]
-            links.new(img_wrap.node_image.outputs['Color'], mixer.inputs[0])
+            links.new(img_wrap.node_image.outputs[0], mixer.inputs[0])
         else:
-            links.new(img_wrap.node_image.outputs['Color'], mixer.inputs[2])
+            links.new(img_wrap.node_image.outputs[0], mixer.inputs[2])
     elif mapto == 'ROUGHNESS':
         img_wrap = contextWrapper.roughness_texture
     elif mapto == 'METALLIC':
@@ -284,7 +284,7 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
         shader.location = (-300,0)
         img_wrap = contextWrapper.alpha_texture
         img_wrap.use_alpha = False
-        links.new(img_wrap.node_image.outputs['Color'], img_wrap.socket_dst)
+        links.new(img_wrap.node_image.outputs[0], img_wrap.socket_dst)
     elif mapto == 'EMISSION':
         shader.location = (0,-900)
         img_wrap = contextWrapper.emission_color_texture
@@ -299,11 +299,11 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
             if node.label == 'Mixer':
                 spare = node.inputs[1] if node.inputs[1].is_linked is False else node.inputs[2]
                 socket = spare if spare.is_linked is False else node.inputs[0]
-                links.new(img_wrap.outputs['Color'], socket)
+                links.new(img_wrap.outputs[0], socket)
             if node.type == 'TEX_COORD':
-                links.new(node.outputs['UV'], img_wrap.inputs['Vector'])
+                links.new(node.outputs['UV'], img_wrap.inputs[0])
         if shader.inputs['Base Color'].is_linked is False:
-            links.new(img_wrap.outputs['Color'], shader.inputs['Base Color'])
+            links.new(img_wrap.outputs[0], shader.inputs['Base Color'])
 
     img_wrap.image = image
     img_wrap.extension = 'REPEAT'
@@ -987,6 +987,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             links.new(normalnode.outputs[1], layerweight.inputs[0])
             links.new(coordinate.outputs[1], normalnode.inputs[0])
             if backgroundmix:
+                backgroundmix.blend_type = 'ADD'
                 links.new(gradientnode.outputs[0], backgroundmix.inputs[2])
             else:
                 links.new(gradientnode.outputs[0], nodes['Background'].inputs[0])
@@ -1233,8 +1234,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             links = contextLamp.data.node_tree.links
             mix = nodes.new(type='ShaderNodeMixRGB')
             rgb = nodes.new(type='ShaderNodeRGB')
-            mix.location = (-140, 320)
-            rgb.location = (-400, 120)
+            emit = nodes.get("Emission")
+            emit.label = "Projector"
+            emit.location = (80, 300)
+            rgb.location = (-380, 100)
+            mix.location = (-140, 340)
+            mix.blend_type = 'ADD'
             gobo_name, read_str_len = read_string(file)
             new_chunk.bytes_read += read_str_len
             projection = nodes.new(type='ShaderNodeTexImage')
@@ -1246,10 +1251,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             promapping.location = (-720, 440)
             protxcoord.location = (-940, 400)
             projection.image = load_image(gobo_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
-            emitnode = next((node for node in nodes if node.type == 'EMISSION'), False)
-            emit = emitnode if emitnode else nodes.new(type='ShaderNodeEmission')
-            emit.label = "Projector"
-            emit.location = (80, 300)
             emit.inputs[0].default_value[:3] = mix.inputs[2].default_value[:3] = rgb.outputs[0].default_value[:3] = contextLamp.data.color
             links.new(emit.outputs[0], nodes['Light Output'].inputs[0])
             links.new(promapping.outputs[0] ,projection.inputs[0])
@@ -1347,7 +1348,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                     nodetree = child.node_tree
                     links = nodetree.links
                     nodes = nodetree.nodes
-                    worldout = nodes['World Output']
+                    worldout = nodes.get("World Output")
                     mixshade = nodes.new(type='ShaderNodeMixShader')
                     ambinode = nodes.new(type='ShaderNodeEmission')
                     ambilite = nodes.new(type='ShaderNodeRGB')
@@ -1404,16 +1405,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and tracking == 'AMBIENT':  # Ambient
             keyframe_data = {}
-            keyframe_data[0] = child.color[:]
+            keyframe_data[0] = ambinode.inputs[0].default_value[:3] = child.color[:]
             child.color = read_track_data(new_chunk)[0]
-            ambinode.inputs[0].default_value[:3] = child.color
             ambilite.outputs[0].default_value[:3] = child.color
             for keydata in keyframe_data.items():
-                ambinode.inputs[0].default_value[:3] = keydata[1]
                 child.color = ambilite.outputs[0].default_value[:3] = keydata[1]
                 child.keyframe_insert(data_path="color", frame=keydata[0])
                 nodetree.keyframe_insert(data_path="nodes[\"RGB\"].outputs[0].default_value", frame=keydata[0])
-                nodetree.keyframe_insert(data_path="nodes[\"Emission\"].inputs[0].default_value", frame=keydata[0])
             contextTrack_flag = False
 
         elif KEYFRAME and new_chunk.ID == COL_TRACK_TAG and tracking == 'LIGHT':  # Color
