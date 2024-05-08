@@ -952,9 +952,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             links.new(bitmap_mix.outputs[0], nodes['Background'].inputs[0])
             links.new(bitmapnode.outputs[0], bitmap_mix.inputs[1])
             links.new(bitmapping.outputs[0], bitmapnode.inputs[0])
-            if coordinates and not bitmapping.inputs['Vector'].is_linked:
+            if not coordinates:
+                coordinates = nodes.new(type='ShaderNodeTexCoord')
+                coordinates.location = (-1200, 260)
+            if not bitmapping.inputs['Vector'].is_linked:
                 links.new(coordinates.outputs[0], bitmapping.inputs[0])
-                links.new(coordinates.outputs[2], bitmapping.inputs[1])
             new_chunk.bytes_read += read_str_len
 
         # If gradient chunk:
@@ -990,7 +992,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                 links.new(gradientnode.outputs[0], nodes['Background'].inputs[0])
             if mappingnode and not mappingnode.inputs['Vector'].is_linked:
                 links.new(coordinate.outputs[0], mappingnode.inputs[0])
-                links.new(coordinate.outputs[2], mappingnode.inputs[1])
             gradientnode.color_ramp.elements.new(read_float(new_chunk))
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == COLOR_F:
@@ -1237,8 +1238,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             gobo_name, read_str_len = read_string(file)
             new_chunk.bytes_read += read_str_len
             projection = nodes.new(type='ShaderNodeTexImage')
-            projection.label = gobo_name
-            projection.location = (-480, 420)
+            promapping = nodes.new(type='ShaderNodeMapping')
+            protxcoord = nodes.new(type='ShaderNodeTexCoord')
+            projection.label = "Gobo: " + gobo_name
+            protxcoord.label = "Gobo Coordinate"
+            projection.location = (-480, 440)
+            promapping.location = (-720, 440)
+            protxcoord.location = (-940, 400)
             projection.image = load_image(gobo_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
             emitnode = next((node for node in nodes if node.type == 'EMISSION'), False)
             emit = emitnode if emitnode else nodes.new(type='ShaderNodeEmission')
@@ -1246,6 +1252,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             emit.location = (80, 300)
             emit.inputs[0].default_value[:3] = mix.inputs[2].default_value[:3] = rgb.outputs[0].default_value[:3] = contextLamp.data.color
             links.new(emit.outputs[0], nodes['Light Output'].inputs[0])
+            links.new(promapping.outputs[0] ,projection.inputs[0])
+            links.new(protxcoord.outputs[2] ,promapping.inputs[0])
             links.new(projection.outputs[0], mix.inputs[1])
             links.new(mix.outputs[0], emit.inputs[0])
             links.new(rgb.outputs[0], mix.inputs[2])
@@ -1414,21 +1422,19 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             child.data.color = read_track_data(new_chunk)[0]
             child.data.use_nodes = True
             tree = child.data.node_tree
-            emitnode = next((nd for nd in tree.nodes if nd.type == 'EMISSION'), False)
+            emitnode = tree.nodes.get("Emission")
+            emitnode.inputs[0].default_value[:3] = child.data.color
             colornode = next((nd for nd in tree.nodes if nd.type == 'RGB'), False)
-            if emitnode:
-                emitnode.inputs[0].default_value[:3] = child.data.color
-            if colornode:
-                colornode.outputs[0].default_value[:3] = child.data.color
+            if not colornode:
+                colornode = tree.nodes.new('ShaderNodeRGB')
+                colornode.location = (-380, 100)
+                tree.links.new(colornode.outputs[0], emitnode.inputs[0])
+            colornode.outputs[0].default_value[:3] = child.data.color
             for keydata in keyframe_data.items():
                 child.data.color = keydata[1]
                 child.data.keyframe_insert(data_path="color", frame=keydata[0])
-                if emitnode:
-                    emitnode.inputs[0].default_value[:3] = keydata[1]
-                    tree.keyframe_insert(data_path="nodes[\"Emission\"].inputs[0].default_value", frame=keydata[0])
-                if colornode:
-                    colornode.outputs[0].default_value[:3] = keydata[1]
-                    tree.keyframe_insert(data_path="nodes[\"RGB\"].outputs[0].default_value", frame=keydata[0])
+                colornode.outputs[0].default_value[:3] = keydata[1]
+                tree.keyframe_insert(data_path="nodes[\"RGB\"].outputs[0].default_value", frame=keydata[0])
             contextTrack_flag = False
 
         elif KEYFRAME and new_chunk.ID == POS_TRACK_TAG and tracktype == 'OBJECT':  # Translation
