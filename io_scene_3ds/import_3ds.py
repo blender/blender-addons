@@ -980,12 +980,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             conversion.location = (-740, 20)
             layerweight.location = (-940, 100)
             normalnode.location = (-1140, 180)
+            conversion.operation = 'MULTIPLY_ADD'
+            conversion.label = "Multiply"
             gradientnode.label = "Gradient"
             coordinate.label = "Coordinate"
-            conversion.operation = 'POWER'
             links.new(conversion.outputs[0], gradientnode.inputs[0])
             links.new(layerweight.outputs[1], conversion.inputs[0])
             links.new(layerweight.outputs[0], conversion.inputs[1])
+            links.new(normalnode.outputs[1], conversion.inputs[2])
             links.new(normalnode.outputs[0], layerweight.inputs[1])
             links.new(normalnode.outputs[1], layerweight.inputs[0])
             if not coordinate:
