@@ -323,13 +323,13 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
     if alpha == 'alpha':
         own_node = img_wrap.node_image
         contextWrapper.material.blend_method = 'HASHED'
-        links.new(own_node.outputs['Alpha'], img_wrap.socket_dst)
+        links.new(own_node.outputs[1], img_wrap.socket_dst)
         for link in links:
             if link.from_node.type == 'TEX_IMAGE' and link.to_node.type == 'MIX_RGB':
                 tex = link.from_node.image.name
                 own_map = img_wrap.node_mapping
                 if tex == image.name:
-                    links.new(link.from_node.outputs['Alpha'], img_wrap.socket_dst)
+                    links.new(link.from_node.outputs[1], img_wrap.socket_dst)
                     try:
                         nodes.remove(own_map)
                         nodes.remove(own_node)
@@ -954,7 +954,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             links.new(bitmapping.outputs[0], bitmapnode.inputs[0])
             if not coordinates:
                 coordinates = nodes.new(type='ShaderNodeTexCoord')
-                coordinates.location = (-1200, 260)
+                coordinates.location = (-1340, 260)
             if not bitmapping.inputs['Vector'].is_linked:
                 links.new(coordinates.outputs[0], bitmapping.inputs[0])
             new_chunk.bytes_read += read_str_len
@@ -971,21 +971,27 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             nodes = contextWorld.node_tree.nodes
             gradientnode = nodes.new(type='ShaderNodeValToRGB')
             layerweight = nodes.new(type='ShaderNodeLayerWeight')
+            conversion = nodes.new(type='ShaderNodeMath')
             normalnode = nodes.new(type='ShaderNodeNormal')
-            coordinate = nodes.new(type='ShaderNodeTexCoord')
+            coordinate = next((wn for wn in nodes if wn.type == 'TEX_COORD'), False)
             backgroundmix = next((wn for wn in nodes if wn.type in {'MIX', 'MIX_RGB'}), False)
             mappingnode = next((wn for wn in nodes if wn.type == 'MAPPING'), False)
             gradientnode.location = (-520, 20)
-            layerweight.location = (-740, 20)
-            normalnode.location = (-960, 180)
-            coordinate.location = (-1200, 260)
+            conversion.location = (-740, 20)
+            layerweight.location = (-940, 100)
+            normalnode.location = (-1140, 180)
             gradientnode.label = "Gradient"
-            layerweight.label = "Weight"
             coordinate.label = "Coordinate"
-            links.new(layerweight.outputs[1], gradientnode.inputs[0])
+            conversion.operation = 'POWER'
+            links.new(conversion.outputs[0], gradientnode.inputs[0])
+            links.new(layerweight.outputs[1], conversion.inputs[0])
+            links.new(layerweight.outputs[0], conversion.inputs[1])
             links.new(normalnode.outputs[0], layerweight.inputs[1])
             links.new(normalnode.outputs[1], layerweight.inputs[0])
-            links.new(coordinate.outputs[1], normalnode.inputs[0])
+            if not coordinate:
+                coordinate = nodes.new(type='ShaderNodeTexCoord')
+                coordinate.location = (-1340, 260)
+            links.new(coordinate.outputs[6], normalnode.inputs[0])
             if backgroundmix:
                 backgroundmix.blend_type = 'ADD'
                 links.new(gradientnode.outputs[0], backgroundmix.inputs[2])
@@ -1234,12 +1240,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             links = contextLamp.data.node_tree.links
             mix = nodes.new(type='ShaderNodeMixRGB')
             rgb = nodes.new(type='ShaderNodeRGB')
+            mix.label = "Emission Color"
+            mix.blend_type = 'ADD'
             emit = nodes.get("Emission")
             emit.label = "Projector"
             emit.location = (80, 300)
             rgb.location = (-380, 100)
             mix.location = (-140, 340)
-            mix.blend_type = 'ADD'
             gobo_name, read_str_len = read_string(file)
             new_chunk.bytes_read += read_str_len
             projection = nodes.new(type='ShaderNodeTexImage')
@@ -1247,6 +1254,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             protxcoord = nodes.new(type='ShaderNodeTexCoord')
             projection.label = "Gobo: " + gobo_name
             protxcoord.label = "Gobo Coordinate"
+            promapping.vector_type = 'TEXTURE'
             projection.location = (-480, 440)
             promapping.location = (-720, 440)
             protxcoord.location = (-940, 400)
@@ -1429,9 +1437,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                 tree.links.new(colornode.outputs[0], emitnode.inputs[0])
             colornode.outputs[0].default_value[:3] = child.data.color
             for keydata in keyframe_data.items():
-                child.data.color = keydata[1]
+                child.data.color = colornode.outputs[0].default_value[:3] = keydata[1]
                 child.data.keyframe_insert(data_path="color", frame=keydata[0])
-                colornode.outputs[0].default_value[:3] = keydata[1]
                 tree.keyframe_insert(data_path="nodes[\"RGB\"].outputs[0].default_value", frame=keydata[0])
             contextTrack_flag = False
 
@@ -1616,7 +1623,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             if (cld and cld.data) and cld.type == 'MESH':
                 cld.data.transform(mtx)
 
-    # Assign parents to objects. Check if we need to assign first because doing so recalcs the depsgraph
+    # Assign parents to objects
+    # Check if we need to assign first because doing so recalcs the depsgraph
     for ind, ob in enumerate(object_list):
         if ob is None:
             continue
