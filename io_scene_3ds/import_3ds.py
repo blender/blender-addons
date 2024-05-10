@@ -1381,7 +1381,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                     links.new(ambinode.outputs[0], mixshade.inputs[2])
                     links.new(ambilite.outputs[0], ambinode.inputs[0])
                     links.new(litepath.outputs[8], ambinode.inputs[1])
-                    links.new(litepath.outputs[2], addshade.inputs[0])
+                    links.new(litepath.outputs[2], mixshade.inputs[0])
                     ambinode.label = object_name if object_name != '$AMBIENT$' else "Ambient"
                 elif CreateEmpty and tracking == 'OBJECT' and object_name == '$$$DUMMY':
                     child = bpy.data.objects.new(object_name, None)  # Create an empty object
