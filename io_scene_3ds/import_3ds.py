@@ -1372,7 +1372,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                     ambinode.location = (10, 180)
                     worldout.location = (440, 200)
                     mixshade.location = (220, 280)
-                    ambilite.location = (-200, 20)
+                    ambilite.location = (-200, 220)
                     if not litepath:
                         litepath = nodes.new('ShaderNodeLightPath')
                         litepath.location = (-200, 20)
