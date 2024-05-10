@@ -945,8 +945,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             bitmap_mix.inputs[2].default_value = nodes['Background'].inputs[0].default_value
             bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
             bitmap_mix.inputs[0].default_value = 0.5 if bitmapnode.image is not None else 1.0
-            bitmapnode.location = (-520, 340) if bitmapnode.image is not None else (-520, 300)
-            bitmap_mix.location = (-200, 280)
+            bitmapnode.location = (-520, 400)
+            bitmap_mix.location = (-200, 400)
             bitmapping.location = (-740, 400)
             coordinates = next((wn for wn in nodes if wn.type == 'TEX_COORD'), False)
             links.new(bitmap_mix.outputs[0], nodes['Background'].inputs[0])
@@ -995,7 +995,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                 coordinate.location = (-1340, 260)
             links.new(coordinate.outputs[6], normalnode.inputs[0])
             if backgroundmix:
-                backgroundmix.blend_type = 'ADD'
                 links.new(gradientnode.outputs[0], backgroundmix.inputs[2])
             else:
                 links.new(gradientnode.outputs[0], nodes['Background'].inputs[0])
@@ -1075,14 +1074,18 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             links = contextWorld.node_tree.links
             nodes = contextWorld.node_tree.nodes
             mxvolume = nodes.new(type='ShaderNodeMixShader')
+            litepath = nodes.new(type='ShaderNodeLightPath')
             layerfog = nodes.new(type='ShaderNodeVolumeScatter')
             layerfog.label = "Layer Fog"
             mxvolume.label = "Volume"
             layerfog.location = (10, -60)
             mxvolume.location = (220, 50)
+            litepath.location = (-200, 20)
             nodes['World Output'].location = (440, 200)
             links.new(layerfog.outputs[0], mxvolume.inputs[2])
             links.new(mxvolume.outputs[0], nodes['World Output'].inputs[1])
+            links.new(litepath.outputs[0], nodes['Background'].inputs[1])
+            links.new(litepath.outputs[7], mxvolume.inputs[0])
             fognode = next((wn for wn in worldnodes if wn.type == 'VOLUME_ABSORPTION'), False)
             if fognode:
                 links.new(fognode.outputs[0], mxvolume.inputs[1])
@@ -1364,15 +1367,21 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                     ambilite = nodes.new(type='ShaderNodeRGB')
                     ambilite.label = "Ambient Color"
                     mixshade.label = "Surface"
+                    litepath = next((n for n in nodes if n.type == 'LIGHT_PATH'), False)
                     ambinode.inputs[0].default_value[:3] = child.color
                     ambinode.location = (10, 180)
                     worldout.location = (440, 200)
                     mixshade.location = (220, 280)
                     ambilite.location = (-200, 20)
+                    if not litepath:
+                        litepath = nodes.new('ShaderNodeLightPath')
+                        litepath.location = (-200, 20)
                     links.new(mixshade.outputs[0], worldout.inputs[0])
                     links.new(nodes['Background'].outputs[0], mixshade.inputs[1])
                     links.new(ambinode.outputs[0], mixshade.inputs[2])
                     links.new(ambilite.outputs[0], ambinode.inputs[0])
+                    links.new(litepath.outputs[8], ambinode.inputs[1])
+                    links.new(litepath.outputs[2], addshade.inputs[0])
                     ambinode.label = object_name if object_name != '$AMBIENT$' else "Ambient"
                 elif CreateEmpty and tracking == 'OBJECT' and object_name == '$$$DUMMY':
                     child = bpy.data.objects.new(object_name, None)  # Create an empty object
@@ -1625,8 +1634,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             if (cld and cld.data) and cld.type == 'MESH':
                 cld.data.transform(mtx)
 
-    # Assign parents to objects
-    # Check if we need to assign first because doing so recalcs the depsgraph
+    # Assign parents to objects. Check if we need to assign first because doing so recalcs the depsgraph
     for ind, ob in enumerate(object_list):
         if ob is None:
             continue
