@@ -1379,15 +1379,15 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                         litepath = nodes.new('ShaderNodeLightPath')
                     ambinode.location = (10, 180)
                     worldout.location = (440, 200)
-                    addshade.location = (220, 280)
+                    mixshade.location = (220, 280)
                     litepath.location = (-200, 20)
                     ambilite.location = (-200, 220)
-                    links.new(nodes['Background'].outputs[0], addshade.inputs[1])
-                    links.new(addshade.outputs[0], worldout.inputs[0])
-                    links.new(ambinode.outputs[0], addshade.inputs[2])
+                    links.new(nodes['Background'].outputs[0], mixshade.inputs[1])
+                    links.new(mixshade.outputs[0], worldout.inputs[0])
+                    links.new(ambinode.outputs[0], mixshade.inputs[2])
                     links.new(ambilite.outputs[0], ambinode.inputs[0])
                     links.new(litepath.outputs[8], ambinode.inputs[1])
-                    links.new(litepath.outputs[2], addshade.inputs[0])
+                    links.new(litepath.outputs[2], mixshade.inputs[0])
                     ambinode.label = object_name if object_name != '$AMBIENT$' else "Ambient"
                 elif CreateEmpty and tracking == 'OBJECT' and object_name == '$$$DUMMY':
                     child = bpy.data.objects.new(object_name, None)  # Create an empty object
