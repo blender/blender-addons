@@ -983,7 +983,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             conversion.operation = 'MULTIPLY_ADD'
             conversion.label = "Multiply"
             gradientnode.label = "Gradient"
-            coordinate.label = "Coordinate"
             links.new(conversion.outputs[0], gradientnode.inputs[0])
             links.new(layerweight.outputs[1], conversion.inputs[0])
             links.new(layerweight.outputs[0], conversion.inputs[1])
@@ -1073,22 +1072,25 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             contextWorld.use_nodes = True
             links = contextWorld.node_tree.links
             nodes = contextWorld.node_tree.nodes
-            mxvolume = nodes.new(type='ShaderNodeMixShader')
+            worldout = nodes.get("World Output")
+            worldfog = worldout.inputs[1]
             litepath = nodes.new(type='ShaderNodeLightPath')
             layerfog = nodes.new(type='ShaderNodeVolumeScatter')
-            layerfog.label = "Layer Fog"
-            mxvolume.label = "Volume"
-            layerfog.location = (10, -60)
-            mxvolume.location = (220, 50)
-            litepath.location = (-200, 20)
-            nodes['World Output'].location = (440, 200)
-            links.new(layerfog.outputs[0], mxvolume.inputs[2])
-            links.new(mxvolume.outputs[0], nodes['World Output'].inputs[1])
-            links.new(litepath.outputs[0], nodes['Background'].inputs[1])
-            links.new(litepath.outputs[7], mxvolume.inputs[0])
             fognode = next((wn for wn in worldnodes if wn.type == 'VOLUME_ABSORPTION'), False)
             if fognode:
+                mxvolume = nodes.new(type='ShaderNodeMixShader')
+                links.new(litepath.outputs[7], mxvolume.inputs[0])
                 links.new(fognode.outputs[0], mxvolume.inputs[1])
+                links.new(mxvolume.outputs[0], worldfog)
+                mxvolume.label = "Volume"
+                mxvolume.location = (220, 50)
+                worldfog = mxvolume.inputs[2]
+            layerfog.label = "Layer Fog"
+            layerfog.location = (10, -60)
+            worldout.location = (440, 200)
+            litepath.location = (-200, 120)
+            links.new(layerfog.outputs[0], worldfog)
+            links.new(litepath.outputs[0], nodes['Background'].inputs[1])
             context.view_layer.use_pass_mist = False
             contextWorld.mist_settings.use_mist = True
             contextWorld.mist_settings.start = read_float(new_chunk)
@@ -1250,24 +1252,28 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             emit = nodes.get("Emission")
             emit.label = "Projector"
             emit.location = (80, 300)
-            rgb.location = (-380, 100)
+            rgb.location = (-380, 60)
             mix.location = (-140, 340)
             gobo_name, read_str_len = read_string(file)
             new_chunk.bytes_read += read_str_len
             projection = nodes.new(type='ShaderNodeTexImage')
             promapping = nodes.new(type='ShaderNodeMapping')
             protxcoord = nodes.new(type='ShaderNodeTexCoord')
+            prolitpath = nodes.new(type='ShaderNodeLightPath')
             projection.label = "Gobo: " + gobo_name
             protxcoord.label = "Gobo Coordinate"
             promapping.vector_type = 'TEXTURE'
             projection.location = (-480, 440)
             promapping.location = (-720, 440)
-            protxcoord.location = (-940, 400)
+            protxcoord.location = (-940, 440)
+            prolitpath.location = (-940, 180)
             projection.image = load_image(gobo_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
             emit.inputs[0].default_value[:3] = mix.inputs[2].default_value[:3] = rgb.outputs[0].default_value[:3] = contextLamp.data.color
             links.new(emit.outputs[0], nodes['Light Output'].inputs[0])
             links.new(promapping.outputs[0] ,projection.inputs[0])
             links.new(protxcoord.outputs[2] ,promapping.inputs[0])
+            links.new(prolitpath.outputs[8], emit.inputs[1])
+            links.new(prolitpath.outputs[7], mix.inputs[0])
             links.new(projection.outputs[0], mix.inputs[1])
             links.new(mix.outputs[0], emit.inputs[0])
             links.new(rgb.outputs[0], mix.inputs[2])
@@ -1369,19 +1375,19 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                     mixshade.label = "Surface"
                     litepath = next((n for n in nodes if n.type == 'LIGHT_PATH'), False)
                     ambinode.inputs[0].default_value[:3] = child.color
-                    ambinode.location = (10, 180)
-                    worldout.location = (440, 200)
-                    mixshade.location = (220, 280)
-                    ambilite.location = (-200, 220)
                     if not litepath:
                         litepath = nodes.new('ShaderNodeLightPath')
-                        litepath.location = (-200, 20)
-                    links.new(mixshade.outputs[0], worldout.inputs[0])
-                    links.new(nodes['Background'].outputs[0], mixshade.inputs[1])
-                    links.new(ambinode.outputs[0], mixshade.inputs[2])
+                    ambinode.location = (10, 180)
+                    worldout.location = (440, 200)
+                    addshade.location = (220, 280)
+                    litepath.location = (-200, 20)
+                    ambilite.location = (-200, 220)
+                    links.new(nodes['Background'].outputs[0], addshade.inputs[1])
+                    links.new(addshade.outputs[0], worldout.inputs[0])
+                    links.new(ambinode.outputs[0], addshade.inputs[2])
                     links.new(ambilite.outputs[0], ambinode.inputs[0])
                     links.new(litepath.outputs[8], ambinode.inputs[1])
-                    links.new(litepath.outputs[2], mixshade.inputs[0])
+                    links.new(litepath.outputs[2], addshade.inputs[0])
                     ambinode.label = object_name if object_name != '$AMBIENT$' else "Ambient"
                 elif CreateEmpty and tracking == 'OBJECT' and object_name == '$$$DUMMY':
                     child = bpy.data.objects.new(object_name, None)  # Create an empty object
@@ -1442,10 +1448,15 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             emitnode = tree.nodes.get("Emission")
             emitnode.inputs[0].default_value[:3] = child.data.color
             colornode = next((nd for nd in tree.nodes if nd.type == 'RGB'), False)
+            lightpath = next((nd for nd in tree.nodes if nd.type == 'LIGHT_PATH'), False)
             if not colornode:
                 colornode = tree.nodes.new('ShaderNodeRGB')
-                colornode.location = (-380, 100)
+                colornode.location = (-380, 60)
                 tree.links.new(colornode.outputs[0], emitnode.inputs[0])
+            if not lightpath:
+                lightpath = tree.nodes.new('ShaderNodeLightPath')
+                lightpath.location = (-640, 180)
+            tree.links.new(lightpath.outputs[8], emitnode.inputs[1])
             colornode.outputs[0].default_value[:3] = child.data.color
             for keydata in keyframe_data.items():
                 child.data.color = colornode.outputs[0].default_value[:3] = keydata[1]
@@ -1621,8 +1632,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
         # update the previous chunk bytes read
         previous_chunk.bytes_read += new_chunk.bytes_read
 
-    # FINISHED LOOP
-    # There will be a number of objects still not added
+    # FINISHED LOOP - There will be a number of objects still not added
     if CreateBlenderObject:
         putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMesh_flag,
             contextMeshMaterials, contextMesh_smooth, WORLD_MATRIX)
