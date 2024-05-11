@@ -945,8 +945,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             bitmap_mix.inputs[2].default_value = nodes['Background'].inputs[0].default_value
             bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
             bitmap_mix.inputs[0].default_value = 0.5 if bitmapnode.image is not None else 1.0
-            bitmapnode.location = (-520, 400)
-            bitmap_mix.location = (-200, 400)
+            bitmapnode.location = (-520, 380) if bitmapnode.image is not None else (-520, 340)
+            bitmap_mix.location = (-200, 320)
             bitmapping.location = (-740, 400)
             coordinates = next((wn for wn in nodes if wn.type == 'TEX_COORD'), False)
             links.new(bitmap_mix.outputs[0], nodes['Background'].inputs[0])
@@ -954,7 +954,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             links.new(bitmapping.outputs[0], bitmapnode.inputs[0])
             if not coordinates:
                 coordinates = nodes.new(type='ShaderNodeTexCoord')
-                coordinates.location = (-1340, 260)
+                coordinates.location = (-1340, 360)
             if not bitmapping.inputs['Vector'].is_linked:
                 links.new(coordinates.outputs[0], bitmapping.inputs[0])
             new_chunk.bytes_read += read_str_len
@@ -976,10 +976,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             coordinate = next((wn for wn in nodes if wn.type == 'TEX_COORD'), False)
             backgroundmix = next((wn for wn in nodes if wn.type in {'MIX', 'MIX_RGB'}), False)
             mappingnode = next((wn for wn in nodes if wn.type == 'MAPPING'), False)
-            gradientnode.location = (-520, 20)
-            conversion.location = (-740, 20)
-            layerweight.location = (-940, 100)
-            normalnode.location = (-1140, 180)
+            conversion.location = (-740, 10)
+            layerweight.location = (-940, 120)
+            normalnode.location = (-1140, 300)
+            gradientnode.location = (-520, 60)
             conversion.operation = 'MULTIPLY_ADD'
             conversion.label = "Multiply"
             gradientnode.label = "Gradient"
@@ -991,7 +991,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             links.new(normalnode.outputs[1], layerweight.inputs[0])
             if not coordinate:
                 coordinate = nodes.new(type='ShaderNodeTexCoord')
-                coordinate.location = (-1340, 260)
+                coordinate.location = (-1340, 360)
             links.new(coordinate.outputs[6], normalnode.inputs[0])
             if backgroundmix:
                 links.new(gradientnode.outputs[0], backgroundmix.inputs[2])
@@ -1074,23 +1074,23 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             nodes = contextWorld.node_tree.nodes
             worldout = nodes.get("World Output")
             worldfog = worldout.inputs[1]
-            litepath = nodes.new(type='ShaderNodeLightPath')
             layerfog = nodes.new(type='ShaderNodeVolumeScatter')
             fognode = next((wn for wn in worldnodes if wn.type == 'VOLUME_ABSORPTION'), False)
             if fognode:
                 mxvolume = nodes.new(type='ShaderNodeMixShader')
+                litepath = nodes.new(type='ShaderNodeLightPath')
+                mxvolume.label = "Volume"
+                mxvolume.location = (220, 50)
+                litepath.location = (-1140, 120)
+                links.new(litepath.outputs[0], nodes['Background'].inputs[1])
                 links.new(litepath.outputs[7], mxvolume.inputs[0])
                 links.new(fognode.outputs[0], mxvolume.inputs[1])
                 links.new(mxvolume.outputs[0], worldfog)
-                mxvolume.label = "Volume"
-                mxvolume.location = (220, 50)
                 worldfog = mxvolume.inputs[2]
             layerfog.label = "Layer Fog"
             layerfog.location = (10, -60)
-            worldout.location = (440, 200)
-            litepath.location = (-200, 120)
+            worldout.location = (440, 180)
             links.new(layerfog.outputs[0], worldfog)
-            links.new(litepath.outputs[0], nodes['Background'].inputs[1])
             context.view_layer.use_pass_mist = False
             contextWorld.mist_settings.use_mist = True
             contextWorld.mist_settings.start = read_float(new_chunk)
@@ -1247,8 +1247,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             links = contextLamp.data.node_tree.links
             mix = nodes.new(type='ShaderNodeMixRGB')
             rgb = nodes.new(type='ShaderNodeRGB')
+            mix.blend_type = 'LINEAR_LIGHT'
             mix.label = "Emission Color"
-            mix.blend_type = 'ADD'
             emit = nodes.get("Emission")
             emit.label = "Projector"
             emit.location = (80, 300)
@@ -1260,9 +1260,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             promapping = nodes.new(type='ShaderNodeMapping')
             protxcoord = nodes.new(type='ShaderNodeTexCoord')
             prolitpath = nodes.new(type='ShaderNodeLightPath')
+            prolitfall = nodes.new(type='ShaderNodeLightFalloff')
             projection.label = "Gobo: " + gobo_name
             protxcoord.label = "Gobo Coordinate"
             promapping.vector_type = 'TEXTURE'
+            prolitfall.location = (-720, 20)
             projection.location = (-480, 440)
             promapping.location = (-720, 440)
             protxcoord.location = (-940, 440)
@@ -1270,10 +1272,12 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             projection.image = load_image(gobo_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
             emit.inputs[0].default_value[:3] = mix.inputs[2].default_value[:3] = rgb.outputs[0].default_value[:3] = contextLamp.data.color
             links.new(emit.outputs[0], nodes['Light Output'].inputs[0])
-            links.new(promapping.outputs[0] ,projection.inputs[0])
-            links.new(protxcoord.outputs[2] ,promapping.inputs[0])
-            links.new(prolitpath.outputs[8], emit.inputs[1])
-            links.new(prolitpath.outputs[7], mix.inputs[0])
+            links.new(promapping.outputs[0], projection.inputs[0])
+            links.new(protxcoord.outputs[2], promapping.inputs[0])
+            links.new(prolitpath.outputs[8], prolitfall.inputs[0])
+            links.new(prolitpath.outputs[7], prolitfall.inputs[1])
+            links.new(prolitfall.outputs[1], emit.inputs[1])
+            links.new(prolitfall.outputs[0], mix.inputs[0])
             links.new(projection.outputs[0], mix.inputs[1])
             links.new(mix.outputs[0], emit.inputs[0])
             links.new(rgb.outputs[0], mix.inputs[2])
@@ -1378,10 +1382,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                     if not litepath:
                         litepath = nodes.new('ShaderNodeLightPath')
                     ambinode.location = (10, 180)
-                    worldout.location = (440, 200)
+                    worldout.location = (440, 180)
                     mixshade.location = (220, 280)
-                    litepath.location = (-200, 20)
-                    ambilite.location = (-200, 220)
+                    ambilite.location = (-200, 60)
+                    litepath.location = (-1140, 120)
                     links.new(nodes['Background'].outputs[0], mixshade.inputs[1])
                     links.new(mixshade.outputs[0], worldout.inputs[0])
                     links.new(ambinode.outputs[0], mixshade.inputs[2])
@@ -1448,14 +1452,18 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             emitnode = tree.nodes.get("Emission")
             emitnode.inputs[0].default_value[:3] = child.data.color
             colornode = next((nd for nd in tree.nodes if nd.type == 'RGB'), False)
-            lightpath = next((nd for nd in tree.nodes if nd.type == 'LIGHT_PATH'), False)
+            lightfall = next((nd for nd in tree.nodes if nd.type == 'LIGHT_PATH'), False)
             if not colornode:
                 colornode = tree.nodes.new('ShaderNodeRGB')
                 colornode.location = (-380, 60)
                 tree.links.new(colornode.outputs[0], emitnode.inputs[0])
-            if not lightpath:
+            if not lightfall:
+                lightfall = tree.nodes.new('ShaderNodeLightFalloff')
                 lightpath = tree.nodes.new('ShaderNodeLightPath')
-                lightpath.location = (-640, 180)
+                lightfall.location = (-720, 20)
+                lightpath.location = (-940, 180)
+                tree.links.new(lightpath.outputs[8], lightfall.inputs[0])
+                tree.links.new(lightpath.outputs[7], lightfall.inputs[1])
             tree.links.new(lightpath.outputs[8], emitnode.inputs[1])
             colornode.outputs[0].default_value[:3] = child.data.color
             for keydata in keyframe_data.items():
