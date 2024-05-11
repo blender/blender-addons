@@ -1464,7 +1464,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                 lightpath.location = (-940, 180)
                 tree.links.new(lightpath.outputs[8], lightfall.inputs[0])
                 tree.links.new(lightpath.outputs[7], lightfall.inputs[1])
-            tree.links.new(lightpath.outputs[8], emitnode.inputs[1])
+            tree.links.new(lightfall.outputs[1], emitnode.inputs[1])
             colornode.outputs[0].default_value[:3] = child.data.color
             for keydata in keyframe_data.items():
                 child.data.color = colornode.outputs[0].default_value[:3] = keydata[1]
