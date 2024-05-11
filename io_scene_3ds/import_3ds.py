@@ -1452,7 +1452,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             emitnode = tree.nodes.get("Emission")
             emitnode.inputs[0].default_value[:3] = child.data.color
             colornode = next((nd for nd in tree.nodes if nd.type == 'RGB'), False)
-            lightfall = next((nd for nd in tree.nodes if nd.type == 'LIGHT_PATH'), False)
+            lightfall = next((nd for nd in tree.nodes if nd.type == 'LIGHT_FALLOFF'), False)
             if not colornode:
                 colornode = tree.nodes.new('ShaderNodeRGB')
                 colornode.location = (-380, 60)
