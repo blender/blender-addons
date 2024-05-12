@@ -980,7 +980,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             layerweight.location = (-940, 150)
             gradientnode.location = (-520, 20)
             normalnode.location = (-1140, 300)
-            layerweight.label = "Weight"
             gradientnode.label = "Gradient"
             conversion.operation = 'MULTIPLY_ADD'
             conversion.name = conversion.label = "Multiply"
@@ -1039,7 +1038,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             fognode = nodes.new(type='ShaderNodeVolumeAbsorption')
             fognode.label = "Fog"
             fognode.location = (10, 20)
-            volumemix = next((wn for wn in worldnodes if wn.label == 'Volume' and wn.type in {'ADD_SHADER', 'MIX_SHADER'}), False)
+            volumemix = next((wn for wn in worldnodes if wn.name == 'Volume' and wn.type in {'ADD_SHADER', 'MIX_SHADER'}), False)
             if volumemix:
                 links.new(fognode.outputs[0], volumemix.inputs[1])
             else:
@@ -1080,7 +1079,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             fognode = next((wn for wn in worldnodes if wn.type == 'VOLUME_ABSORPTION'), False)
             if fognode:
                 mxvolume = nodes.new(type='ShaderNodeMixShader')
-                mxvolume.label = "Volume"
+                mxvolume.label = mxvolume.name = "Volume"
                 mxvolume.location = (220, 0)
                 links.new(litepath.outputs[7], mxvolume.inputs[0])
                 links.new(fognode.outputs[0], mxvolume.inputs[1])
@@ -1382,7 +1381,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                     mixshade = nodes.new(type='ShaderNodeMixShader')
                     litefall = nodes.new(type='ShaderNodeLightFalloff')
                     ambilite.label = "Ambient Color"
-                    mixshade.label = "Surface"
+                    mixshade.label = mixshade.name = "Surface"
                     litepath = next((n for n in nodes if n.type == 'LIGHT_PATH'), False)
                     ambinode.inputs[0].default_value[:3] = child.color
                     if not litepath:
@@ -1668,7 +1667,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             if (cld and cld.data) and cld.type == 'MESH':
                 cld.data.transform(mtx)
 
-    # Assign parents to objects. Check if we need to assign first because doing so recalcs the depsgraph
+    # Assign parents to objects
+    # Check if we need to assign first because doing so recalcs the depsgraph
     for ind, ob in enumerate(object_list):
         if ob is None:
             continue
