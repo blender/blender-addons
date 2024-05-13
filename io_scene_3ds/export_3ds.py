@@ -1818,7 +1818,7 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
                 use_atmosphere = _3ds_chunk(USE_DISTANCE_CUE)
                 dist_chunk.add_variable("nearcue", _3ds_float(distcue.inputs[1].default_value))
                 dist_chunk.add_variable("neardim", _3ds_float(distcue.inputs[2].default_value))
-                dist_chunk.add_variable("farcue", _3ds_float(world.light_settings.distance))
+                dist_chunk.add_variable("farcue", _3ds_float(distcue.inputs[4].default_value))
                 dist_chunk.add_variable("fardim", _3ds_float(distcue.inputs[3].default_value))
                 object_info.add_subchunk(dist_chunk)
             if fognode or foglayer or distcue and layer.use_pass_mist:
