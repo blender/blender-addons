@@ -1134,13 +1134,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             camera_data = nodes.new(type='ShaderNodeCameraData')
             distcue_node.label = "Distance Cue"
             distcue_node.clamp = False
-            distcue_node.location = (-940, 10)
-            camera_data.location = (-1340, 170)
             distcue_mix = next((wn for wn in worldnodes if wn.name == "Volume" and wn.type == 'MIX_SHADER'), False)
             distcuepath = next((wn for wn in worldnodes if wn.type == 'LIGHT_PATH'), False)
             if not distcuepath:
                 distcuepath = nodes.new(type='ShaderNodeLightPath')
-                distcuepath.location = (-1140, 70)
+            distcue_node.location = (-940, 10)
+            distcuepath.location = (-1140, 70)
+            camera_data.location = (-1340, 170)
             raysource = distcuepath.outputs[7] if distcue_mix else distcuepath.outputs[0]
             raytarget = distcue_mix.inputs[0] if distcue_mix else nodes['Background'].inputs[1]
             links.new(camera_data.outputs[1], distcue_node.inputs[1])
