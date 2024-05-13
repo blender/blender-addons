@@ -1143,14 +1143,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                 distcuepath.location = (-1140, 160)
             raysource = distcuepath.outputs[7] if distcue_mix else distcuepath.outputs[0]
             raytarget = distcue_mix.inputs[0] if distcue_mix else nodes['Background'].inputs[1]
-            links.new(camdata.outputs[1], distnode.inputs[1])
-            links.new(camdata.outputs[2], distnode.inputs[0])
-            links.new(raysource, distnode.inputs[4])
-            links.new(distnode.outputs[0], raytarget)
-            distcue_node.inputs[1].default_value = read_float(new_chunk)
-            distcue_node.inputs[2].default_value = read_float(new_chunk)
-            contextWorld.light_settings.distance = read_float(new_chunk)
-            distnode.inputs[3].default_value = distnode.inputs[4].default_value = read_float(new_chunk)
+            links.new(camera_data.outputs[1], distcue_node.inputs[1])
+            links.new(camera_data.outputs[2], distcue_node.inputs[0])
+            links.new(raysource, distcue_node.inputs[4])
+            links.new(distcue_node.outputs[0], raytarget)
+            distcue_node.inputs[1].default_value = read_float(new_chunk)  # Near Cue
+            distcue_node.inputs[2].default_value = read_float(new_chunk)  # Near Dim
+            distcue_node.inputs[4].default_value = contextWorld.light_settings.distance = read_float(new_chunk)  # Far Cue
+            distcue_node.inputs[3].default_value = read_float(new_chunk)  # Far Dim
         elif CreateWorld and new_chunk.ID == DCUE_BGND:
             pass
 
