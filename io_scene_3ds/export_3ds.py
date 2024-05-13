@@ -1746,7 +1746,7 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
             bgmixer = 'BACKGROUND', 'MIX', 'MIX_RGB'
             bgshade = 'ADD_SHADER', 'MIX_SHADER', 'OUTPUT_WORLD'
             bg_tex = 'TEX_IMAGE', 'TEX_ENVIRONMENT'
-            bg_cue = 'EMISSION', 'MATH', 'MIX_SHADER'
+            bg_cue = 'BACKGROUND', 'EMISSION', 'MIX', 'MIX_RGB', 'MIX_SHADER'
             bg_color = next((lk.from_node.inputs[0].default_value[:3] for lk in ntree if lk.from_node.type == bgtype and lk.to_node.type in bgshade), world.color)
             bg_mixer = next((lk.from_node.type for lk in ntree if  lk.from_node.type in bgmixer and lk.to_node.type == bgtype), bgtype)
             bg_image = next((lk.from_node.image for lk in ntree if lk.from_node.type in bg_tex and lk.to_node.type == bg_mixer), False)
@@ -1812,7 +1812,7 @@ def save(operator, context, filepath="", collection="", scale_factor=1.0, use_sc
                 object_info.add_subchunk(layerfog_chunk)
 
             # Add DISTANCE CUE
-            distcue = next((lk.from_socket.node for lk in ntree if lk.from_socket.node.type == 'MAP_RANGE' and lk.to_socket.node.type in bg_cue or bgmixer), False)
+            distcue = next((lk.from_socket.node for lk in ntree if lk.from_socket.node.type == 'MAP_RANGE' and lk.to_socket.node.type in bg_cue), False)
             if distcue:
                 distance_cue_chunk = _3ds_chunk(DISTANCE_CUE)
                 use_atmo_flag = _3ds_chunk(USE_DISTANCE_CUE)
