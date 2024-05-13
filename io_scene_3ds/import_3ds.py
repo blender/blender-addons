@@ -943,13 +943,13 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             bitmap_mix = nodes.new(type='ShaderNodeMixRGB')
             bitmapnode = nodes.new(type='ShaderNodeTexEnvironment')
             bitmapping = nodes.new(type='ShaderNodeMapping')
-            bitmap_mix.label = "Solid Color"
+            bitmap_mix.label = "Background Mix"
             bitmapnode.label = "Bitmap: " + bitmap_name
             bitmap_mix.inputs[2].default_value = nodes['Background'].inputs[0].default_value
             bitmapnode.image = load_image(bitmap_name, dirname, place_holder=False, recursive=IMAGE_SEARCH, check_existing=True)
             bitmap_mix.inputs[0].default_value = 0.5 if bitmapnode.image is not None else 1.0
             bitmapnode.location = (-520, 400)
-            bitmap_mix.location = (-200, 360)
+            bitmap_mix.location = (-200, 380)
             bitmapping.location = (-740, 400)
             coordinates = next((wn for wn in nodes if wn.type == 'TEX_COORD'), False)
             links.new(bitmap_mix.outputs[0], nodes['Background'].inputs[0])
@@ -979,10 +979,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             coordinate = next((wn for wn in nodes if wn.type == 'TEX_COORD'), False)
             backgroundmix = next((wn for wn in nodes if wn.type in {'MIX', 'MIX_RGB'}), False)
             mappingnode = next((wn for wn in nodes if wn.type == 'MAPPING'), False)
-            conversion.location = (-740, 20)
-            layerweight.location = (-940, 160)
-            gradientnode.location = (-520, 60)
-            normalnode.location = (-1140, 340)
+            conversion.location = (-740, 40)
+            layerweight.location = (-940, 230)
+            gradientnode.location = (-520, 40)
+            normalnode.location = (-1140, 330)
             gradientnode.label = "Gradient"
             conversion.operation = 'MULTIPLY_ADD'
             conversion.name = conversion.label = "Multiply"
@@ -1095,14 +1095,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             layerfog.label = "Layer Fog"
             layerfog.location = (10, -120)
             worldout.location = (440, 160)
-            litepath.location = (-1140, 160)
+            litepath.location = (-1140, 60)
             links.new(layerfog.outputs[0], worldfog)
             links.new(litepath.outputs[8], layerfog.inputs[2])
             links.new(litepath.outputs[0], nodes['Background'].inputs[1])
             contextWorld.mist_settings.use_mist = True
             contextWorld.mist_settings.start = read_float(new_chunk)
             contextWorld.mist_settings.height = read_float(new_chunk)
-            density = read_float(new_chunk)
+            density = read_float(new_chunk)  # Density
             layerfog.inputs[1].default_value = density if density < 1 else density * 0.01
             layerfog_flag = read_long(new_chunk)
             if layerfog_flag == 0:
@@ -1134,19 +1134,22 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
             camera_data = nodes.new(type='ShaderNodeCameraData')
             distcue_node.label = "Distance Cue"
             distcue_node.clamp = False
-            distcue_node.location = (-940, 20)
-            camera_data.location = (-1340, -150)
+            distcue_node.location = (-940, 100)
+            camera_data.location = (-1340, -160)
             distcue_mix = next((wn for wn in worldnodes if wn.name == "Volume" and wn.type == 'MIX_SHADER'), False)
             distcuepath = next((wn for wn in worldnodes if wn.type == 'LIGHT_PATH'), False)
             if not distcuepath:
                 distcuepath = nodes.new(type='ShaderNodeLightPath')
-                distcuepath.location = (-1140, 160)
+                distcuepath.location = (-1140, 60)
             raysource = distcuepath.outputs[7] if distcue_mix else distcuepath.outputs[0]
             raytarget = distcue_mix.inputs[0] if distcue_mix else nodes['Background'].inputs[1]
             links.new(camera_data.outputs[1], distcue_node.inputs[1])
             links.new(camera_data.outputs[2], distcue_node.inputs[0])
             links.new(raysource, distcue_node.inputs[4])
             links.new(distcue_node.outputs[0], raytarget)
+            distcue_node.inputs[0].name = "Distance"
+            distcue_node.inputs[2].name = "Near"
+            distcue_node.inputs[3].name = "Far"
             distcue_node.inputs[1].default_value = read_float(new_chunk)  # Near Cue
             distcue_node.inputs[2].default_value = read_float(new_chunk)  # Near Dim
             distcue_node.inputs[4].default_value = contextWorld.light_settings.distance = read_float(new_chunk)  # Far Cue
@@ -1421,23 +1424,26 @@ def process_next_chunk(context, file, previous_chunk, imported_objects,
                     ambinode = nodes.new(type='ShaderNodeEmission')
                     mixshade = nodes.new(type='ShaderNodeMixShader')
                     litefall = nodes.new(type='ShaderNodeLightFalloff')
+                    raymixer.label = "Ambient Mix"
                     ambilite.label = "Ambient Color"
+                    raymixer.inputs[3].name = "Ambient"
+                    raymixer.inputs[2].name = "Background"
                     mixshade.label = mixshade.name = "Surface"
                     litepath = next((n for n in nodes if n.type == 'LIGHT_PATH'), False)
                     ambinode.inputs[0].default_value[:3] = child.color
                     if not litepath:
                         litepath = nodes.new('ShaderNodeLightPath')
                     ambinode.location = (10, 160)
+                    ambilite.location = (-200, 10)
                     worldout.location = (440, 160)
                     mixshade.location = (220, 280)
-                    mathnode.location = (-1140, 0)
-                    ambilite.location = (-200, 60)
-                    raymixer.location = (-940, 340)
-                    litefall.location = (-1140, 160)
-                    litepath.location = (-1340, 160)
+                    litefall.location = (-1140, 0)
+                    raymixer.location = (-200, 200)
+                    litepath.location = (-1340, 60)
+                    mathnode.location = (-1140, 160)
                     links.new(litepath.outputs[0], mathnode.inputs[0])
-                    links.new(litepath.outputs[5], mathnode.inputs[1])
-                    links.new(litepath.outputs[3], litefall.inputs[0])
+                    links.new(litepath.outputs[3], mathnode.inputs[1])
+                    links.new(litepath.outputs[5], litefall.inputs[0])
                     links.new(litepath.outputs[2], litefall.inputs[1])
                     links.new(litefall.outputs[0], raymixer.inputs[2])
                     links.new(mathnode.outputs[0], backlite.inputs[1])
