@@ -29,6 +29,32 @@ from bpy.props import (
 from copy import copy
 
 
+def pixel_scale_factor():
+    """read the node_density property and returns either the screen's native
+    pixel scale factor (AUTO) or a user-selected fixed factor.
+    """
+    if bpy.context.scene.node_density == "AUTO":
+        return bpy.context.preferences.system.pixel_size
+    else:
+        items = bpy.types.Scene.bl_rna.properties["node_density"].enum_items
+        return items[bpy.context.scene.node_density].value * 0.5
+
+
+def screen_scale_factor(x):
+    """Scale a position / length by the pixel screen factor."""
+    return x * pixel_scale_factor()
+
+
+def dim_x(node):
+    """Returns the node's x dimension divided by the pixel screen factor."""
+    return node.dimensions.x / pixel_scale_factor()
+
+
+def dim_y(node):
+    """Returns the node's y dimension divided by the pixel screen factor."""
+    return node.dimensions.y / pixel_scale_factor()
+
+
 #From Node Wrangler
 def get_nodes_linked(context):
     tree = context.space_data.node_tree
@@ -68,8 +94,8 @@ class NA_OT_AlignNodes(Operator):
             active_loc = copy(nodes.active.location)  # make a copy, not a reference
 
         # Check if nodes should be laid out horizontally or vertically
-        x_locs = [n.location.x + (n.dimensions.x / 2) for n in selection]  # use dimension to get center of node, not corner
-        y_locs = [n.location.y - (n.dimensions.y / 2) for n in selection]
+        x_locs = [n.location.x + (dim_x(n) / 2) for n in selection]  # use dimension to get center of node, not corner
+        y_locs = [n.location.y - (dim_y(n) / 2) for n in selection]
         x_range = max(x_locs) - min(x_locs)
         y_range = max(y_locs) - min(y_locs)
         mid_x = (max(x_locs) + min(x_locs)) / 2
@@ -78,9 +104,9 @@ class NA_OT_AlignNodes(Operator):
 
         # Sort selection by location of node mid-point
         if horizontal:
-            selection = sorted(selection, key=lambda n: n.location.x + (n.dimensions.x / 2))
+            selection = sorted(selection, key=lambda n: n.location.x + (dim_x(n) / 2))
         else:
-            selection = sorted(selection, key=lambda n: n.location.y - (n.dimensions.y / 2), reverse=True)
+            selection = sorted(selection, key=lambda n: n.location.y - (dim_y(n) / 2), reverse=True)
 
         # Alignment
         current_pos = 0
@@ -90,12 +116,12 @@ class NA_OT_AlignNodes(Operator):
 
             if horizontal:
                 node.location.x = current_pos
-                current_pos += current_margin + node.dimensions.x
-                node.location.y = mid_y + (node.dimensions.y / 2)
+                current_pos += current_margin + dim_x(node)
+                node.location.y = mid_y + (dim_y(node) / 2)
             else:
                 node.location.y = current_pos
-                current_pos -= (current_margin * 0.3) + node.dimensions.y  # use half-margin for vertical alignment
-                node.location.x = mid_x - (node.dimensions.x / 2)
+                current_pos -= (current_margin * 0.3) + dim_y(node)  # use half-margin for vertical alignment
+                node.location.x = mid_x - (dim_x(node) / 2)
 
         # If active node is selected, center nodes around it
         if active_loc is not None:
@@ -103,7 +129,7 @@ class NA_OT_AlignNodes(Operator):
             for node in selection:
                 node.location += active_loc_diff
         else:  # Position nodes centered around where they used to be
-            locs = ([n.location.x + (n.dimensions.x / 2) for n in selection]) if horizontal else ([n.location.y - (n.dimensions.y / 2) for n in selection])
+            locs = ([n.location.x + (dim_x(n) / 2) for n in selection]) if horizontal else ([n.location.y - (dim_y(n) / 2) for n in selection])
             new_mid = (max(locs) + min(locs)) / 2
             for node in selection:
                 if horizontal:
@@ -140,6 +166,8 @@ class NA_PT_NodePanel(Panel):
             row.prop(bpy.context.scene, 'nodemargin_y', text="Margin y")
             row = layout.row()
             row.prop(context.scene, 'node_center', text="Center nodes")
+            row = layout.row()
+            row.prop(context.scene, 'node_density', text="Density")
 
             row = layout.row()
             row.operator('node.na_align_nodes', text="Align to Selected")
@@ -204,8 +232,8 @@ class NA_OT_NodeButtonCenter(Operator):
 
 def nodemargin(self, context):
 
-    values.margin_x = context.scene.nodemargin_x
-    values.margin_y = context.scene.nodemargin_y
+    values.margin_x = screen_scale_factor(context.scene.nodemargin_x)
+    values.margin_y = screen_scale_factor(context.scene.nodemargin_y)
 
     ntree = context.space_data.node_tree
 
@@ -408,7 +436,7 @@ def nodes_arrange(nodelist, level):
     #print ("nodes arrange def")
     # node x positions
 
-    widthmax = max([x.dimensions.x for x in nodelist])
+    widthmax = max([dim_x(x) for x in nodelist])
     xpos = values.x_last - (widthmax + values.margin_x) if level != 0 else 0
     #print ("nodelist, xpos", nodelist,xpos)
     values.x_last = xpos
@@ -420,13 +448,13 @@ def nodes_arrange(nodelist, level):
     for node in nodelist:
 
         if node.hide:
-            hidey = (node.dimensions.y / 2) - 8
+            hidey = (dim_y(node) / 2) - 8
             y = y - hidey
         else:
             hidey = 0
 
         node.location.y = y
-        y = y - values.margin_y - node.dimensions.y + hidey
+        y = y - values.margin_y - dim_y(node) + hidey
 
         node.location.x = xpos #if node.type != "FRAME" else xpos + 1200
 
@@ -457,9 +485,9 @@ def nodes_center(ntree):
     for node in ntree.nodes:
         if not node.parent:
             bboxminx.append(node.location.x)
-            bboxmaxx.append(node.location.x + node.dimensions.x)
+            bboxmaxx.append(node.location.x + dim_x(node))
             bboxmaxy.append(node.location.y)
-            bboxminy.append(node.location.y - node.dimensions.y)
+            bboxminy.append(node.location.y - dim_y(node))
 
     # print ("bboxminy:",bboxminy)
     bboxminx = min(bboxminx)
@@ -504,6 +532,19 @@ def register():
     bpy.types.Scene.nodemargin_x = bpy.props.IntProperty(default=100, update=nodemargin)
     bpy.types.Scene.nodemargin_y = bpy.props.IntProperty(default=20, update=nodemargin)
     bpy.types.Scene.node_center = bpy.props.BoolProperty(default=True, update=nodemargin)
+    bpy.types.Scene.node_density = bpy.props.EnumProperty(
+        default="AUTO",
+        items=[
+            ("AUTO", "Auto", "Use the screen's native pixel scale factor", 0),
+            ("X1", "x1", "Force the pixel scale factor to 1", 2),
+            ("X1_5", "x1.5", "Force the pixel scale factor to 1.5", 3),
+            ("X2", "x2", "Force the pixel scale factor to 2", 4),
+            ("X3", "x3", "Force the pixel scale factor to 3", 6),
+            ("X4", "x4", "Force the pixel scale factor to 4", 8),
+        ],
+        update=nodemargin,
+        description="Node packing density, accounting for retina/High-DPI display",
+    )
 
 
 
@@ -514,6 +555,7 @@ def unregister():
     del bpy.types.Scene.nodemargin_x
     del bpy.types.Scene.nodemargin_y
     del bpy.types.Scene.node_center
+    del bpy.types.Scene.node_density
 
 if __name__ == "__main__":
     register()
