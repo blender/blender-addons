@@ -7,7 +7,7 @@
 bl_info = {
     "name": "Tri-lighting",
     "author": "Daniel Schalla",
-    "version": (0, 1, 4),
+    "version": (0, 1, 5),
     "blender": (2, 80, 0),
     "location": "View3D > Add > Lights",
     "description": "Add 3 Point Lighting to Selected / Active Object",
@@ -99,6 +99,74 @@ class OBJECT_OT_TriLighting(Operator):
             default="AREA"
             )
 
+    # Shape and Size Properties for the lights
+    Light_Shape_List = [
+            ('SQUARE', "Square", "Square Light"),
+            ('RECTANGLE', "Rectangle", "Rectangular Light"),
+            ('DISK', "Disk", "Disk Light"),
+            ('ELLIPSE', "Ellipse", "Elliptical Light")
+            ]
+    key_light_shape: EnumProperty(
+            name="Key Light Shape",
+            items=Light_Shape_List,
+            default='SQUARE'
+            )
+    secondary_light_shape: EnumProperty(
+            name="Fill + Back Light Shape",
+            items=Light_Shape_List,
+            default='SQUARE'
+            )
+    key_light_size: FloatProperty(
+            name="Key Light Size",
+            default=0.25,
+            min=0
+            )
+    secondary_light_size: FloatProperty(
+            name="Fill + Back Light Size",
+            default=0.25,
+            min=0
+            )
+
+    # New properties for shadow_soft_size
+    shadow_soft_size_key: FloatProperty(
+        name="Key Light Shadow Soft Size",
+        default=0.0,
+        min=0.0
+    )
+
+    shadow_soft_size_fill: FloatProperty(
+        name="Fill + Back Light Shadow Soft Size",
+        default=0.0,
+        min=0.0
+    )
+
+    # New properties for Spot Light (size in degrees, not in Blender units)
+    spot_size_key: FloatProperty(
+        name="Key Spot Light Size (in Degrees)",
+        default=45.0,
+        min=1.0,
+        max=180.0
+    )
+    spot_blend_key: FloatProperty(
+        name="Key Spot Light Blend",
+        default=0.150,
+        min=0.0,
+        max=1.0
+    )
+
+    spot_size_fill: FloatProperty(
+        name="Fill + Back Spot Light Size (in Degrees)",
+        default=45.0,
+        min=1.0,
+        max=180.0
+    )
+    spot_blend_fill: FloatProperty(
+        name="Fill + Back Spot Light Blend",
+        default=0.150,
+        min=0.0,
+        max=1.0
+    )
+
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
@@ -128,6 +196,41 @@ class OBJECT_OT_TriLighting(Operator):
         col.label(text="Fill + Back Type:")
         col.prop(self, "secondarytype", text="")
 
+        # Shape and Size for Key Light
+        col.label(text="Key Light Shape and Size:")
+        if self.primarytype == 'AREA':
+            col.prop(self, "key_light_shape")
+            col.prop(self, "key_light_size")
+
+        # Add shadow_soft_size for the key light (only if Spot or Point is selected)
+        if self.primarytype in {'POINT', 'SPOT'}:
+            col.label(text="Key Light Shadow Soft Size:")
+            col.prop(self, "shadow_soft_size_key")
+
+        # Add Spot Size and Blend for Spot
+        if self.primarytype == 'SPOT':
+            col.label(text="Key Spot Light Size (in Degrees):")
+            col.prop(self, "spot_size_key")
+            col.label(text="Key Spot Light Blend:")
+            col.prop(self, "spot_blend_key")
+
+        # Shape and Size for Fill + Back Light
+        col.label(text="Fill + Back Light Shape and Size:")
+        if self.secondarytype == 'AREA':
+            col.prop(self, "secondary_light_shape")
+            col.prop(self, "secondary_light_size")
+
+        # Add shadow_soft_size for the Fill + Back Light (only if Spot or Point is selected)
+        if self.secondarytype in {'POINT', 'SPOT'}:
+            col.label(text="Fill + Back Light Shadow Soft Size:")
+            col.prop(self, "shadow_soft_size_fill")
+
+        # Add Spot Size and Blend for Fill + Back
+        if self.secondarytype == 'SPOT':
+            col.label(text="Fill + Back Spot Light Size (in Degrees):")
+            col.prop(self, "spot_size_fill")
+            col.label(text="Fill + Back Spot Light Blend:")
+            col.prop(self, "spot_blend_fill")
 
     def execute(self, context):
         try:
@@ -196,6 +299,17 @@ class OBJECT_OT_TriLighting(Operator):
             backData = bpy.data.lights.new(name="TriLamp-Back", type=self.secondarytype)
             backData.energy = backEnergy
 
+            if self.secondarytype == 'AREA':
+                backData.shape = self.secondary_light_shape
+                backData.size = self.secondary_light_size
+
+            if self.secondarytype == 'SPOT':
+                backData.spot_size = radians(self.spot_size_fill)  # Conversion from degrees to radians
+                backData.spot_blend = self.spot_blend_fill
+
+            if self.secondarytype in {'POINT', 'SPOT'}:
+                backData.shadow_soft_size = self.shadow_soft_size_fill
+
             backLamp = bpy.data.objects.new(name="TriLamp-Back", object_data=backData)
             collection.objects.link(backLamp)
             backLamp.location = (backx, backy, self.height)
@@ -218,6 +332,15 @@ class OBJECT_OT_TriLighting(Operator):
 
             rightData = bpy.data.lights.new(name="TriLamp-Fill", type=self.secondarytype)
             rightData.energy = fillEnergy
+            if self.secondarytype == 'AREA':
+                rightData.shape = self.secondary_light_shape
+                rightData.size = self.secondary_light_size
+            if self.secondarytype == 'SPOT':
+                rightData.spot_size = radians(self.spot_size_fill)  # Conversion from degrees to radians
+                rightData.spot_blend = self.spot_blend_fill
+            if self.secondarytype in {'POINT', 'SPOT'}:
+                rightData.shadow_soft_size = self.shadow_soft_size_fill
+
             rightLamp = bpy.data.objects.new(name="TriLamp-Fill", object_data=rightData)
             collection.objects.link(rightLamp)
             rightLamp.location = (rightx, righty, self.height)
@@ -237,6 +360,14 @@ class OBJECT_OT_TriLighting(Operator):
 
             leftData = bpy.data.lights.new(name="TriLamp-Key", type=self.primarytype)
             leftData.energy = keyEnergy
+            if self.primarytype == 'AREA':
+                leftData.shape = self.key_light_shape
+                leftData.size = self.key_light_size
+            if self.primarytype == 'SPOT':
+                leftData.spot_size = radians(self.spot_size_key)  # Conversion from degrees to radians
+                leftData.spot_blend = self.spot_blend_key
+            if self.primarytype in {'POINT', 'SPOT'}:
+                leftData.shadow_soft_size = self.shadow_soft_size_key
 
             leftLamp = bpy.data.objects.new(name="TriLamp-Key", object_data=leftData)
             collection.objects.link(leftLamp)
