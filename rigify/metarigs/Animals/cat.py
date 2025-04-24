@@ -79,7 +79,7 @@ def create(obj):  # noqa
     add_bone_collection('Paws (Tweak)', ui_row=8, ui_title='(Tweak)', color_set_id=4)
     add_bone_collection('Arm.L (IK)', ui_row=10, color_set_id=2)
     add_bone_collection('Arm.L (FK)', ui_row=11, ui_title='(FK)', color_set_id=5)
-    add_bone_collection('Arm,L (Tweak)', ui_row=12, ui_title='(Tweak)', color_set_id=4)
+    add_bone_collection('Arm.L (Tweak)', ui_row=12, ui_title='(Tweak)', color_set_id=4)
     add_bone_collection('Arm.R (IK)', ui_row=10, color_set_id=2)
     add_bone_collection('Arm.R (FK)', ui_row=11, ui_title='(FK)', color_set_id=5)
     add_bone_collection('Arm.R (Tweak)', ui_row=12, ui_title='(Tweak)', color_set_id=4)
@@ -790,7 +790,7 @@ def create(obj):  # noqa
     bone = arm.edit_bones.new('f_palm.002.L')
     bone.head = 0.0273, -0.1278, 0.0100
     bone.tail = 0.0273, -0.1345, 0.0100
-    bone.roll = 3.1416
+    bone.roll = 0.0004
     bone.use_connect = False
     bone.parent = arm.edit_bones[bones['f_toe.L']]
     bones['f_palm.002.L'] = bone.name
@@ -818,7 +818,7 @@ def create(obj):  # noqa
     bone = arm.edit_bones.new('f_palm.002.R')
     bone.head = -0.0273, -0.1278, 0.0100
     bone.tail = -0.0273, -0.1345, 0.0100
-    bone.roll = -3.1416
+    bone.roll = -0.0004
     bone.use_connect = False
     bone.parent = arm.edit_bones[bones['f_toe.R']]
     bones['f_palm.002.R'] = bone.name
@@ -1586,7 +1586,7 @@ def create(obj):  # noqa
     except AttributeError:
         pass
     assign_bone_collection_refs(pbone.rigify_parameters, 'fk', 'Arm.L (FK)')
-    assign_bone_collection_refs(pbone.rigify_parameters, 'tweak', 'Arm,L (Tweak)')
+    assign_bone_collection_refs(pbone.rigify_parameters, 'tweak', 'Arm.L (Tweak)')
     pbone = obj.pose.bones[bones['upper_arm.R']]
     pbone.rigify_type = 'limbs.front_paw'
     pbone.lock_location = (False, False, False)
